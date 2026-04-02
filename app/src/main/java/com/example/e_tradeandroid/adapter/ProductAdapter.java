@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.e_tradeandroid.R;
 import com.example.e_tradeandroid.model.Product;
+import com.example.e_tradeandroid.network.ApiClient;
 
 import java.util.List;
 
@@ -41,12 +42,13 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
         holder.tvName.setText(product.getName());
         holder.tvPrice.setText("¥" + product.getPrice().toString());
         if (product.getImageUrls() != null && !product.getImageUrls().isEmpty()) {
-            // 假设后端返回单个图片URL，多图用逗号分隔，这里简单取第一个
-            String url = product.getImageUrls().split(",")[0];
+            String firstUrl = product.getImageUrls().split(",")[0];
             Glide.with(holder.itemView.getContext())
-                    .load(ApiClient.BASE_URL + url)
+                    .load(ApiClient.BASE_URL + firstUrl)
                     .placeholder(R.drawable.ic_launcher_foreground)
                     .into(holder.ivImage);
+        } else {
+            holder.ivImage.setImageResource(R.drawable.ic_launcher_foreground);
         }
         holder.itemView.setOnClickListener(v -> listener.onItemClick(product));
     }
@@ -67,4 +69,4 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
             tvPrice = itemView.findViewById(R.id.tv_product_price);
         }
     }
-}s
+}

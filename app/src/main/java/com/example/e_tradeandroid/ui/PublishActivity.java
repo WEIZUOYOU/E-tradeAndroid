@@ -1,8 +1,11 @@
 package com.example.e_tradeandroid.ui;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.View;
@@ -11,8 +14,11 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.example.e_tradeandroid.R;
 import com.example.e_tradeandroid.model.BaseResponse;
@@ -36,6 +42,7 @@ public class PublishActivity extends AppCompatActivity {
     private ImageView ivPreview;
     private Uri selectedImageUri;
     private static final int REQUEST_IMAGE = 100;
+    private static final int REQUEST_PERMISSION = 101;
     private Gson gson = new Gson();
 
     @Override
@@ -52,11 +59,48 @@ public class PublishActivity extends AppCompatActivity {
         ivPreview = findViewById(R.id.iv_preview);
 
         btnSelectImage.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-            startActivityForResult(intent, REQUEST_IMAGE);
+            if (checkStoragePermission()) {
+                openGallery();
+            } else {
+                requestStoragePermission();
+            }
         });
 
         btnPublish.setOnClickListener(v -> publishProduct());
+    }
+
+    private boolean checkStoragePermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Android 13+ 使用 READ_MEDIA_IMAGES
+            return ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED;
+        } else {
+            return ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        }
+    }
+
+    private void requestStoragePermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_MEDIA_IMAGES}, REQUEST_PERMISSION);
+        } else {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_PERMISSION);
+        }
+    }
+
+    private void openGallery() {
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(intent, REQUEST_IMAGE);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                openGallery();
+            } else {
+                Toast.makeText(this, "需要存储权限才能选择图片", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     @Override
@@ -86,12 +130,19 @@ public class PublishActivity extends AppCompatActivity {
         if (!description.isEmpty()) {
             builder.addFormDataPart("description", description);
         }
-        // 添加图片（这里简单只传一张）
         if (selectedImageUri != null) {
             String path = getRealPathFromUri(selectedImageUri);
-            File file = new File(path);
-            RequestBody fileBody = RequestBody.create(file, MediaType.parse("image/*"));
-            builder.addFormDataPart("images", file.getName(), fileBody);
+            if (path != null) {
+                File file = new File(path);
+                RequestBody fileBody = RequestBody.create(file, MediaType.parse("image/*"));
+                builder.addFormDataPart("images", file.getName(), fileBody);
+            } else {
+                Toast.makeText(this, "无法获取图片路径", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        } else {
+            Toast.makeText(this, "请选择图片", Toast.LENGTH_SHORT).show();
+            return;
         }
 
         RequestBody requestBody = builder.build();
@@ -109,7 +160,7 @@ public class PublishActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String respBody = response.body().string();
-                BaseResponse<Long> baseResp = gson.fromJson(respBody, BaseResponse.class);
+                BaseResponse<Long> baseResp = gson.fromJson(respBody, new com.google.gson.reflect.TypeToken<BaseResponse<Long>>(){}.getType());
                 runOnUiThread(() -> {
                     if (baseResp.isSuccess()) {
                         Toast.makeText(PublishActivity.this, "发布成功", Toast.LENGTH_SHORT).show();
@@ -122,7 +173,6 @@ public class PublishActivity extends AppCompatActivity {
         });
     }
 
-    // 将Uri转换为文件路径
     private String getRealPathFromUri(Uri uri) {
         String[] projection = {MediaStore.Images.Media.DATA};
         Cursor cursor = getContentResolver().query(uri, projection, null, null, null);

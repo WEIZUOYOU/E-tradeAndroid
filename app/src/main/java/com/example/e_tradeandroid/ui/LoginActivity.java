@@ -36,7 +36,7 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        ApiClient.init(this); // 初始化网络
+        ApiClient.init(this);
 
         etStudentId = findViewById(R.id.et_student_id);
         etPassword = findViewById(R.id.et_password);
@@ -45,7 +45,6 @@ public class LoginActivity extends AppCompatActivity {
         btnLogin = findViewById(R.id.btn_login);
         btnRegister = findViewById(R.id.btn_register);
 
-        // 默认显示登录模式
         setLoginMode();
 
         btnLogin.setOnClickListener(v -> {
@@ -106,7 +105,7 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String respBody = response.body().string();
-                BaseResponse<User> baseResp = gson.fromJson(respBody, BaseResponse.class);
+                BaseResponse<User> baseResp = gson.fromJson(respBody, new com.google.gson.reflect.TypeToken<BaseResponse<User>>(){}.getType());
                 if (baseResp.isSuccess()) {
                     runOnUiThread(() -> {
                         Toast.makeText(LoginActivity.this, "登录成功", Toast.LENGTH_SHORT).show();
@@ -150,7 +149,7 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String respBody = response.body().string();
-                BaseResponse<Long> baseResp = gson.fromJson(respBody, BaseResponse.class);
+                BaseResponse<Long> baseResp = gson.fromJson(respBody, new com.google.gson.reflect.TypeToken<BaseResponse<Long>>(){}.getType());
                 if (baseResp.isSuccess()) {
                     runOnUiThread(() -> {
                         Toast.makeText(LoginActivity.this, "注册成功，请登录", Toast.LENGTH_SHORT).show();
@@ -158,6 +157,8 @@ public class LoginActivity extends AppCompatActivity {
                         setLoginMode();
                         etStudentId.setText("");
                         etPassword.setText("");
+                        etUsername.setText("");
+                        etPhone.setText("");
                     });
                 } else {
                     runOnUiThread(() -> Toast.makeText(LoginActivity.this, "注册失败：" + baseResp.getMessage(), Toast.LENGTH_SHORT).show());

@@ -1,5 +1,6 @@
 package com.example.e_tradeandroid.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -17,6 +18,7 @@ import com.example.e_tradeandroid.model.Order;
 import com.example.e_tradeandroid.model.Product;
 import com.example.e_tradeandroid.network.ApiClient;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
 
@@ -73,7 +75,7 @@ public class ProductDetailActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String respBody = response.body().string();
-                BaseResponse<Product> baseResp = gson.fromJson(respBody, BaseResponse.class);
+                BaseResponse<Product> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<Product>>(){}.getType());
                 if (baseResp.isSuccess() && baseResp.getData() != null) {
                     product = baseResp.getData();
                     runOnUiThread(() -> {
@@ -82,10 +84,11 @@ public class ProductDetailActivity extends AppCompatActivity {
                         tvStock.setText("库存：" + product.getStock());
                         tvDescription.setText(product.getDescription());
                         tvSeller.setText("卖家ID：" + product.getSellerId());
-                        if (product.getImageUrls() != null) {
-                            String url = product.getImageUrls().split(",")[0];
+                        if (product.getImageUrls() != null && !product.getImageUrls().isEmpty()) {
+                            String firstUrl = product.getImageUrls().split(",")[0];
                             Glide.with(ProductDetailActivity.this)
-                                    .load(ApiClient.BASE_URL + url)
+                                    .load(ApiClient.BASE_URL + firstUrl)
+                                    .placeholder(R.drawable.ic_launcher_foreground)
                                     .into(ivImage);
                         }
                     });
@@ -117,11 +120,10 @@ public class ProductDetailActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String respBody = response.body().string();
-                BaseResponse<Order> baseResp = gson.fromJson(respBody, BaseResponse.class);
+                BaseResponse<Order> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<Order>>(){}.getType());
                 if (baseResp.isSuccess()) {
                     runOnUiThread(() -> {
                         Toast.makeText(ProductDetailActivity.this, "下单成功，订单号：" + baseResp.getData().getOrderNo(), Toast.LENGTH_SHORT).show();
-                        // 跳转到订单详情页
                         Intent intent = new Intent(ProductDetailActivity.this, OrderActivity.class);
                         intent.putExtra("order_id", baseResp.getData().getId());
                         startActivity(intent);
