@@ -16,6 +16,7 @@ import com.example.e_tradeandroid.model.BaseResponse;
 import com.example.e_tradeandroid.model.CreateOrderRequest;
 import com.example.e_tradeandroid.model.Order;
 import com.example.e_tradeandroid.model.Product;
+import com.example.e_tradeandroid.model.User;
 import com.example.e_tradeandroid.network.ApiClient;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -30,10 +31,11 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class ProductDetailActivity extends AppCompatActivity {
-    private TextView tvName, tvPrice, tvStock, tvDescription, tvSeller;
+    private TextView tvName, tvPrice, tvStock, tvDescription, tvSeller, tvViewCount;
     private ImageView ivImage;
     private Button btnBuy;
     private Product product;
+    private User seller;
     private Gson gson = new Gson();
 
     @Override
@@ -46,6 +48,7 @@ public class ProductDetailActivity extends AppCompatActivity {
         tvStock = findViewById(R.id.tv_stock);
         tvDescription = findViewById(R.id.tv_description);
         tvSeller = findViewById(R.id.tv_seller);
+        tvViewCount = findViewById(R.id.tv_view_count);
         ivImage = findViewById(R.id.iv_image);
         btnBuy = findViewById(R.id.btn_buy);
 
@@ -83,7 +86,8 @@ public class ProductDetailActivity extends AppCompatActivity {
                         tvPrice.setText("¥" + product.getPrice().toString());
                         tvStock.setText("库存：" + product.getStock());
                         tvDescription.setText(product.getDescription());
-                        tvSeller.setText("卖家ID：" + product.getSellerId());
+                        tvViewCount.setText("浏览量: " + product.getViewCount());
+                        
                         if (product.getImageUrls() != null && !product.getImageUrls().isEmpty()) {
                             String firstUrl = product.getImageUrls().split(",")[0];
                             Glide.with(ProductDetailActivity.this)
@@ -91,9 +95,41 @@ public class ProductDetailActivity extends AppCompatActivity {
                                     .placeholder(R.drawable.ic_launcher_foreground)
                                     .into(ivImage);
                         }
+                        
+                        // 加载卖家信息
+                        loadSellerInfo(product.getSellerId());
                     });
                 } else {
                     runOnUiThread(() -> Toast.makeText(ProductDetailActivity.this, "获取商品详情失败", Toast.LENGTH_SHORT).show());
+                }
+            }
+        });
+    }
+    
+    private void loadSellerInfo(Long sellerId) {
+        Request request = new Request.Builder()
+                .url(ApiClient.BASE_URL + "user/info/" + sellerId)
+                .get()
+                .build();
+
+        ApiClient.getClient().newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                runOnUiThread(() -> tvSeller.setText("卖家ID: " + sellerId));
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                String respBody = response.body().string();
+                BaseResponse<User> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<User>>(){}.getType());
+                if (baseResp.isSuccess() && baseResp.getData() != null) {
+                    seller = baseResp.getData();
+                    runOnUiThread(() -> {
+                        String sellerInfo = "卖家: " + seller.getUsername() + " | 信用分: " + seller.getCreditScore();
+                        tvSeller.setText(sellerInfo);
+                    });
+                } else {
+                    runOnUiThread(() -> tvSeller.setText("卖家ID: " + sellerId));
                 }
             }
         });

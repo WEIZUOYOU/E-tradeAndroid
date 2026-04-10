@@ -35,6 +35,7 @@
         <activity android:name=".ui.ProductDetailActivity" />
         <activity android:name=".ui.PublishActivity" />
         <activity android:name=".ui.OrderActivity" />
+        <activity android:name=".ui.OrderListActivity" />
         <activity android:name=".ui.MyProfileActivity" />
     </application>
 

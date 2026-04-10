@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- 搜索 -->
+    <item
+        android:id="@+id/action_search"
+        android:icon="@android:drawable/ic_menu_search"
+        android:title="搜索"
+        app:actionViewClass="android.widget.SearchView"
+        app:showAsAction="ifRoom|collapseActionView" />
+
+    <!-- 订单列表 -->
+    <item
+        android:id="@+id/action_orders"
+        android:icon="@android:drawable/ic_menu_agenda"
+        android:title="我的订单"
+        app:showAsAction="ifRoom" />
+
+    <!-- 个人资料 -->
+    <item
+        android:id="@+id/action_profile"
+        android:icon="@android:drawable/ic_menu_myplaces"
+        android:title="个人资料"
+        app:showAsAction="ifRoom" />
+
+</menu>
