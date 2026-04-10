@@ -15,6 +15,7 @@ import com.example.e_tradeandroid.R;
 import com.example.e_tradeandroid.model.BaseResponse;
 import com.example.e_tradeandroid.model.User;
 import com.example.e_tradeandroid.network.ApiClient;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -29,6 +30,7 @@ public class MyProfileActivity extends AppCompatActivity {
     private TextView tvStudentId, tvUsername, tvPhone, tvCreditScore, tvStatus;
     private ImageView ivAvatar;
     private Button btnLogout, btnMyOrders, btnMyProducts;
+    private BottomNavigationView bottomNavigation;
     private Gson gson = new Gson();
 
     @Override
@@ -45,6 +47,9 @@ public class MyProfileActivity extends AppCompatActivity {
         btnLogout = findViewById(R.id.btn_logout);
         btnMyOrders = findViewById(R.id.btn_my_orders);
         btnMyProducts = findViewById(R.id.btn_my_products);
+        bottomNavigation = findViewById(R.id.bottom_navigation);
+
+        setupBottomNavigation();
 
         loadUserProfile();
 
@@ -65,6 +70,31 @@ public class MyProfileActivity extends AppCompatActivity {
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             finish();
+        });
+    }
+
+    private void setupBottomNavigation() {
+        bottomNavigation.setSelectedItemId(R.id.nav_profile);
+        bottomNavigation.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.nav_home) {
+                startActivity(new Intent(MyProfileActivity.this, MainActivity.class));
+                finish();
+                return true;
+            } else if (itemId == R.id.nav_category) {
+                startActivity(new Intent(MyProfileActivity.this, MainActivity.class));
+                finish();
+                return true;
+            } else if (itemId == R.id.nav_publish) {
+                startActivity(new Intent(MyProfileActivity.this, PublishActivity.class));
+                return true;
+            } else if (itemId == R.id.nav_orders) {
+                startActivity(new Intent(MyProfileActivity.this, OrderListActivity.class));
+                return true;
+            } else if (itemId == R.id.nav_profile) {
+                return true;
+            }
+            return false;
         });
     }
 

@@ -16,6 +16,7 @@ import com.example.e_tradeandroid.adapter.OrderAdapter;
 import com.example.e_tradeandroid.model.BaseResponse;
 import com.example.e_tradeandroid.model.Order;
 import com.example.e_tradeandroid.network.ApiClient;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -34,6 +35,7 @@ public class OrderListActivity extends AppCompatActivity {
     private List<Order> orderList = new ArrayList<>();
     private SwipeRefreshLayout swipeRefresh;
     private ProgressBar progressBar;
+    private BottomNavigationView bottomNavigation;
     private Gson gson = new Gson();
 
     @Override
@@ -44,6 +46,9 @@ public class OrderListActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recycler_view_orders);
         swipeRefresh = findViewById(R.id.swipe_refresh_orders);
         progressBar = findViewById(R.id.progress_bar_orders);
+        bottomNavigation = findViewById(R.id.bottom_navigation);
+
+        setupBottomNavigation();
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new OrderAdapter(orderList, order -> {
@@ -56,6 +61,31 @@ public class OrderListActivity extends AppCompatActivity {
         swipeRefresh.setOnRefreshListener(this::loadOrders);
 
         loadOrders();
+    }
+
+    private void setupBottomNavigation() {
+        bottomNavigation.setSelectedItemId(R.id.nav_orders);
+        bottomNavigation.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.nav_home) {
+                startActivity(new Intent(OrderListActivity.this, MainActivity.class));
+                finish();
+                return true;
+            } else if (itemId == R.id.nav_category) {
+                startActivity(new Intent(OrderListActivity.this, MainActivity.class));
+                finish();
+                return true;
+            } else if (itemId == R.id.nav_publish) {
+                startActivity(new Intent(OrderListActivity.this, PublishActivity.class));
+                return true;
+            } else if (itemId == R.id.nav_orders) {
+                return true;
+            } else if (itemId == R.id.nav_profile) {
+                startActivity(new Intent(OrderListActivity.this, MyProfileActivity.class));
+                return true;
+            }
+            return false;
+        });
     }
 
     private void loadOrders() {

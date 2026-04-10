@@ -23,6 +23,7 @@ import androidx.core.content.ContextCompat;
 import com.example.e_tradeandroid.R;
 import com.example.e_tradeandroid.model.BaseResponse;
 import com.example.e_tradeandroid.network.ApiClient;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 
 import java.io.File;
@@ -40,6 +41,7 @@ public class PublishActivity extends AppCompatActivity {
     private EditText etName, etPrice, etStock, etDescription;
     private Button btnSelectImage, btnPublish;
     private ImageView ivPreview;
+    private BottomNavigationView bottomNavigation;
     private Uri selectedImageUri;
     private static final int REQUEST_IMAGE = 100;
     private static final int REQUEST_PERMISSION = 101;
@@ -57,6 +59,9 @@ public class PublishActivity extends AppCompatActivity {
         btnSelectImage = findViewById(R.id.btn_select_image);
         btnPublish = findViewById(R.id.btn_publish);
         ivPreview = findViewById(R.id.iv_preview);
+        bottomNavigation = findViewById(R.id.bottom_navigation);
+
+        setupBottomNavigation();
 
         btnSelectImage.setOnClickListener(v -> {
             if (checkStoragePermission()) {
@@ -67,6 +72,31 @@ public class PublishActivity extends AppCompatActivity {
         });
 
         btnPublish.setOnClickListener(v -> publishProduct());
+    }
+
+    private void setupBottomNavigation() {
+        bottomNavigation.setSelectedItemId(R.id.nav_publish);
+        bottomNavigation.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.nav_home) {
+                startActivity(new Intent(PublishActivity.this, MainActivity.class));
+                finish();
+                return true;
+            } else if (itemId == R.id.nav_category) {
+                startActivity(new Intent(PublishActivity.this, MainActivity.class));
+                finish();
+                return true;
+            } else if (itemId == R.id.nav_publish) {
+                return true;
+            } else if (itemId == R.id.nav_orders) {
+                startActivity(new Intent(PublishActivity.this, OrderListActivity.class));
+                return true;
+            } else if (itemId == R.id.nav_profile) {
+                startActivity(new Intent(PublishActivity.this, MyProfileActivity.class));
+                return true;
+            }
+            return false;
+        });
     }
 
     private boolean checkStoragePermission() {

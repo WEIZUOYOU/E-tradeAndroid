@@ -18,6 +18,7 @@ import com.example.e_tradeandroid.model.Order;
 import com.example.e_tradeandroid.model.Product;
 import com.example.e_tradeandroid.model.User;
 import com.example.e_tradeandroid.network.ApiClient;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -36,6 +37,7 @@ public class ProductDetailActivity extends AppCompatActivity {
     private Button btnBuy;
     private Product product;
     private User seller;
+    private BottomNavigationView bottomNavigation;
     private Gson gson = new Gson();
 
     @Override
@@ -51,6 +53,9 @@ public class ProductDetailActivity extends AppCompatActivity {
         tvViewCount = findViewById(R.id.tv_view_count);
         ivImage = findViewById(R.id.iv_image);
         btnBuy = findViewById(R.id.btn_buy);
+        bottomNavigation = findViewById(R.id.bottom_navigation);
+
+        setupBottomNavigation();
 
         long productId = getIntent().getLongExtra("product_id", -1);
         if (productId == -1) {
@@ -61,6 +66,31 @@ public class ProductDetailActivity extends AppCompatActivity {
         loadProductDetail(productId);
 
         btnBuy.setOnClickListener(v -> createOrder());
+    }
+
+    private void setupBottomNavigation() {
+        bottomNavigation.setSelectedItemId(R.id.nav_home);
+        bottomNavigation.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.nav_home) {
+                startActivity(new Intent(ProductDetailActivity.this, MainActivity.class));
+                finish();
+                return true;
+            } else if (itemId == R.id.nav_category) {
+                startActivity(new Intent(ProductDetailActivity.this, MainActivity.class));
+                return true;
+            } else if (itemId == R.id.nav_publish) {
+                startActivity(new Intent(ProductDetailActivity.this, PublishActivity.class));
+                return true;
+            } else if (itemId == R.id.nav_orders) {
+                startActivity(new Intent(ProductDetailActivity.this, OrderListActivity.class));
+                return true;
+            } else if (itemId == R.id.nav_profile) {
+                startActivity(new Intent(ProductDetailActivity.this, MyProfileActivity.class));
+                return true;
+            }
+            return false;
+        });
     }
 
     private void loadProductDetail(long productId) {

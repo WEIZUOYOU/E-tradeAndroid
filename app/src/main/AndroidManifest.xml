@@ -20,9 +20,9 @@
         android:theme="@style/Theme.EtradeAndroid"
         android:usesCleartextTraffic="true">
 
-        <!-- 启动页：登录页 -->
+        <!-- 启动页：首页 -->
         <activity
-            android:name=".ui.LoginActivity"
+            android:name=".ui.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -31,7 +31,7 @@
         </activity>
 
         <!-- 其他 Activity -->
-        <activity android:name=".ui.MainActivity" />
+        <activity android:name=".ui.LoginActivity" />
         <activity android:name=".ui.ProductDetailActivity" />
         <activity android:name=".ui.PublishActivity" />
         <activity android:name=".ui.OrderActivity" />
