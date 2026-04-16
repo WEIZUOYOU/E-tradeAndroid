@@ -1,5 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- 基础颜色 -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- 品牌主色 - 活力蓝 -->
+    <color name="primary_blue">#4A90E2</color>
+    <color name="primary_blue_light">#6BA3E8</color>
+    <color name="primary_blue_dark">#357ABD</color>
+
+    <!-- 辅助色 - 暖橙（价格、优惠） -->
+    <color name="accent_orange">#F5A623</color>
+    <color name="accent_orange_light">#F7B84E</color>
+
+    <!-- 状态色 -->
+    <color name="success_green">#2ECC71</color>
+    <color name="warning_orange">#E67E22</color>
+    <color name="error_red">#E74C3C</color>
+
+    <!-- 中性灰色系 -->
+    <color name="gray_50">#F8F9FA</color>
+    <color name="gray_100">#E9ECEF</color>
+    <color name="gray_200">#DEE2E6</color>
+    <color name="gray_300">#CED4DA</color>
+    <color name="gray_400">#ADB5BD</color>
+    <color name="gray_500">#6C757D</color>
+    <color name="gray_600">#495057</color>
+    <color name="gray_700">#343A40</color>
+    <color name="gray_800">#212529</color>
+
+    <!-- 背景色 -->
+    <color name="background_light">#F8F9FA</color>
+    <color name="background_white">#FFFFFF</color>
+
+    <!-- 文字颜色 -->
+    <color name="text_primary">#212529</color>
+    <color name="text_secondary">#6C757D</color>
+    <color name="text_hint">#ADB5BD</color>
+
+    <!-- 分割线 -->
+    <color name="divider">#E9ECEF</color>
+
+    <!-- 卡片阴影 -->
+    <color name="card_shadow">#1A000000</color>
 </resources>

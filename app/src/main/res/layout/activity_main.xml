@@ -12,31 +12,34 @@
         android:layout_weight="1"
         android:orientation="vertical">
 
-        <!-- 顶部搜索栏 -->
-        <androidx.cardview.widget.CardView
+        <!-- 顶部搜索栏 - 带阴影，悬浮效果 -->
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="2dp">
+            android:layout_margin="@dimen/spacing_medium"
+            app:cardCornerRadius="@dimen/radius_full"
+            app:cardElevation="@dimen/elevation_appbar"
+            app:cardBackgroundColor="@color/background_white">
 
             <SearchView
                 android:id="@+id/search_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:iconifiedByDefault="false"
-                android:queryHint="搜索商品..." />
-        </androidx.cardview.widget.CardView>
+                android:queryHint="搜索商品..."
+                android:background="@android:color/transparent" />
+        </com.google.android.material.card.MaterialCardView>
 
-        <!-- 分类模块 -->
+        <!-- 分类模块标题 -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="16dp"
+            android:layout_marginStart="@dimen/spacing_medium"
+            android:layout_marginTop="@dimen/spacing_small"
+            android:layout_marginEnd="@dimen/spacing_medium"
             android:text="热门分类"
-            android:textSize="16sp"
+            android:textSize="@dimen/text_size_title_medium"
+            android:textColor="@color/text_primary"
             android:textStyle="bold" />
 
         <HorizontalScrollView

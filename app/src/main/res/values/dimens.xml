@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 间距系统 - 基于8dp栅格 -->
+    <dimen name="spacing_xs">4dp</dimen>
+    <dimen name="spacing_small">8dp</dimen>
+    <dimen name="spacing_medium">16dp</dimen>
+    <dimen name="spacing_large">24dp</dimen>
+    <dimen name="spacing_xl">32dp</dimen>
+
+    <!-- 圆角规范 -->
+    <dimen name="radius_small">4dp</dimen>
+    <dimen name="radius_medium">8dp</dimen>
+    <dimen name="radius_large">12dp</dimen>
+    <dimen name="radius_xlarge">16dp</dimen>
+    <dimen name="radius_full">24dp</dimen>
+
+    <!-- 字体大小规范 -->
+    <dimen name="text_size_title_large">20sp</dimen>
+    <dimen name="text_size_title_medium">18sp</dimen>
+    <dimen name="text_size_body">14sp</dimen>
+    <dimen name="text_size_caption">12sp</dimen>
+    <dimen name="text_size_price">18sp</dimen>
+
+    <!-- 组件尺寸 -->
+    <dimen name="bottom_nav_height">56dp</dimen>
+    <dimen name="avatar_size_small">40dp</dimen>
+    <dimen name="avatar_size_medium">60dp</dimen>
+    <dimen name="avatar_size_large">80dp</dimen>
+    <dimen name="product_image_size">100dp</dimen>
+
+    <!-- 阴影高度 -->
+    <dimen name="elevation_card">2dp</dimen>
+    <dimen name="elevation_fab">6dp</dimen>
+    <dimen name="elevation_appbar">4dp</dimen>
+
+    <!-- 按钮内边距 -->
+    <dimen name="btn_padding_vertical">12dp</dimen>
+    <dimen name="btn_padding_horizontal">24dp</dimen>
+</resources>

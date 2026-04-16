@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- 主按钮样式 - 圆角24dp，主色填充 -->
+    <style name="PrimaryButton" parent="Widget.MaterialComponents.Button">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:paddingTop">@dimen/btn_padding_vertical</item>
+        <item name="android:paddingBottom">@dimen/btn_padding_vertical</item>
+        <item name="android:paddingStart">@dimen/btn_padding_horizontal</item>
+        <item name="android:paddingEnd">@dimen/btn_padding_horizontal</item>
+        <item name="cornerRadius">@dimen/radius_full</item>
+        <item name="backgroundTint">@color/primary_blue</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">@dimen/text_size_body</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <!-- 次要按钮样式 - 灰色描边 -->
+    <style name="SecondaryButton" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="cornerRadius">@dimen/radius_full</item>
+        <item name="strokeColor">@color/gray_300</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">@dimen/text_size_body</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <!-- 危险按钮样式 - 红色 -->
+    <style name="DangerButton" parent="Widget.MaterialComponents.Button">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="cornerRadius">@dimen/radius_full</item>
+        <item name="backgroundTint">@color/error_red</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">@dimen/text_size_body</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <!-- 成功按钮样式 - 绿色 -->
+    <style name="SuccessButton" parent="Widget.MaterialComponents.Button">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="cornerRadius">@dimen/radius_full</item>
+        <item name="backgroundTint">@color/success_green</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">@dimen/text_size_body</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <!-- 警告按钮样式 - 橙色 -->
+    <style name="WarningButton" parent="Widget.MaterialComponents.Button">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="cornerRadius">@dimen/radius_full</item>
+        <item name="backgroundTint">@color/warning_orange</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">@dimen/text_size_body</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <!-- 商品卡片样式 -->
+    <style name="ProductCard" parent="Widget.MaterialComponents.CardView">
+        <item name="cardCornerRadius">@dimen/radius_large</item>
+        <item name="cardElevation">@dimen/elevation_card</item>
+        <item name="cardBackgroundColor">@color/background_white</item>
+        <item name="contentPadding">@dimen/spacing_small</item>
+    </style>
+
+    <!-- 通用卡片样式 -->
+    <style name="CommonCard" parent="Widget.MaterialComponents.CardView">
+        <item name="cardCornerRadius">@dimen/radius_medium</item>
+        <item name="cardElevation">@dimen/elevation_card</item>
+        <item name="cardBackgroundColor">@color/background_white</item>
+        <item name="contentPadding">@dimen/spacing_medium</item>
+    </style>
+
+    <!-- 标题文字样式 - 大标题 -->
+    <style name="TextTitleLarge">
+        <item name="android:textSize">@dimen/text_size_title_large</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- 标题文字样式 - 中标题 -->
+    <style name="TextTitleMedium">
+        <item name="android:textSize">@dimen/text_size_title_medium</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- 正文文字样式 -->
+    <style name="TextBody">
+        <item name="android:textSize">@dimen/text_size_body</item>
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <!-- 辅助文字样式 -->
+    <style name="TextCaption">
+        <item name="android:textSize">@dimen/text_size_caption</item>
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+
+    <!-- 价格文字样式 -->
+    <style name="TextPrice">
+        <item name="android:textSize">@dimen/text_size_price</item>
+        <item name="android:textColor">@color/accent_orange</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- 输入框样式 - 圆角8dp -->
+    <style name="EditTextStyle" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusTopStart">@dimen/radius_medium</item>
+        <item name="boxCornerRadiusTopEnd">@dimen/radius_medium</item>
+        <item name="boxCornerRadiusBottomStart">@dimen/radius_medium</item>
+        <item name="boxCornerRadiusBottomEnd">@dimen/radius_medium</item>
+        <item name="boxStrokeColor">@color/primary_blue</item>
+        <item name="hintTextColor">@color/text_secondary</item>
+    </style>
+
+    <!-- 状态标签样式 -->
+    <style name="StatusTag">
+        <item name="android:background">@drawable/bg_status_tag</item>
+        <item name="android:paddingStart">@dimen/spacing_small</item>
+        <item name="android:paddingEnd">@dimen/spacing_small</item>
+        <item name="android:paddingTop">2dp</item>
+        <item name="android:paddingBottom">2dp</item>
+        <item name="android:textSize">@dimen/text_size_caption</item>
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+
+</resources>

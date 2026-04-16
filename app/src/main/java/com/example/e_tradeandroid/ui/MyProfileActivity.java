@@ -4,10 +4,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
@@ -29,7 +31,7 @@ import okhttp3.Response;
 public class MyProfileActivity extends AppCompatActivity {
     private TextView tvStudentId, tvUsername, tvPhone, tvCreditScore, tvStatus;
     private ImageView ivAvatar;
-    private Button btnLogout, btnMyOrders, btnMyProducts;
+    private Button btnLogout, btnMyOrders, btnMyProducts, btnRealnameAuth;
     private BottomNavigationView bottomNavigation;
     private Gson gson = new Gson();
 
@@ -47,6 +49,7 @@ public class MyProfileActivity extends AppCompatActivity {
         btnLogout = findViewById(R.id.btn_logout);
         btnMyOrders = findViewById(R.id.btn_my_orders);
         btnMyProducts = findViewById(R.id.btn_my_products);
+        btnRealnameAuth = findViewById(R.id.btn_realname_auth);
         bottomNavigation = findViewById(R.id.bottom_navigation);
 
         setupBottomNavigation();
@@ -58,9 +61,10 @@ public class MyProfileActivity extends AppCompatActivity {
             startActivity(new Intent(MyProfileActivity.this, OrderListActivity.class));
         });
 
-        // 我发布的商品按钮（可以跳转到MainActivity并过滤）
+        // 我发布的商品按钮
         btnMyProducts.setOnClickListener(v -> {
-            Toast.makeText(this, "功能开发中", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(MyProfileActivity.this, MyProductsActivity.class);
+            startActivity(intent);
         });
 
         // 退出登录按钮
@@ -71,6 +75,32 @@ public class MyProfileActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         });
+
+        // 实名认证按钮
+        btnRealnameAuth.setOnClickListener(v -> showRealnameAuthDialog());
+    }
+
+    private void showRealnameAuthDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("实名认证");
+        builder.setMessage("请输入学号进行认证（认证后不可修改）");
+
+        final EditText input = new EditText(this);
+        input.setHint("学号");
+        input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        builder.setView(input);
+
+        builder.setPositiveButton("提交", (dialog, which) -> {
+            String studentId = input.getText().toString().trim();
+            if (studentId.isEmpty()) {
+                Toast.makeText(this, "请输入学号", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            // TODO: 调用后端认证接口
+            Toast.makeText(this, "认证申请已提交，等待审核", Toast.LENGTH_LONG).show();
+        });
+        builder.setNegativeButton("取消", null);
+        builder.show();
     }
 
     private void setupBottomNavigation() {
