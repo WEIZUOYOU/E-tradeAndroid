@@ -4,7 +4,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.ImageButton;
+import android.widget.Button;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -27,7 +27,7 @@ import okhttp3.Response;
 public class ChatActivity extends AppCompatActivity {
     private RecyclerView rvChat;
     private EditText etInput;
-    private ImageButton btnSend;
+    private Button btnSend;
     private ChatAdapter chatAdapter;
     private List<ChatMessage> messageList;
 
