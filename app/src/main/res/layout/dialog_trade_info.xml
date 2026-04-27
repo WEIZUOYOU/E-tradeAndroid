@@ -3,7 +3,8 @@
     android:layout_width="match_parent" android:layout_height="wrap_content"
     android:background="#FFF" android:orientation="vertical" android:padding="16dp">
     <TextView android:text="填写线下交易信息" android:textSize="18sp"
-        android:gravity="center" android:textStyle="bold"/>
+        android:gravity="center" android:textStyle="bold"
+        android:layout_width="match_parent" android:layout_height="wrap_content"/>
     <EditText android:id="@+id/et_location" android:layout_width="match_parent"
         android:layout_height="48dp" android:hint="交易地点" android:background="@drawable/bg_input"
         android:layout_marginTop="16dp"/>
