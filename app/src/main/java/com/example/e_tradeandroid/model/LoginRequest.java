@@ -1,15 +1,15 @@
 package com.example.e_tradeandroid.model;
 
 public class LoginRequest {
-    private String studentId;
+    private String phone;
     private String password;
 
-    public String getStudentId() {
-        return studentId;
+    public String getPhone() {
+        return phone;
     }
 
-    public void setStudentId(String studentId) {
-        this.studentId = studentId;
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
     public String getPassword() {

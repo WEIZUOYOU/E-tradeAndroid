@@ -119,10 +119,15 @@ public class ProductDetailActivity extends AppCompatActivity {
                         tvPrice.setText("¥" + product.getPrice().toString());
                         tvStock.setText("库存：" + product.getStock());
                         tvDescription.setText(product.getDescription());
-                        tvViewCount.setText("浏览量: " + product.getViewCount());
+                        tvViewCount.setText("浏览量: " + (product.getViewCount() != null ? product.getViewCount() : 0));
                         
-                        if (product.getImageUrls() != null && !product.getImageUrls().isEmpty()) {
-                            String firstUrl = product.getImageUrls().split(",")[0];
+                        if (product.getMainImage() != null && !product.getMainImage().isEmpty()) {
+                            Glide.with(ProductDetailActivity.this)
+                                    .load(ApiClient.BASE_URL + product.getMainImage())
+                                    .placeholder(R.drawable.ic_launcher_foreground)
+                                    .into(ivImage);
+                        } else if (product.getImages() != null && !product.getImages().isEmpty()) {
+                            String firstUrl = product.getImages().get(0);
                             Glide.with(ProductDetailActivity.this)
                                     .load(ApiClient.BASE_URL + firstUrl)
                                     .placeholder(R.drawable.ic_launcher_foreground)
@@ -158,7 +163,7 @@ public class ProductDetailActivity extends AppCompatActivity {
                 if (baseResp.isSuccess() && baseResp.getData() != null) {
                     seller = baseResp.getData();
                     runOnUiThread(() -> {
-                        String sellerInfo = "卖家: " + seller.getUsername() + " | 信用分: " + seller.getCreditScore();
+                        String sellerInfo = "卖家: " + seller.getUsername();
                         tvSeller.setText(sellerInfo);
                     });
                 } else {

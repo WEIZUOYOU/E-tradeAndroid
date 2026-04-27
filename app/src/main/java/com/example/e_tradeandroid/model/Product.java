@@ -1,17 +1,21 @@
 package com.example.e_tradeandroid.model;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public class Product {
     private Long id;
     private Long sellerId;
+    private Integer categoryId;
     private String name;
     private BigDecimal price;
     private Integer stock;
     private String description;
-    private String imageUrls;      // 多个图片用逗号分隔
-    private Integer status;        // 0-在售 1-已下架
+    private String mainImage;
+    private List<String> images;
+    private Integer status;
     private Integer viewCount;
+    private String createTime;
 
     public Long getId() {
         return id;
@@ -27,6 +31,14 @@ public class Product {
 
     public void setSellerId(Long sellerId) {
         this.sellerId = sellerId;
+    }
+
+    public Integer getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(Integer categoryId) {
+        this.categoryId = categoryId;
     }
 
     public String getName() {
@@ -61,12 +73,20 @@ public class Product {
         this.description = description;
     }
 
-    public String getImageUrls() {
-        return imageUrls;
+    public String getMainImage() {
+        return mainImage;
     }
 
-    public void setImageUrls(String imageUrls) {
-        this.imageUrls = imageUrls;
+    public void setMainImage(String mainImage) {
+        this.mainImage = mainImage;
+    }
+
+    public List<String> getImages() {
+        return images;
+    }
+
+    public void setImages(List<String> images) {
+        this.images = images;
     }
 
     public Integer getStatus() {
@@ -83,5 +103,13 @@ public class Product {
 
     public void setViewCount(Integer viewCount) {
         this.viewCount = viewCount;
+    }
+
+    public String getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(String createTime) {
+        this.createTime = createTime;
     }
 }

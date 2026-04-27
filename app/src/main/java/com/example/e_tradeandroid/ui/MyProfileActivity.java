@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -16,6 +17,7 @@ import com.bumptech.glide.Glide;
 import com.example.e_tradeandroid.R;
 import com.example.e_tradeandroid.model.BaseResponse;
 import com.example.e_tradeandroid.model.User;
+import com.example.e_tradeandroid.model.VerifyRequest;
 import com.example.e_tradeandroid.network.ApiClient;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
@@ -25,7 +27,9 @@ import java.io.IOException;
 
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.MediaType;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class MyProfileActivity extends AppCompatActivity {
@@ -69,11 +73,24 @@ public class MyProfileActivity extends AppCompatActivity {
 
         // 退出登录按钮
         btnLogout.setOnClickListener(v -> {
-            ApiClient.clearCookies();
-            Intent intent = new Intent(MyProfileActivity.this, LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
+            Request request = new Request.Builder()
+                    .url(ApiClient.BASE_URL + "user/logout")
+                    .post(RequestBody.create("", MediaType.parse("application/json; charset=utf-8")))
+                    .build();
+
+            ApiClient.getClient().newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    ApiClient.clearCookies();
+                    goToLogin();
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    ApiClient.clearCookies();
+                    goToLogin();
+                }
+            });
         });
 
         // 实名认证按钮
@@ -83,24 +100,72 @@ public class MyProfileActivity extends AppCompatActivity {
     private void showRealnameAuthDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("实名认证");
-        builder.setMessage("请输入学号进行认证（认证后不可修改）");
+        builder.setMessage("请输入学号和真实姓名进行认证");
 
-        final EditText input = new EditText(this);
-        input.setHint("学号");
-        input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
-        builder.setView(input);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 40, 50, 10);
+
+        final EditText etStudentId = new EditText(this);
+        etStudentId.setHint("学号");
+        layout.addView(etStudentId);
+
+        final EditText etRealName = new EditText(this);
+        etRealName.setHint("真实姓名");
+        layout.addView(etRealName);
+
+        builder.setView(layout);
 
         builder.setPositiveButton("提交", (dialog, which) -> {
-            String studentId = input.getText().toString().trim();
-            if (studentId.isEmpty()) {
-                Toast.makeText(this, "请输入学号", Toast.LENGTH_SHORT).show();
+            String studentId = etStudentId.getText().toString().trim();
+            String realName = etRealName.getText().toString().trim();
+            
+            if (studentId.isEmpty() || realName.isEmpty()) {
+                Toast.makeText(this, "请填写完整信息", Toast.LENGTH_SHORT).show();
                 return;
             }
-            // TODO: 调用后端认证接口
-            Toast.makeText(this, "认证申请已提交，等待审核", Toast.LENGTH_LONG).show();
+            
+            submitRealnameAuth(studentId, realName);
         });
         builder.setNegativeButton("取消", null);
         builder.show();
+    }
+
+    private void submitRealnameAuth(String studentId, String realName) {
+        VerifyRequest req = new VerifyRequest();
+        req.setStudentId(studentId);
+        req.setRealName(realName);
+        
+        String json = gson.toJson(req);
+        RequestBody body = RequestBody.create(
+            json, 
+            MediaType.parse("application/json; charset=utf-8")
+        );
+        
+        Request request = new Request.Builder()
+                .url(ApiClient.BASE_URL + "user/verify")
+                .post(body)
+                .build();
+
+        ApiClient.getClient().newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                runOnUiThread(() -> Toast.makeText(MyProfileActivity.this, "认证失败：" + e.getMessage(), Toast.LENGTH_SHORT).show());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                String respBody = response.body().string();
+                BaseResponse<Void> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<Void>>(){}.getType());
+                runOnUiThread(() -> {
+                    if (baseResp.isSuccess()) {
+                        Toast.makeText(MyProfileActivity.this, "认证申请已提交，等待审核", Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(MyProfileActivity.this, "认证失败：" + baseResp.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
     }
 
     private void setupBottomNavigation() {
@@ -128,9 +193,16 @@ public class MyProfileActivity extends AppCompatActivity {
         });
     }
 
+    private void goToLogin() {
+        Intent intent = new Intent(MyProfileActivity.this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
+
     private void loadUserProfile() {
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "user/profile")
+                .url(ApiClient.BASE_URL + "user/current")
                 .get()
                 .build();
 
@@ -150,7 +222,6 @@ public class MyProfileActivity extends AppCompatActivity {
                         tvStudentId.setText(user.getStudentId());
                         tvUsername.setText(user.getUsername());
                         tvPhone.setText(user.getPhone());
-                        tvCreditScore.setText(String.valueOf(user.getCreditScore()));
                         tvStatus.setText(user.getStatus() == 1 ? "正常" : "异常");
                         
                         if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {

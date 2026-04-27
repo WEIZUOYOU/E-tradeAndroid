@@ -6,8 +6,9 @@ public class User {
     private String username;
     private String phone;
     private String avatar;
-    private Integer creditScore;
     private Integer status;
+    private String role;
+    private String createTime;
 
     public Long getId() {
         return id;
@@ -49,19 +50,27 @@ public class User {
         this.avatar = avatar;
     }
 
-    public Integer getCreditScore() {
-        return creditScore;
-    }
-
-    public void setCreditScore(Integer creditScore) {
-        this.creditScore = creditScore;
-    }
-
     public Integer getStatus() {
         return status;
     }
 
     public void setStatus(Integer status) {
         this.status = status;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public String getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(String createTime) {
+        this.createTime = createTime;
     }
 }

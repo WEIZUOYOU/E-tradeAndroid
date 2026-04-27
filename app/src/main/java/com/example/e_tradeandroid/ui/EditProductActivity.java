@@ -21,6 +21,8 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import org.json.JSONObject;
+
 import java.io.IOException;
 
 import okhttp3.Call;
@@ -127,8 +129,14 @@ public class EditProductActivity extends AppCompatActivity {
                         etStock.setText(String.valueOf(product.getStock()));
                         etDescription.setText(product.getDescription());
                         
-                        if (product.getImageUrls() != null && !product.getImageUrls().isEmpty()) {
-                            String firstUrl = product.getImageUrls().split(",")[0];
+                        if (product.getMainImage() != null && !product.getMainImage().isEmpty()) {
+                            Glide.with(EditProductActivity.this)
+                                    .load(ApiClient.BASE_URL + product.getMainImage())
+                                    .placeholder(R.drawable.ic_launcher_foreground)
+                                    .into(ivPreview);
+                            ivPreview.setVisibility(View.VISIBLE);
+                        } else if (product.getImages() != null && !product.getImages().isEmpty()) {
+                            String firstUrl = product.getImages().get(0);
                             Glide.with(EditProductActivity.this)
                                     .load(ApiClient.BASE_URL + firstUrl)
                                     .placeholder(R.drawable.ic_launcher_foreground)
@@ -157,9 +165,48 @@ public class EditProductActivity extends AppCompatActivity {
             return;
         }
 
-        // TODO: 实现更新接口调用
-        Toast.makeText(this, "保存成功（需后端支持）", Toast.LENGTH_SHORT).show();
-        finish();
+        try {
+            JSONObject updateData = new JSONObject();
+            updateData.put("name", name);
+            updateData.put("price", price);
+            updateData.put("stock", Integer.parseInt(stock));
+            updateData.put("description", description);
+            updateData.put("categoryId", product.getCategoryId());
+
+            RequestBody body = RequestBody.create(
+                updateData.toString(), 
+                MediaType.parse("application/json; charset=utf-8")
+            );
+            
+            Request request = new Request.Builder()
+                    .url(ApiClient.BASE_URL + "product/update/" + productId)
+                    .post(body)
+                    .build();
+
+            ApiClient.getClient().newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    runOnUiThread(() -> Toast.makeText(EditProductActivity.this, "更新失败：" + e.getMessage(), Toast.LENGTH_SHORT).show());
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    String respBody = response.body().string();
+                    BaseResponse<Void> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<Void>>(){}.getType());
+                    runOnUiThread(() -> {
+                        if (baseResp.isSuccess()) {
+                            Toast.makeText(EditProductActivity.this, "更新成功", Toast.LENGTH_SHORT).show();
+                            finish();
+                        } else {
+                            Toast.makeText(EditProductActivity.this, "更新失败：" + baseResp.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+            runOnUiThread(() -> Toast.makeText(this, "数据格式错误", Toast.LENGTH_SHORT).show());
+        }
     }
 
     private void showOffshelfDialog() {
@@ -172,10 +219,9 @@ public class EditProductActivity extends AppCompatActivity {
     }
 
     private void offshelfProduct() {
-        RequestBody body = RequestBody.create("", MediaType.parse("application/json; charset=utf-8"));
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "product/offshelf/" + productId)
-                .post(body)
+                .url(ApiClient.BASE_URL + "product/offline/" + productId)
+                .put(RequestBody.create("", MediaType.parse("application/json; charset=utf-8")))
                 .build();
 
         ApiClient.getClient().newCall(request).enqueue(new Callback() {

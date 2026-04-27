@@ -41,8 +41,13 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
         Product product = productList.get(position);
         holder.tvName.setText(product.getName());
         holder.tvPrice.setText("¥" + product.getPrice().toString());
-        if (product.getImageUrls() != null && !product.getImageUrls().isEmpty()) {
-            String firstUrl = product.getImageUrls().split(",")[0];
+        if (product.getMainImage() != null && !product.getMainImage().isEmpty()) {
+            Glide.with(holder.itemView.getContext())
+                    .load(ApiClient.BASE_URL + product.getMainImage())
+                    .placeholder(R.drawable.ic_launcher_foreground)
+                    .into(holder.ivImage);
+        } else if (product.getImages() != null && !product.getImages().isEmpty()) {
+            String firstUrl = product.getImages().get(0);
             Glide.with(holder.itemView.getContext())
                     .load(ApiClient.BASE_URL + firstUrl)
                     .placeholder(R.drawable.ic_launcher_foreground)

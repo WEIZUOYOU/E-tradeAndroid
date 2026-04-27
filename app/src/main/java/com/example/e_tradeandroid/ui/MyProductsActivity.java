@@ -101,7 +101,7 @@ public class MyProductsActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
 
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "product/my-products?page=1&size=20")
+                .url(ApiClient.BASE_URL + "product/my")
                 .get()
                 .build();
 

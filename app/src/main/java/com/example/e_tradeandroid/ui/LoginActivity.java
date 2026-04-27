@@ -80,14 +80,14 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void doLogin() {
-        String studentId = etStudentId.getText().toString().trim();
+        String phone = etStudentId.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
-        if (studentId.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "学号和密码不能为空", Toast.LENGTH_SHORT).show();
+        if (phone.isEmpty() || password.isEmpty()) {
+            Toast.makeText(this, "手机号和密码不能为空", Toast.LENGTH_SHORT).show();
             return;
         }
         LoginRequest req = new LoginRequest();
-        req.setStudentId(studentId);
+        req.setPhone(phone);
         req.setPassword(password);
         String json = gson.toJson(req);
         RequestBody body = RequestBody.create(json, MediaType.parse("application/json; charset=utf-8"));
