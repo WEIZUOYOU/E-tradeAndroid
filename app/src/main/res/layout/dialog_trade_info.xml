@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:background="#FFF" android:orientation="vertical" android:padding="16dp">
+    <TextView android:text="填写线下交易信息" android:textSize="18sp"
+        android:gravity="center" android:textStyle="bold"/>
+    <EditText android:id="@+id/et_location" android:layout_width="match_parent"
+        android:layout_height="48dp" android:hint="交易地点" android:background="@drawable/bg_input"
+        android:layout_marginTop="16dp"/>
+    <EditText android:id="@+id/et_time" android:layout_width="match_parent"
+        android:layout_height="48dp" android:hint="交易时间" android:background="@drawable/bg_input"
+        android:layout_marginTop="12dp"/>
+    <EditText android:id="@+id/et_contact" android:layout_width="match_parent"
+        android:layout_height="48dp" android:hint="联系方式" android:background="@drawable/bg_input"
+        android:layout_marginTop="12dp"/>
+    <Button android:id="@+id/btn_submit" android:layout_width="match_parent"
+        android:layout_height="48dp" android:background="@drawable/bg_btn_primary"
+        android:text="提交并创建订单" android:textColor="#FFF" android:layout_marginTop="16dp"/>
+</LinearLayout>

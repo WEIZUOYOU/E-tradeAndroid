@@ -39,6 +39,9 @@
         <activity android:name=".ui.MyProfileActivity" />
         <activity android:name=".ui.MyProductsActivity" />
         <activity android:name=".ui.EditProductActivity" />
+        <!-- 注册页 -->
+        <activity android:name=".ui.ChatActivity" />
+        <activity android:name=".ui.OrderDetailActivity" />
     </application>
 
 </manifest>

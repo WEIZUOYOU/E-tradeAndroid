@@ -4,11 +4,7 @@ plugins {
 
 android {
     namespace = "com.example.e_tradeandroid"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.e_tradeandroid"
@@ -29,9 +25,17 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    packaging {
+        jniLibs.useLegacyPackaging = true
+
+        // 直接排除掉报错的 bin 文件
+        resources.excludes.add("dump_syms/linux/dump_syms.bin")
     }
 }
 
@@ -43,7 +47,6 @@ dependencies {
     implementation(libs.swiperefreshlayout)
     implementation(libs.firebase.crashlytics.buildtools)
 
-    // 添加第三方库
     implementation("com.squareup.okhttp3:okhttp:4.11.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
     implementation("com.google.code.gson:gson:2.10.1")
