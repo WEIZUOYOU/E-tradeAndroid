@@ -33,8 +33,6 @@ android {
 
     packaging {
         jniLibs.useLegacyPackaging = true
-
-        // 直接排除掉报错的 bin 文件
         resources.excludes.add("dump_syms/linux/dump_syms.bin")
     }
 }
@@ -47,11 +45,18 @@ dependencies {
     implementation(libs.swiperefreshlayout)
     implementation(libs.firebase.crashlytics.buildtools)
 
+    // OkHttp
     implementation("com.squareup.okhttp3:okhttp:4.11.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+    // Gson
     implementation("com.google.code.gson:gson:2.10.1")
+    // Glide
     implementation("com.github.bumptech.glide:glide:4.15.1")
     annotationProcessor("com.github.bumptech.glide:compiler:4.15.1")
+
+    // ====== 新增 Retrofit 依赖 ======
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="交易方式"
+        android:textSize="18sp"
+        android:layout_marginBottom="8dp"/>
+    <RadioGroup
+        android:id="@+id/rg_trade_type"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <RadioButton
+            android:id="@+id/rb_express"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="快递发货"/>
+        <RadioButton
+            android:id="@+id/rb_meet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="线下面交"
+            android:checked="true"/>
+    </RadioGroup>
+
+    <EditText
+        android:id="@+id/et_meeting_time"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="约定时间（如2024-05-01 12:00:00）"
+        android:layout_marginTop="16dp"/>
+    <EditText
+        android:id="@+id/et_meeting_location"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="约定地点（如学校二食堂门口）"
+        android:layout_marginTop="8dp"/>
+
+    <EditText
+        android:id="@+id/et_address_id"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="收货地址ID（纯数字）"
+        android:layout_marginTop="16dp"
+        android:visibility="gone"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="支付方式"
+        android:textSize="18sp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"/>
+    <RadioGroup
+        android:id="@+id/rg_pay_type"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <RadioButton
+            android:id="@+id/rb_wechat"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="微信"/>
+        <RadioButton
+            android:id="@+id/rb_alipay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="支付宝"/>
+        <RadioButton
+            android:id="@+id/rb_face"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="当面付"
+            android:checked="true"/>
+    </RadioGroup>
+
+    <Button
+        android:id="@+id/btn_submit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="提交订单"
+        android:layout_marginTop="24dp"/>
+
+</LinearLayout>

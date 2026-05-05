@@ -2,7 +2,6 @@ package com.example.e_tradeandroid.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -17,10 +16,11 @@ import com.bumptech.glide.Glide;
 import com.example.e_tradeandroid.R;
 import com.example.e_tradeandroid.model.BaseResponse;
 import com.example.e_tradeandroid.model.CreateOrderRequest;
-import com.example.e_tradeandroid.model.Order;
+import com.example.e_tradeandroid.model.CreateOrderResponse;
 import com.example.e_tradeandroid.model.Product;
 import com.example.e_tradeandroid.model.User;
 import com.example.e_tradeandroid.network.ApiClient;
+import com.example.e_tradeandroid.network.RetrofitClient;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -29,9 +29,7 @@ import java.io.IOException;
 
 import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.MediaType;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class ProductDetailActivity extends AppCompatActivity {
@@ -41,7 +39,7 @@ public class ProductDetailActivity extends AppCompatActivity {
     private Product product;
     private User seller;
     private BottomNavigationView bottomNavigation;
-    private Gson gson = new Gson();
+    private final Gson gson = new Gson();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +66,7 @@ public class ProductDetailActivity extends AppCompatActivity {
 
         loadProductDetail(productId);
 
-        btnBuy.setOnClickListener(v -> showTradeInfoDialog());
+        btnBuy.setOnClickListener(v -> showNewTradeDialog());
     }
 
     private void setupBottomNavigation() {
@@ -120,7 +118,7 @@ public class ProductDetailActivity extends AppCompatActivity {
                         tvStock.setText("库存：" + product.getStock());
                         tvDescription.setText(product.getDescription());
                         tvViewCount.setText("浏览量: " + (product.getViewCount() != null ? product.getViewCount() : 0));
-                        
+
                         if (product.getMainImage() != null && !product.getMainImage().isEmpty()) {
                             Glide.with(ProductDetailActivity.this)
                                     .load(ApiClient.BASE_URL + product.getMainImage())
@@ -133,8 +131,7 @@ public class ProductDetailActivity extends AppCompatActivity {
                                     .placeholder(R.drawable.ic_launcher_foreground)
                                     .into(ivImage);
                         }
-                        
-                        // 加载卖家信息
+
                         loadSellerInfo(product.getSellerId());
                     });
                 } else {
@@ -143,7 +140,7 @@ public class ProductDetailActivity extends AppCompatActivity {
             }
         });
     }
-    
+
     private void loadSellerInfo(Long sellerId) {
         Request request = new Request.Builder()
                 .url(ApiClient.BASE_URL + "user/info/" + sellerId)
@@ -173,83 +170,83 @@ public class ProductDetailActivity extends AppCompatActivity {
         });
     }
 
-    private void showTradeInfoDialog() {
+    private void showNewTradeDialog() {
         if (product == null) return;
 
-        // 创建对话框
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("填写交易信息");
+        builder.setTitle("校园二手下单");
 
-        // 创建自定义布局
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(50, 40, 50, 10);
 
-        EditText etLocation = new EditText(this);
-        etLocation.setHint("交易地点（如：食堂门口）");
-        layout.addView(etLocation);
+        EditText etMeetTime = new EditText(this);
+        etMeetTime.setHint("约定时间 格式：2024-05-01 12:00:00");
+        layout.addView(etMeetTime);
 
-        EditText etTime = new EditText(this);
-        etTime.setHint("交易时间（如：明天下午3点）");
-        layout.addView(etTime);
-
-        EditText etContact = new EditText(this);
-        etContact.setHint("联系方式（手机号）");
-        layout.addView(etContact);
+        EditText etMeetLoc = new EditText(this);
+        etMeetLoc.setHint("约定地点 例：学校二食堂门口");
+        layout.addView(etMeetLoc);
 
         builder.setView(layout);
 
-        builder.setPositiveButton("确认购买", (dialog, which) -> {
-            String location = etLocation.getText().toString().trim();
-            String time = etTime.getText().toString().trim();
-            String contact = etContact.getText().toString().trim();
+        builder.setPositiveButton("确认下单", (dialog, which) -> {
+            String meetTime = etMeetTime.getText().toString().trim();
+            String meetLoc = etMeetLoc.getText().toString().trim();
 
-            if (location.isEmpty() || time.isEmpty() || contact.isEmpty()) {
-                Toast.makeText(this, "请填写完整交易信息", Toast.LENGTH_SHORT).show();
+            if (meetTime.isEmpty() || meetLoc.isEmpty()) {
+                Toast.makeText(this, "请填写面交时间和地点", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // TODO: 将交易信息传递给后端
-            createOrder(location, time, contact);
+            CreateOrderRequest req = new CreateOrderRequest();
+            req.setProductId(product.getId());
+            req.setQuantity(1);
+            req.setTradeType(1);
+            req.setMeetingTime(meetTime);
+            req.setMeetingLocation(meetLoc);
+            req.setPayType(3);
+            req.setAddressId(null);
+
+            submitNewOrder(req);
         });
 
         builder.setNegativeButton("取消", null);
         builder.show();
     }
 
-    private void createOrder(String location, String time, String contact) {
-        if (product == null) return;
-        CreateOrderRequest req = new CreateOrderRequest();
-        req.setProductId(product.getId());
-        req.setQuantity(1);
-        String json = gson.toJson(req);
-        RequestBody body = RequestBody.create(json, MediaType.parse("application/json; charset=utf-8"));
-        Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "order/create")
-                .post(body)
-                .build();
+    private void submitNewOrder(CreateOrderRequest req) {
+        RetrofitClient.getInstance()
+                .getTradeApi()
+                .createTradeOrder(req)
+                .enqueue(new retrofit2.Callback<BaseResponse<CreateOrderResponse>>() {
+                    @Override
+                    public void onResponse(retrofit2.Call<BaseResponse<CreateOrderResponse>> call, retrofit2.Response<BaseResponse<CreateOrderResponse>> response) {
+                        if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                            CreateOrderResponse data = response.body().getData();
+                            runOnUiThread(() -> {
+                                Toast.makeText(ProductDetailActivity.this,
+                                        "下单成功！订单号：" + data.getOrderNo(),
+                                        Toast.LENGTH_SHORT).show();
+                                Intent intent = new Intent(ProductDetailActivity.this, OrderListActivity.class);
+                                startActivity(intent);
+                            });
+                        } else {
+                            String msg = "下单失败";
+                            if (response.body() != null) {
+                                msg = response.body().getMsg() != null ? response.body().getMsg() : "下单失败";
+                            }
+                            final String finalMsg = msg;
+                            runOnUiThread(() -> Toast.makeText(ProductDetailActivity.this, finalMsg, Toast.LENGTH_SHORT).show());
+                        }
+                    }
 
-        ApiClient.getClient().newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                runOnUiThread(() -> Toast.makeText(ProductDetailActivity.this, "下单失败：" + e.getMessage(), Toast.LENGTH_SHORT).show());
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                String respBody = response.body().string();
-                BaseResponse<Order> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<Order>>(){}.getType());
-                if (baseResp.isSuccess()) {
-                    runOnUiThread(() -> {
-                        Toast.makeText(ProductDetailActivity.this, "下单成功，订单号：" + baseResp.getData().getOrderNo(), Toast.LENGTH_SHORT).show();
-                        Intent intent = new Intent(ProductDetailActivity.this, OrderActivity.class);
-                        intent.putExtra("order_id", baseResp.getData().getId());
-                        startActivity(intent);
-                    });
-                } else {
-                    runOnUiThread(() -> Toast.makeText(ProductDetailActivity.this, "下单失败：" + baseResp.getMessage(), Toast.LENGTH_SHORT).show());
-                }
-            }
-        });
+                    @Override
+                    public void onFailure(retrofit2.Call<BaseResponse<CreateOrderResponse>> call, Throwable t) {
+                        runOnUiThread(() -> Toast.makeText(ProductDetailActivity.this,
+                                "网络错误：" + t.getMessage(),
+                                Toast.LENGTH_SHORT).show());
+                    }
+                });
     }
 }
