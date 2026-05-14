@@ -7,8 +7,11 @@ public class User {
     private String phone;
     private String avatar;
     private Integer status;
-    private String role;
+    private Integer isAuth;
+    private Integer creditScore;
+    private String realName;
     private String createTime;
+    private String updateTime;
 
     public Long getId() {
         return id;
@@ -58,12 +61,28 @@ public class User {
         this.status = status;
     }
 
-    public String getRole() {
-        return role;
+    public Integer getIsAuth() {
+        return isAuth;
     }
 
-    public void setRole(String role) {
-        this.role = role;
+    public void setIsAuth(Integer isAuth) {
+        this.isAuth = isAuth;
+    }
+
+    public Integer getCreditScore() {
+        return creditScore;
+    }
+
+    public void setCreditScore(Integer creditScore) {
+        this.creditScore = creditScore;
+    }
+
+    public String getRealName() {
+        return realName;
+    }
+
+    public void setRealName(String realName) {
+        this.realName = realName;
     }
 
     public String getCreateTime() {
@@ -72,5 +91,13 @@ public class User {
 
     public void setCreateTime(String createTime) {
         this.createTime = createTime;
+    }
+
+    public String getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(String updateTime) {
+        this.updateTime = updateTime;
     }
 }

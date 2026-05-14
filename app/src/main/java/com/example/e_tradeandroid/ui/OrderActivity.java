@@ -30,11 +30,12 @@ import okhttp3.Response;
 
 public class OrderActivity extends AppCompatActivity {
     private TextView tvOrderNo, tvStatus, tvProductName, tvQuantity, tvTotalAmount, tvCreateTime;
-    private Button btnCancelOrder, btnConfirmReceive;
+    private Button btnCancelOrder, btnConfirmReceive, btnConfirmOrder, btnDeliver;
     private LinearLayout layoutActions;
     private BottomNavigationView bottomNavigation;
     private Order order;
     private Gson gson = new Gson();
+    private boolean isBuyer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +50,8 @@ public class OrderActivity extends AppCompatActivity {
         tvCreateTime = findViewById(R.id.tv_create_time);
         btnCancelOrder = findViewById(R.id.btn_cancel_order);
         btnConfirmReceive = findViewById(R.id.btn_confirm_receive);
+        btnConfirmOrder = findViewById(R.id.btn_confirm_order);
+        btnDeliver = findViewById(R.id.btn_deliver);
         layoutActions = findViewById(R.id.layout_actions);
         bottomNavigation = findViewById(R.id.bottom_navigation);
 
@@ -65,8 +68,6 @@ public class OrderActivity extends AppCompatActivity {
     }
 
     private void loadOrderDetail(long orderId) {
-        // 注意：后端未提供获取单个订单的接口，这里假设有 /order/detail/{id}
-        // 如果没有，需根据实际情况调整。示例代码假设有此接口。
         Request request = new Request.Builder()
                 .url(ApiClient.BASE_URL + "order/detail/" + orderId)
                 .get()
@@ -84,16 +85,18 @@ public class OrderActivity extends AppCompatActivity {
                 BaseResponse<Order> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<Order>>(){}.getType());
                 if (baseResp.isSuccess() && baseResp.getData() != null) {
                     order = baseResp.getData();
+                    long currentUserId = ApiClient.getCurrentUserId();
+                    isBuyer = order.getBuyerId() != null && order.getBuyerId() == currentUserId;
+
                     runOnUiThread(() -> {
                         tvOrderNo.setText("订单号：" + order.getOrderNo());
-                        tvStatus.setText("状态：" + getStatusText(order.getStatus()));
-                        tvProductName.setText("商品：" + order.getProductName());
-                        tvQuantity.setText("数量：" + order.getQuantity());
-                        tvTotalAmount.setText("总价：¥" + order.getTotalAmount().toString());
-                        tvCreateTime.setText("创建时间：" + order.getCreateTime().toString());
-                        
-                        // 根据订单状态显示操作按钮
-                        updateActionButtons(order.getStatus());
+                        int orderStatus = order.getStatus() != null ? order.getStatus() : -1;
+                        tvStatus.setText("状态：" + getStatusText(orderStatus));
+                        tvProductName.setText("商品：" + (order.getProductName() != null ? order.getProductName() : ""));
+                        tvQuantity.setText("数量：" + (order.getQuantity() != null ? order.getQuantity() : 0));
+                        tvTotalAmount.setText("总价：¥" + (order.getTotalAmount() != null ? order.getTotalAmount().toString() : "0"));
+                        tvCreateTime.setText("创建时间：" + (order.getCreateTime() != null ? order.getCreateTime() : ""));
+                        updateActionButtons(order.getStatus() != null ? order.getStatus() : -1);
                     });
                 } else {
                     runOnUiThread(() -> Toast.makeText(OrderActivity.this, "获取订单详情失败", Toast.LENGTH_SHORT).show());
@@ -104,42 +107,47 @@ public class OrderActivity extends AppCompatActivity {
 
     private String getStatusText(int status) {
         switch (status) {
-            case 0: return "待支付";
-            case 1: return "已支付待发货";
-            case 2: return "已发货";
+            case 0: return "待确认";
+            case 1: return "交易中";
+            case 2: return "已交付";
             case 3: return "已完成";
             case 4: return "已取消";
             default: return "未知";
         }
     }
-    
+
     private void updateActionButtons(int status) {
-        // 重置按钮可见性
         btnCancelOrder.setVisibility(View.GONE);
         btnConfirmReceive.setVisibility(View.GONE);
-        
-        switch (status) {
-            case 0: // 待支付
-                btnCancelOrder.setVisibility(View.VISIBLE);
-                btnCancelOrder.setOnClickListener(v -> showCancelOrderDialog());
-                break;
-            case 1: // 已支付待发货
-                btnCancelOrder.setVisibility(View.VISIBLE);
-                btnCancelOrder.setOnClickListener(v -> showCancelOrderDialog());
-                break;
-            case 2: // 已发货
-                btnConfirmReceive.setVisibility(View.VISIBLE);
-                btnConfirmReceive.setOnClickListener(v -> confirmReceive());
-                break;
-            case 3: // 已完成
-                // 无操作
-                break;
-            case 4: // 已取消
-                // 无操作
-                break;
+        btnConfirmOrder.setVisibility(View.GONE);
+        btnDeliver.setVisibility(View.GONE);
+
+        if (isBuyer) {
+            switch (status) {
+                case 0:
+                case 1:
+                    btnCancelOrder.setVisibility(View.VISIBLE);
+                    btnCancelOrder.setOnClickListener(v -> showCancelOrderDialog());
+                    break;
+                case 2:
+                    btnConfirmReceive.setVisibility(View.VISIBLE);
+                    btnConfirmReceive.setOnClickListener(v -> confirmReceive());
+                    break;
+            }
+        } else {
+            switch (status) {
+                case 0:
+                    btnConfirmOrder.setVisibility(View.VISIBLE);
+                    btnConfirmOrder.setOnClickListener(v -> confirmOrder());
+                    break;
+                case 1:
+                    btnDeliver.setVisibility(View.VISIBLE);
+                    btnDeliver.setOnClickListener(v -> deliverOrder());
+                    break;
+            }
         }
     }
-    
+
     private void showCancelOrderDialog() {
         new AlertDialog.Builder(this)
             .setTitle("取消订单")
@@ -148,13 +156,13 @@ public class OrderActivity extends AppCompatActivity {
             .setNegativeButton("取消", null)
             .show();
     }
-    
+
     private void cancelOrder() {
         if (order == null) return;
-        
+
         RequestBody body = RequestBody.create("", MediaType.parse("application/json; charset=utf-8"));
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "order/cancel/" + order.getId())
+                .url(ApiClient.BASE_URL + "order/" + order.getId() + "/cancel")
                 .post(body)
                 .build();
 
@@ -171,7 +179,7 @@ public class OrderActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     if (baseResp.isSuccess()) {
                         Toast.makeText(OrderActivity.this, "订单已取消", Toast.LENGTH_SHORT).show();
-                        loadOrderDetail(order.getId()); // 重新加载订单详情
+                        loadOrderDetail(order.getId());
                     } else {
                         Toast.makeText(OrderActivity.this, "取消失败：" + baseResp.getMessage(), Toast.LENGTH_SHORT).show();
                     }
@@ -179,13 +187,75 @@ public class OrderActivity extends AppCompatActivity {
             }
         });
     }
-    
-    private void confirmReceive() {
+
+    private void confirmOrder() {
         if (order == null) return;
-        
+
         RequestBody body = RequestBody.create("", MediaType.parse("application/json; charset=utf-8"));
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "order/confirm/" + order.getId())
+                .url(ApiClient.BASE_URL + "order/" + order.getId() + "/confirm")
+                .post(body)
+                .build();
+
+        ApiClient.getClient().newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                runOnUiThread(() -> Toast.makeText(OrderActivity.this, "操作失败：" + e.getMessage(), Toast.LENGTH_SHORT).show());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                String respBody = response.body().string();
+                BaseResponse<Void> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<Void>>(){}.getType());
+                runOnUiThread(() -> {
+                    if (baseResp.isSuccess()) {
+                        Toast.makeText(OrderActivity.this, "已确认接单", Toast.LENGTH_SHORT).show();
+                        loadOrderDetail(order.getId());
+                    } else {
+                        Toast.makeText(OrderActivity.this, "操作失败：" + baseResp.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
+    }
+
+    private void deliverOrder() {
+        if (order == null) return;
+
+        RequestBody body = RequestBody.create("", MediaType.parse("application/json; charset=utf-8"));
+        Request request = new Request.Builder()
+                .url(ApiClient.BASE_URL + "order/" + order.getId() + "/deliver")
+                .post(body)
+                .build();
+
+        ApiClient.getClient().newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                runOnUiThread(() -> Toast.makeText(OrderActivity.this, "操作失败：" + e.getMessage(), Toast.LENGTH_SHORT).show());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                String respBody = response.body().string();
+                BaseResponse<Void> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<Void>>(){}.getType());
+                runOnUiThread(() -> {
+                    if (baseResp.isSuccess()) {
+                        Toast.makeText(OrderActivity.this, "已标记为已交付", Toast.LENGTH_SHORT).show();
+                        loadOrderDetail(order.getId());
+                    } else {
+                        Toast.makeText(OrderActivity.this, "操作失败：" + baseResp.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
+    }
+
+    private void confirmReceive() {
+        if (order == null) return;
+
+        RequestBody body = RequestBody.create("", MediaType.parse("application/json; charset=utf-8"));
+        Request request = new Request.Builder()
+                .url(ApiClient.BASE_URL + "order/" + order.getId() + "/receive")
                 .post(body)
                 .build();
 
@@ -202,7 +272,7 @@ public class OrderActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     if (baseResp.isSuccess()) {
                         Toast.makeText(OrderActivity.this, "确认收货成功", Toast.LENGTH_SHORT).show();
-                        loadOrderDetail(order.getId()); // 重新加载订单详情
+                        loadOrderDetail(order.getId());
                     } else {
                         Toast.makeText(OrderActivity.this, "操作失败：" + baseResp.getMessage(), Toast.LENGTH_SHORT).show();
                     }

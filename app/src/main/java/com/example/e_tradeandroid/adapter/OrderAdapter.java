@@ -11,15 +11,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.e_tradeandroid.R;
 import com.example.e_tradeandroid.model.Order;
 
-import java.text.SimpleDateFormat;
 import java.util.List;
-import java.util.Locale;
 
 public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> {
     private List<Order> orderList;
     private OnItemClickListener listener;
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-
     public interface OnItemClickListener {
         void onItemClick(Order order);
     }
@@ -44,7 +40,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
         holder.tvQuantity.setText("数量: " + order.getQuantity());
         holder.tvTotalAmount.setText("总价: ¥" + order.getTotalAmount().toString());
         holder.tvStatus.setText("状态: " + getStatusText(order.getStatus()));
-        holder.tvCreateTime.setText("时间: " + dateFormat.format(order.getCreateTime()));
+        holder.tvCreateTime.setText("时间: " + (order.getCreateTime() != null ? order.getCreateTime() : ""));
         
         holder.itemView.setOnClickListener(v -> listener.onItemClick(order));
     }

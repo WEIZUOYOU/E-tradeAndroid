@@ -17,8 +17,8 @@ import com.example.e_tradeandroid.R;
 import com.example.e_tradeandroid.model.BaseResponse;
 import com.example.e_tradeandroid.model.CreateOrderRequest;
 import com.example.e_tradeandroid.model.CreateOrderResponse;
+import com.example.e_tradeandroid.model.CreditDetailResponse;
 import com.example.e_tradeandroid.model.Product;
-import com.example.e_tradeandroid.model.User;
 import com.example.e_tradeandroid.network.ApiClient;
 import com.example.e_tradeandroid.network.RetrofitClient;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -37,7 +37,6 @@ public class ProductDetailActivity extends AppCompatActivity {
     private ImageView ivImage;
     private Button btnBuy;
     private Product product;
-    private User seller;
     private BottomNavigationView bottomNavigation;
     private final Gson gson = new Gson();
 
@@ -114,7 +113,7 @@ public class ProductDetailActivity extends AppCompatActivity {
                     product = baseResp.getData();
                     runOnUiThread(() -> {
                         tvName.setText(product.getName());
-                        tvPrice.setText("¥" + product.getPrice().toString());
+                        tvPrice.setText("¥" + (product.getPrice() != null ? product.getPrice().toString() : "0"));
                         tvStock.setText("库存：" + product.getStock());
                         tvDescription.setText(product.getDescription());
                         tvViewCount.setText("浏览量: " + (product.getViewCount() != null ? product.getViewCount() : 0));
@@ -143,7 +142,7 @@ public class ProductDetailActivity extends AppCompatActivity {
 
     private void loadSellerInfo(Long sellerId) {
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "user/info/" + sellerId)
+                .url(ApiClient.BASE_URL + "v1/trade/credit/" + sellerId)
                 .get()
                 .build();
 
@@ -156,11 +155,12 @@ public class ProductDetailActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String respBody = response.body().string();
-                BaseResponse<User> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<User>>(){}.getType());
+                BaseResponse<CreditDetailResponse> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<CreditDetailResponse>>(){}.getType());
                 if (baseResp.isSuccess() && baseResp.getData() != null) {
-                    seller = baseResp.getData();
+                    CreditDetailResponse credit = baseResp.getData();
                     runOnUiThread(() -> {
-                        String sellerInfo = "卖家: " + seller.getUsername();
+                        String sellerInfo = "卖家: " + credit.getUsername()
+                                + "  信用分: " + (credit.getCreditScore() != null ? credit.getCreditScore() : 0);
                         tvSeller.setText(sellerInfo);
                     });
                 } else {

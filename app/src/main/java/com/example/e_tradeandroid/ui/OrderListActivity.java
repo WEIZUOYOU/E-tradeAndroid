@@ -3,6 +3,7 @@ package com.example.e_tradeandroid.ui;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -36,7 +37,9 @@ public class OrderListActivity extends AppCompatActivity {
     private SwipeRefreshLayout swipeRefresh;
     private ProgressBar progressBar;
     private BottomNavigationView bottomNavigation;
+    private Button btnTabBuyer, btnTabSeller;
     private Gson gson = new Gson();
+    private boolean isBuyerTab = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +50,8 @@ public class OrderListActivity extends AppCompatActivity {
         swipeRefresh = findViewById(R.id.swipe_refresh_orders);
         progressBar = findViewById(R.id.progress_bar_orders);
         bottomNavigation = findViewById(R.id.bottom_navigation);
+        btnTabBuyer = findViewById(R.id.btn_tab_buyer);
+        btnTabSeller = findViewById(R.id.btn_tab_seller);
 
         setupBottomNavigation();
 
@@ -60,7 +65,29 @@ public class OrderListActivity extends AppCompatActivity {
 
         swipeRefresh.setOnRefreshListener(this::loadOrders);
 
+        btnTabBuyer.setOnClickListener(v -> {
+            if (!isBuyerTab) {
+                isBuyerTab = true;
+                updateTabStyle();
+                loadOrders();
+            }
+        });
+
+        btnTabSeller.setOnClickListener(v -> {
+            if (isBuyerTab) {
+                isBuyerTab = false;
+                updateTabStyle();
+                loadOrders();
+            }
+        });
+
+        updateTabStyle();
         loadOrders();
+    }
+
+    private void updateTabStyle() {
+        btnTabBuyer.setTextColor(isBuyerTab ? 0xFF4A90E2 : 0xFF6C757D);
+        btnTabSeller.setTextColor(isBuyerTab ? 0xFF6C757D : 0xFF4A90E2);
     }
 
     private void setupBottomNavigation() {
@@ -91,9 +118,11 @@ public class OrderListActivity extends AppCompatActivity {
     private void loadOrders() {
         swipeRefresh.setRefreshing(true);
         progressBar.setVisibility(View.VISIBLE);
-        
+
+        String endpoint = isBuyerTab ? "order/buyer/list" : "order/seller/list";
+
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "order/my-orders?page=1&size=20")
+                .url(ApiClient.BASE_URL + endpoint)
                 .get()
                 .build();
 

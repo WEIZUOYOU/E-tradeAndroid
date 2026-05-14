@@ -25,7 +25,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 
 public class ApiClient {
-    public static final String BASE_URL = "http://10.0.2.2:4523/m1/8086391-7842204-default/api/";
+    public static final String BASE_URL = "http://10.0.2.2:8080/api/";
     private static OkHttpClient client;
     private static SharedPreferences cookiePrefs;
     private static final String COOKIE_PREF_NAME = "cookies";
@@ -88,18 +88,35 @@ public class ApiClient {
 
     public static void clearCookies() {
         cookiePrefs.edit().remove(COOKIE_KEY).apply();
-        client = null;
+        client = new OkHttpClient.Builder()
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .cookieJar(new CookieJar() {
+                    private final Set<Cookie> cookieStore = new HashSet<>();
+
+                    @Override
+                    public void saveFromResponse(@NonNull HttpUrl url, @NonNull List<Cookie> cookies) {
+                        cookieStore.addAll(cookies);
+                    }
+
+                    @Override
+                    public List<Cookie> loadForRequest(@NonNull HttpUrl url) {
+                        return new ArrayList<>(cookieStore);
+                    }
+                })
+                .build();
     }
 
     // ==================== 兼容页面的核心方法 ====================
-    public static int getCurrentUserId() {
-        if (userSp == null) return 1;
-        return userSp.getInt(KEY_USER_ID, 1);
+    public static long getCurrentUserId() {
+        if (userSp == null) return 1L;
+        return userSp.getLong(KEY_USER_ID, 1L);
     }
 
-    public static void saveUserId(int userId) {
+    public static void saveUserId(long userId) {
         if (userSp != null) {
-            userSp.edit().putInt(KEY_USER_ID, userId).apply();
+            userSp.edit().putLong(KEY_USER_ID, userId).apply();
         }
     }
 
@@ -119,6 +136,23 @@ public class ApiClient {
         Request request = new Request.Builder()
                 .url(BASE_URL + url)
                 .post(body)
+                .build();
+        getClient().newCall(request).enqueue(callback);
+    }
+
+    public static void put(String url, String jsonBody, Callback callback) {
+        RequestBody body = RequestBody.create(jsonBody, JSON);
+        Request request = new Request.Builder()
+                .url(BASE_URL + url)
+                .put(body)
+                .build();
+        getClient().newCall(request).enqueue(callback);
+    }
+
+    public static void delete(String url, Callback callback) {
+        Request request = new Request.Builder()
+                .url(BASE_URL + url)
+                .delete()
                 .build();
         getClient().newCall(request).enqueue(callback);
     }

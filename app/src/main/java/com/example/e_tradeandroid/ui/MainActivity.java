@@ -18,6 +18,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.example.e_tradeandroid.R;
 import com.example.e_tradeandroid.adapter.ProductAdapter;
 import com.example.e_tradeandroid.model.BaseResponse;
+import com.example.e_tradeandroid.model.Category;
 import com.example.e_tradeandroid.model.Product;
 import com.example.e_tradeandroid.network.ApiClient;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -26,7 +27,6 @@ import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import okhttp3.Call;
@@ -38,7 +38,6 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private ProductAdapter adapter;
     private List<Product> productList = new ArrayList<>();
-    private List<Product> filteredList = new ArrayList<>();
     private SwipeRefreshLayout swipeRefresh;
     private ProgressBar progressBar;
     private SearchView searchView;
@@ -46,48 +45,23 @@ public class MainActivity extends AppCompatActivity {
     private BottomNavigationView bottomNavigation;
     private Gson gson = new Gson();
     private String searchKeyword = "";
-    private String selectedCategory = "";
-    
-    // 分类列表（从商品标签中提取）
-    private List<String> categories = Arrays.asList(
-        "全部", "教材", "电子产品", "生活用品", "运动器材", 
-        "服装", "其他"
-    );
+    private Long selectedCategoryId = null;
+    private List<Category> categories = new ArrayList<>();
+    private boolean isSearchMode = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
-        // 初始化ApiClient
+
         ApiClient.init(this);
-        
-        // 检查登录状态（可选）
-        // 如果需要强制登录，可以取消下面的注释
-        /*
-        if (!isLoggedIn()) {
-            startActivity(new Intent(MainActivity.this, LoginActivity.class));
-            finish();
-            return;
-        }
-        */
-        
+
         setContentView(R.layout.activity_main);
 
         initViews();
-        setupCategories();
         setupSearchView();
         setupBottomNavigation();
+        loadCategories();
         loadProducts();
-    }
-    
-    private boolean isLoggedIn() {
-        // 简单检查：尝试获取client，如果未初始化则未登录
-        try {
-            ApiClient.getClient();
-            return true;
-        } catch (IllegalStateException e) {
-            return false;
-        }
     }
 
     private void initViews() {
@@ -99,34 +73,81 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigation = findViewById(R.id.bottom_navigation);
 
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
-        adapter = new ProductAdapter(filteredList, product -> {
+        adapter = new ProductAdapter(productList, product -> {
             Intent intent = new Intent(MainActivity.this, ProductDetailActivity.class);
             intent.putExtra("product_id", product.getId());
             startActivity(intent);
         });
         recyclerView.setAdapter(adapter);
 
-        swipeRefresh.setOnRefreshListener(this::loadProducts);
+        swipeRefresh.setOnRefreshListener(() -> {
+            if (isSearchMode) {
+                searchProducts();
+            } else {
+                loadProducts();
+            }
+        });
     }
 
-    private void setupCategories() {
-        for (String category : categories) {
+    private void loadCategories() {
+        Request request = new Request.Builder()
+                .url(ApiClient.BASE_URL + "category/list")
+                .get()
+                .build();
+
+        ApiClient.getClient().newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                runOnUiThread(() -> setupDefaultCategories());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                String respBody = response.body().string();
+                BaseResponse<List<Category>> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<List<Category>>>(){}.getType());
+                runOnUiThread(() -> {
+                    if (baseResp.isSuccess() && baseResp.getData() != null && !baseResp.getData().isEmpty()) {
+                        categories.clear();
+                        categories.addAll(baseResp.getData());
+                        setupCategoriesView();
+                    } else {
+                        setupDefaultCategories();
+                    }
+                });
+            }
+        });
+    }
+
+    private void setupDefaultCategories() {
+        categories.clear();
+        String[] defaultNames = {"全部", "教材", "电子产品", "生活用品", "运动器材", "服装", "其他"};
+        for (int i = 0; i < defaultNames.length; i++) {
+            Category c = new Category();
+            c.setId(i == 0 ? 0L : (long) i);
+            c.setName(defaultNames[i]);
+            categories.add(c);
+        }
+        setupCategoriesView();
+    }
+
+    private void setupCategoriesView() {
+        layoutCategories.removeAllViews();
+        for (Category category : categories) {
             TextView tvCategory = (TextView) LayoutInflater.from(this)
                     .inflate(R.layout.item_category, layoutCategories, false);
-            tvCategory.setText(category);
-            
-            // 点击分类进行搜索
+            tvCategory.setText(category.getName());
+
             tvCategory.setOnClickListener(v -> {
-                selectedCategory = category.equals("全部") ? "" : category;
-                searchKeyword = selectedCategory;
-                if (!selectedCategory.isEmpty()) {
-                    searchView.setQuery(selectedCategory, false);
+                if (category.getId() != null && category.getId() == 0L) {
+                    selectedCategoryId = null;
                 } else {
-                    searchView.setQuery("", false);
+                    selectedCategoryId = category.getId();
                 }
-                filterProducts();
+                searchKeyword = "";
+                searchView.setQuery("", false);
+                searchProducts();
             });
-            
+
             layoutCategories.addView(tvCategory);
         }
     }
@@ -136,15 +157,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 searchKeyword = query;
-                filterProducts();
+                selectedCategoryId = null;
+                searchProducts();
                 return true;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                searchKeyword = newText;
-                filterProducts();
-                return true;
+                return false;
             }
         });
     }
@@ -153,10 +173,8 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigation.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.nav_home) {
-                // 已经在首页，不做操作
                 return true;
             } else if (itemId == R.id.nav_category) {
-                // 滚动到分类模块
                 layoutCategories.getParent().requestChildFocus(
                     (View) layoutCategories.getParent(), null);
                 return true;
@@ -175,11 +193,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadProducts() {
+        isSearchMode = false;
         swipeRefresh.setRefreshing(true);
         progressBar.setVisibility(View.VISIBLE);
-        
+
         String url = ApiClient.BASE_URL + "product/list?page=1&size=20";
-        
+
         Request request = new Request.Builder()
                 .url(url)
                 .get()
@@ -205,7 +224,7 @@ public class MainActivity extends AppCompatActivity {
                     if (baseResp.isSuccess() && baseResp.getData() != null) {
                         productList.clear();
                         productList.addAll(baseResp.getData());
-                        filterProducts();
+                        adapter.notifyDataSetChanged();
                     } else {
                         Toast.makeText(MainActivity.this, "获取商品列表失败", Toast.LENGTH_SHORT).show();
                     }
@@ -214,31 +233,50 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void filterProducts() {
-        filteredList.clear();
-        
-        for (Product product : productList) {
-            boolean matchesSearch = true;
-            boolean matchesCategory = true;
-            
-            // 搜索过滤
-            if (searchKeyword != null && !searchKeyword.isEmpty()) {
-                matchesSearch = product.getName().toLowerCase().contains(searchKeyword.toLowerCase()) ||
-                    (product.getDescription() != null && product.getDescription().toLowerCase().contains(searchKeyword.toLowerCase()));
-            }
-            
-            // 分类过滤
-            if (selectedCategory != null && !selectedCategory.isEmpty()) {
-                matchesCategory = (product.getDescription() != null && 
-                    product.getDescription().contains(selectedCategory)) ||
-                    product.getName().contains(selectedCategory);
-            }
-            
-            if (matchesSearch && matchesCategory) {
-                filteredList.add(product);
-            }
+    private void searchProducts() {
+        isSearchMode = true;
+        swipeRefresh.setRefreshing(true);
+        progressBar.setVisibility(View.VISIBLE);
+
+        StringBuilder url = new StringBuilder(ApiClient.BASE_URL + "product/search?page=1&size=20");
+        if (searchKeyword != null && !searchKeyword.isEmpty()) {
+            url.append("&keyword=").append(searchKeyword);
         }
-        
-        adapter.notifyDataSetChanged();
+        if (selectedCategoryId != null) {
+            url.append("&categoryId=").append(selectedCategoryId);
+        }
+
+        Request request = new Request.Builder()
+                .url(url.toString())
+                .get()
+                .build();
+
+        ApiClient.getClient().newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                runOnUiThread(() -> {
+                    swipeRefresh.setRefreshing(false);
+                    progressBar.setVisibility(View.GONE);
+                    Toast.makeText(MainActivity.this, "搜索失败：" + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                String respBody = response.body().string();
+                BaseResponse<List<Product>> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<List<Product>>>(){}.getType());
+                runOnUiThread(() -> {
+                    swipeRefresh.setRefreshing(false);
+                    progressBar.setVisibility(View.GONE);
+                    if (baseResp.isSuccess() && baseResp.getData() != null) {
+                        productList.clear();
+                        productList.addAll(baseResp.getData());
+                        adapter.notifyDataSetChanged();
+                    } else {
+                        Toast.makeText(MainActivity.this, "搜索无结果", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
     }
 }

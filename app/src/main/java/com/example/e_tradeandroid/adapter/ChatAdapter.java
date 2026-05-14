@@ -12,10 +12,10 @@ import java.util.List;
 
 public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.VH> {
     private final List<ChatMessage> list;
-    private final int selfId;
+    private final long selfId;
     private static final int SELF = 1, OTHER = 2;
 
-    public ChatAdapter(List<ChatMessage> l, int self) {list=l;selfId=self;}
+    public ChatAdapter(List<ChatMessage> l, long self) {list=l;selfId=self;}
 
     @NonNull @Override public VH onCreateViewHolder(@NonNull ViewGroup p, int type) {
         int layout = type==SELF ? R.layout.item_chat_self : R.layout.item_chat_other;

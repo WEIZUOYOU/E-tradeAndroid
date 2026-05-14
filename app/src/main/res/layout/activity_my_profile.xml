@@ -200,6 +200,15 @@
                     android:text="我发布的商品"
                     android:textAllCaps="false" />
 
+                <!-- 编辑资料 -->
+                <Button
+                    android:id="@+id/btn_edit_profile"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="编辑资料"
+                    android:textAllCaps="false" />
+
                 <!-- 退出登录 -->
                 <Button
                     android:id="@+id/btn_logout"
