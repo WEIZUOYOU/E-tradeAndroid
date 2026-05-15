@@ -25,7 +25,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 
 public class ApiClient {
-    public static final String BASE_URL = "http://10.0.2.2:4523/m1/8086391-7842204-default/api/";
+    public static final String BASE_URL = "http://10.0.2.2:8080/api/";
     private static OkHttpClient client;
     private static SharedPreferences cookiePrefs;
     private static final String COOKIE_PREF_NAME = "cookies";
