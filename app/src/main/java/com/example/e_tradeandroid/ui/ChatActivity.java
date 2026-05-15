@@ -6,19 +6,24 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Button;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.e_tradeandroid.R;
 import com.example.e_tradeandroid.adapter.ChatAdapter;
 import com.example.e_tradeandroid.model.ChatMessage;
 import com.example.e_tradeandroid.network.ApiClient;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Request;
@@ -31,9 +36,9 @@ public class ChatActivity extends AppCompatActivity {
     private ChatAdapter chatAdapter;
     private List<ChatMessage> messageList;
 
-    private int productId;
-    private int sellerId;
-    private int currentUserId;
+    private long productId;
+    private long targetUserId;
+    private long currentUserId;
     private final Handler handler = new Handler();
     private Runnable pollTask;
 
@@ -42,8 +47,8 @@ public class ChatActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
-        productId = getIntent().getIntExtra("productId", 0);
-        sellerId = getIntent().getIntExtra("sellerId", 0);
+        productId = getIntent().getLongExtra("productId", 0L);
+        targetUserId = getIntent().getLongExtra("sellerId", 0L);
         currentUserId = ApiClient.getCurrentUserId();
 
         initView();
@@ -73,20 +78,24 @@ public class ChatActivity extends AppCompatActivity {
         }
         JSONObject body = new JSONObject();
         try {
+            body.put("receiverId", targetUserId);
             body.put("productId", productId);
-            body.put("senderId", currentUserId);
-            body.put("receiverId", sellerId);
             body.put("content", content);
+            body.put("type", 0);
         } catch (JSONException e) {e.printStackTrace();}
 
-        ApiClient.post("/api/chat/send", body.toString(), new Callback() {
-            @Override public void onFailure(Call call, IOException e) {runOnUiThread(()->Toast.makeText(ChatActivity.this,"发送失败",Toast.LENGTH_SHORT).show());}
-            @Override public void onResponse(Call call, Response response) {runOnUiThread(()->{etInput.setText("");loadMessage();});}
+        ApiClient.post("message/send", body.toString(), new Callback() {
+            @Override public void onFailure(Call call, IOException e) {
+                runOnUiThread(()->Toast.makeText(ChatActivity.this,"发送失败",Toast.LENGTH_SHORT).show());
+            }
+            @Override public void onResponse(Call call, Response response) {
+                runOnUiThread(()->{etInput.setText("");loadMessage();});
+            }
         });
     }
 
     private void loadMessage() {
-        String url = ApiClient.BASE_URL + "/api/chat/list?productId="+productId+"&sellerId="+sellerId+"&buyerId="+currentUserId;
+        String url = ApiClient.BASE_URL + "message/history?targetUserId=" + targetUserId;
         Request request = new Request.Builder().url(url).build();
         ApiClient.getHttpClient().newCall(request).enqueue(new Callback() {
             @Override public void onFailure(Call call, IOException e) {}

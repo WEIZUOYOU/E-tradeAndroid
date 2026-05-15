@@ -37,7 +37,7 @@ import okhttp3.Response;
  */
 public class EditProductActivity extends AppCompatActivity {
     private EditText etName, etPrice, etStock, etDescription;
-    private Button btnSelectImage, btnUpdate, btnOffshelf;
+    private Button btnSelectImage, btnUpdate, btnOffshelf, btnDelete;
     private ImageView ivPreview;
     private BottomNavigationView bottomNavigation;
     private Uri selectedImageUri;
@@ -64,6 +64,7 @@ public class EditProductActivity extends AppCompatActivity {
         btnSelectImage.setOnClickListener(v -> selectImage());
         btnUpdate.setOnClickListener(v -> updateProduct());
         btnOffshelf.setOnClickListener(v -> showOffshelfDialog());
+        btnDelete.setOnClickListener(v -> showDeleteDialog());
     }
 
     private void initViews() {
@@ -74,6 +75,7 @@ public class EditProductActivity extends AppCompatActivity {
         btnSelectImage = findViewById(R.id.btn_select_image);
         btnUpdate = findViewById(R.id.btn_update);
         btnOffshelf = findViewById(R.id.btn_offshelf);
+        btnDelete = findViewById(R.id.btn_delete);
         ivPreview = findViewById(R.id.iv_preview);
         bottomNavigation = findViewById(R.id.bottom_navigation);
     }
@@ -125,7 +127,7 @@ public class EditProductActivity extends AppCompatActivity {
                     product = baseResp.getData();
                     runOnUiThread(() -> {
                         etName.setText(product.getName());
-                        etPrice.setText(product.getPrice().toString());
+                        etPrice.setText(product.getPrice() != null ? product.getPrice().toString() : "");
                         etStock.setText(String.valueOf(product.getStock()));
                         etDescription.setText(product.getDescription());
                         
@@ -171,7 +173,7 @@ public class EditProductActivity extends AppCompatActivity {
             updateData.put("price", price);
             updateData.put("stock", Integer.parseInt(stock));
             updateData.put("description", description);
-            updateData.put("categoryId", product.getCategoryId());
+            updateData.put("categoryId", product.getCategoryId() != null ? product.getCategoryId() : 0);
 
             RequestBody body = RequestBody.create(
                 updateData.toString(), 
@@ -240,6 +242,38 @@ public class EditProductActivity extends AppCompatActivity {
                         finish();
                     } else {
                         Toast.makeText(EditProductActivity.this, "下架失败：" + baseResp.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
+    }
+
+    private void showDeleteDialog() {
+        new AlertDialog.Builder(this)
+            .setTitle("删除商品")
+            .setMessage("确定要删除这个商品吗？此操作不可恢复！")
+            .setPositiveButton("确定", (dialog, which) -> deleteProduct())
+            .setNegativeButton("取消", null)
+            .show();
+    }
+
+    private void deleteProduct() {
+        ApiClient.delete("product/delete/" + productId, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                runOnUiThread(() -> Toast.makeText(EditProductActivity.this, "删除失败：" + e.getMessage(), Toast.LENGTH_SHORT).show());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                String respBody = response.body().string();
+                BaseResponse<Void> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<Void>>(){}.getType());
+                runOnUiThread(() -> {
+                    if (baseResp.isSuccess()) {
+                        Toast.makeText(EditProductActivity.this, "商品已删除", Toast.LENGTH_SHORT).show();
+                        finish();
+                    } else {
+                        Toast.makeText(EditProductActivity.this, "删除失败：" + baseResp.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
             }

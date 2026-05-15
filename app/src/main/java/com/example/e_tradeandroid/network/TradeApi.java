@@ -9,6 +9,6 @@ import retrofit2.http.Body;
 import retrofit2.http.POST;
 
 public interface TradeApi {
-    @POST("/api/v1/trade/order")
+    @POST("order/review")
     Call<BaseResponse<CreateOrderResponse>> createTradeOrder(@Body CreateOrderRequest request);
 }

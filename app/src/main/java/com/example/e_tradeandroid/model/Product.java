@@ -13,6 +13,8 @@ public class Product {
     private String description;
     private String mainImage;
     private List<String> images;
+    private String imageUrls;
+    private String coverImage;
     private Integer status;
     private Integer viewCount;
     private String createTime;
@@ -111,5 +113,21 @@ public class Product {
 
     public void setCreateTime(String createTime) {
         this.createTime = createTime;
+    }
+
+    public String getImageUrls() {
+        return imageUrls;
+    }
+
+    public void setImageUrls(String imageUrls) {
+        this.imageUrls = imageUrls;
+    }
+
+    public String getCoverImage() {
+        return coverImage;
+    }
+
+    public void setCoverImage(String coverImage) {
+        this.coverImage = coverImage;
     }
 }

@@ -90,7 +90,7 @@ public class LoginActivity extends AppCompatActivity {
         req.setPhone(phone);
         req.setPassword(password);
         String json = gson.toJson(req);
-        RequestBody body = RequestBody.create(json, MediaType.parse("application/json; charset=utf-8"));
+        RequestBody body = RequestBody.create(json, MediaType.get("application/json; charset=utf-8"));
         Request request = new Request.Builder()
                 .url(ApiClient.BASE_URL + "user/login")
                 .post(body)
@@ -107,6 +107,10 @@ public class LoginActivity extends AppCompatActivity {
                 String respBody = response.body().string();
                 BaseResponse<User> baseResp = gson.fromJson(respBody, new com.google.gson.reflect.TypeToken<BaseResponse<User>>(){}.getType());
                 if (baseResp.isSuccess()) {
+                    User user = baseResp.getData();
+                    if (user != null && user.getId() != null) {
+                        ApiClient.saveUserId(user.getId());
+                    }
                     runOnUiThread(() -> {
                         Toast.makeText(LoginActivity.this, "登录成功", Toast.LENGTH_SHORT).show();
                         startActivity(new Intent(LoginActivity.this, MainActivity.class));
@@ -134,7 +138,7 @@ public class LoginActivity extends AppCompatActivity {
         req.setUsername(username);
         req.setPhone(phone);
         String json = gson.toJson(req);
-        RequestBody body = RequestBody.create(json, MediaType.parse("application/json; charset=utf-8"));
+        RequestBody body = RequestBody.create(json, MediaType.get("application/json; charset=utf-8"));
         Request request = new Request.Builder()
                 .url(ApiClient.BASE_URL + "user/register")
                 .post(body)

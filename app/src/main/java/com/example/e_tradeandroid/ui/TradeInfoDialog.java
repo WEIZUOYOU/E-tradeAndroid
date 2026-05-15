@@ -3,17 +3,20 @@ package com.example.e_tradeandroid.ui;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
-import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
+
 import com.example.e_tradeandroid.R;
 import com.example.e_tradeandroid.network.ApiClient;
+
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.io.IOException;
+
 import okhttp3.Callback;
 import okhttp3.Response;
 
@@ -41,29 +44,28 @@ public class TradeInfoDialog extends Dialog {
     public void create() {
         String loc = etLoc.getText().toString().trim();
         String time = etTime.getText().toString().trim();
-        String contact = etContact.getText().toString().trim();
-        if (loc.isEmpty()||time.isEmpty()||contact.isEmpty()) {
-            Toast.makeText(getContext(),"请填写完整",Toast.LENGTH_SHORT).show();
+        if (loc.isEmpty()||time.isEmpty()) {
+            Toast.makeText(getContext(),"请填写完整信息",Toast.LENGTH_SHORT).show();
             return;
         }
         JSONObject body = new JSONObject();
         try {
-            body.put("productId",productId);
-            body.put("sellerId",sellerId);
-            body.put("buyerId",ApiClient.getCurrentUserId());
-            body.put("meetingLocation",loc);
-            body.put("meetingTime",time);
-            body.put("contact",contact);
-            body.put("tradeType",1);
+            body.put("productId", productId);
+            body.put("quantity", 1);
+            body.put("tradeType", 1);
+            body.put("payType", 3);
+            body.put("meetingTime", time);
+            body.put("meetingLocation", loc);
         } catch (JSONException e) {e.printStackTrace();}
 
-        ApiClient.post("/api/order/create", body.toString(), new Callback() {
+        ApiClient.post("order/review", body.toString(), new Callback() {
             @Override public void onFailure(okhttp3.Call call, IOException e) {}
             @Override public void onResponse(okhttp3.Call call, Response response) throws IOException {
                 try {
                     JSONObject obj = new JSONObject(response.body().string());
                     if (obj.getInt("code")==200) {
-                        int oid = obj.getJSONObject("data").getInt("id");
+                        JSONObject data = obj.optJSONObject("data");
+                        int oid = data != null ? data.optInt("id", 0) : 0;
                         dismiss();
                         if (callback!=null) callback.onSuccess(oid);
                     }

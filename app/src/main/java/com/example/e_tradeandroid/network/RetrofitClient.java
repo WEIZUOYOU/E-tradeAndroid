@@ -11,6 +11,7 @@ public class RetrofitClient {
     private RetrofitClient() {
         retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
+                .client(ApiClient.getClient())
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
     }

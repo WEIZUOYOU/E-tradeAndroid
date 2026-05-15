@@ -6,10 +6,47 @@
     android:orientation="vertical">
 
     <!-- 订单列表内容 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center"
+            android:background="@android:color/white">
+
+            <Button
+                android:id="@+id/btn_tab_buyer"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="买家订单"
+                android:textAllCaps="false"
+                android:background="?android:attr/selectableItemBackground" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="@color/divider" />
+
+            <Button
+                android:id="@+id/btn_tab_seller"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="卖家订单"
+                android:textAllCaps="false"
+                android:background="?android:attr/selectableItemBackground" />
+        </LinearLayout>
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:background="@color/background_light">
 
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/swipe_refresh_orders"
@@ -31,6 +68,7 @@
             android:visibility="gone" />
 
     </FrameLayout>
+    </LinearLayout>
 
     <!-- 底部导航栏 -->
     <com.google.android.material.bottomnavigation.BottomNavigationView

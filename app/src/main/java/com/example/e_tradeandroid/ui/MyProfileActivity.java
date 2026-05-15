@@ -1,6 +1,7 @@
 package com.example.e_tradeandroid.ui;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -23,21 +24,25 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import org.json.JSONObject;
+
 import java.io.IOException;
 
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
+import okhttp3.MultipartBody;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class MyProfileActivity extends AppCompatActivity {
-    private TextView tvStudentId, tvUsername, tvPhone, tvCreditScore, tvStatus;
+    private TextView tvStudentId, tvUsername, tvPhone, tvCreditScore, tvAuthStatus;
     private ImageView ivAvatar;
-    private Button btnLogout, btnMyOrders, btnMyProducts, btnRealnameAuth;
+    private Button btnLogout, btnMyOrders, btnMyProducts, btnRealnameAuth, btnEditProfile;
     private BottomNavigationView bottomNavigation;
     private Gson gson = new Gson();
+    private static final int PICK_IMAGE_REQUEST = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,30 +53,27 @@ public class MyProfileActivity extends AppCompatActivity {
         tvUsername = findViewById(R.id.tv_username);
         tvPhone = findViewById(R.id.tv_phone);
         tvCreditScore = findViewById(R.id.tv_credit_score);
-        tvStatus = findViewById(R.id.tv_status);
+        tvAuthStatus = findViewById(R.id.tv_status);
         ivAvatar = findViewById(R.id.iv_avatar);
         btnLogout = findViewById(R.id.btn_logout);
         btnMyOrders = findViewById(R.id.btn_my_orders);
         btnMyProducts = findViewById(R.id.btn_my_products);
         btnRealnameAuth = findViewById(R.id.btn_realname_auth);
+        btnEditProfile = findViewById(R.id.btn_edit_profile);
         bottomNavigation = findViewById(R.id.bottom_navigation);
 
         setupBottomNavigation();
 
         loadUserProfile();
 
-        // 我的订单按钮
-        btnMyOrders.setOnClickListener(v -> {
-            startActivity(new Intent(MyProfileActivity.this, OrderListActivity.class));
-        });
+        btnMyOrders.setOnClickListener(v ->
+            startActivity(new Intent(MyProfileActivity.this, OrderListActivity.class))
+        );
 
-        // 我发布的商品按钮
-        btnMyProducts.setOnClickListener(v -> {
-            Intent intent = new Intent(MyProfileActivity.this, MyProductsActivity.class);
-            startActivity(intent);
-        });
+        btnMyProducts.setOnClickListener(v ->
+            startActivity(new Intent(MyProfileActivity.this, MyProductsActivity.class))
+        );
 
-        // 退出登录按钮
         btnLogout.setOnClickListener(v -> {
             Request request = new Request.Builder()
                     .url(ApiClient.BASE_URL + "user/logout")
@@ -93,8 +95,125 @@ public class MyProfileActivity extends AppCompatActivity {
             });
         });
 
-        // 实名认证按钮
         btnRealnameAuth.setOnClickListener(v -> showRealnameAuthDialog());
+
+        btnEditProfile.setOnClickListener(v -> showEditProfileDialog());
+
+        ivAvatar.setOnClickListener(v -> pickImage());
+    }
+
+    private void showEditProfileDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("修改个人资料");
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 40, 50, 10);
+
+        final EditText etUsername = new EditText(this);
+        etUsername.setHint("新用户名");
+        layout.addView(etUsername);
+
+        builder.setView(layout);
+
+        builder.setPositiveButton("保存", (dialog, which) -> {
+            String newUsername = etUsername.getText().toString().trim();
+            if (newUsername.isEmpty()) {
+                Toast.makeText(this, "用户名不能为空", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            updateProfile(newUsername);
+        });
+        builder.setNegativeButton("取消", null);
+        builder.show();
+    }
+
+    private void updateProfile(String newUsername) {
+        try {
+            JSONObject body = new JSONObject();
+            body.put("username", newUsername);
+            ApiClient.put("user/profile", body.toString(), new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    runOnUiThread(() -> Toast.makeText(MyProfileActivity.this, "修改失败：" + e.getMessage(), Toast.LENGTH_SHORT).show());
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    String respBody = response.body().string();
+                    BaseResponse<Void> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<Void>>(){}.getType());
+                    runOnUiThread(() -> {
+                        if (baseResp.isSuccess()) {
+                            Toast.makeText(MyProfileActivity.this, "修改成功", Toast.LENGTH_SHORT).show();
+                            loadUserProfile();
+                        } else {
+                            Toast.makeText(MyProfileActivity.this, "修改失败：" + baseResp.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void pickImage() {
+        Intent intent = new Intent(Intent.ACTION_PICK);
+        intent.setType("image/*");
+        startActivityForResult(intent, PICK_IMAGE_REQUEST);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            Uri imageUri = data.getData();
+            uploadAvatar(imageUri);
+        }
+    }
+
+    private void uploadAvatar(Uri imageUri) {
+        try {
+            java.io.InputStream inputStream = getContentResolver().openInputStream(imageUri);
+            byte[] imageBytes = new byte[inputStream.available()];
+            inputStream.read(imageBytes);
+            inputStream.close();
+
+            RequestBody requestBody = new MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart("file", "avatar.jpg",
+                            RequestBody.create(imageBytes, MediaType.parse("image/jpeg")))
+                    .build();
+
+            Request request = new Request.Builder()
+                    .url(ApiClient.BASE_URL + "user/avatar")
+                    .post(requestBody)
+                    .build();
+
+            ApiClient.getClient().newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    runOnUiThread(() -> Toast.makeText(MyProfileActivity.this, "上传失败：" + e.getMessage(), Toast.LENGTH_SHORT).show());
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    String respBody = response.body().string();
+                    BaseResponse<String> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<String>>(){}.getType());
+                    runOnUiThread(() -> {
+                        if (baseResp.isSuccess()) {
+                            Toast.makeText(MyProfileActivity.this, "头像上传成功", Toast.LENGTH_SHORT).show();
+                            loadUserProfile();
+                        } else {
+                            Toast.makeText(MyProfileActivity.this, "上传失败：" + baseResp.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+            runOnUiThread(() -> Toast.makeText(this, "读取图片失败", Toast.LENGTH_SHORT).show());
+        }
     }
 
     private void showRealnameAuthDialog() {
@@ -119,12 +238,12 @@ public class MyProfileActivity extends AppCompatActivity {
         builder.setPositiveButton("提交", (dialog, which) -> {
             String studentId = etStudentId.getText().toString().trim();
             String realName = etRealName.getText().toString().trim();
-            
+
             if (studentId.isEmpty() || realName.isEmpty()) {
                 Toast.makeText(this, "请填写完整信息", Toast.LENGTH_SHORT).show();
                 return;
             }
-            
+
             submitRealnameAuth(studentId, realName);
         });
         builder.setNegativeButton("取消", null);
@@ -135,13 +254,10 @@ public class MyProfileActivity extends AppCompatActivity {
         VerifyRequest req = new VerifyRequest();
         req.setStudentId(studentId);
         req.setRealName(realName);
-        
+
         String json = gson.toJson(req);
-        RequestBody body = RequestBody.create(
-            json, 
-            MediaType.parse("application/json; charset=utf-8")
-        );
-        
+        RequestBody body = RequestBody.create(json, MediaType.parse("application/json; charset=utf-8"));
+
         Request request = new Request.Builder()
                 .url(ApiClient.BASE_URL + "user/verify")
                 .post(body)
@@ -219,11 +335,17 @@ public class MyProfileActivity extends AppCompatActivity {
                 if (baseResp.isSuccess() && baseResp.getData() != null) {
                     User user = baseResp.getData();
                     runOnUiThread(() -> {
-                        tvStudentId.setText(user.getStudentId());
-                        tvUsername.setText(user.getUsername());
-                        tvPhone.setText(user.getPhone());
-                        tvStatus.setText(user.getStatus() == 1 ? "正常" : "异常");
-                        
+                        tvStudentId.setText("学号：" + (user.getStudentId() != null ? user.getStudentId() : ""));
+                        tvUsername.setText("用户名：" + (user.getUsername() != null ? user.getUsername() : ""));
+                        tvPhone.setText("手机：" + (user.getPhone() != null ? user.getPhone() : ""));
+                        tvCreditScore.setText("信用分：" + (user.getCreditScore() != null ? user.getCreditScore() : 0));
+
+                        if (user.getIsAuth() != null && user.getIsAuth() == 1) {
+                            tvAuthStatus.setText("已认证 (" + (user.getRealName() != null ? user.getRealName() : "") + ")");
+                        } else {
+                            tvAuthStatus.setText("未认证");
+                        }
+
                         if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
                             Glide.with(MyProfileActivity.this)
                                     .load(ApiClient.BASE_URL + user.getAvatar())

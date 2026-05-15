@@ -89,6 +89,14 @@
                 android:text="下架商品"
                 android:backgroundTint="@color/warning_orange" />
 
+            <Button
+                android:id="@+id/btn_delete"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="删除商品"
+                android:backgroundTint="@color/error_red" />
+
         </LinearLayout>
     </ScrollView>
 
