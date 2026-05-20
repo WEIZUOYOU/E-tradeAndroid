@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="300dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="15dp">
+
+    <TextView android:text="评价交易" android:textSize="18sp" android:textStyle="bold"/>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_margin="10dp">
+        <TextView android:id="@+id/star1" android:text="★" android:textSize="24sp" android:textColor="#ccc"/>
+        <TextView android:id="@+id/star2" android:text="★" android:textSize="24sp" android:textColor="#ccc" android:layout_marginLeft="5dp"/>
+        <TextView android:id="@+id/star3" android:text="★" android:textSize="24sp" android:textColor="#ccc" android:layout_marginLeft="5dp"/>
+        <TextView android:id="@+id/star4" android:text="★" android:textSize="24sp" android:textColor="#ccc" android:layout_marginLeft="5dp"/>
+        <TextView android:id="@+id/star5" android:text="★" android:textSize="24sp" android:textColor="#ccc" android:layout_marginLeft="5dp"/>
+    </LinearLayout>
+    <EditText android:id="@+id/etEvaluate" android:hint="写下你的评价" android:layout_width="match_parent" android:layout_height="80dp"/>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="10dp">
+        <Button android:id="@+id/btnCancel" android:text="取消" android:layout_weight="1" android:layout_width="0dp"/>
+        <Button android:id="@+id/btnSubmit" android:text="提交" android:layout_weight="1" android:layout_width="0dp"/>
+    </LinearLayout>
+
+</LinearLayout>

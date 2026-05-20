@@ -1,5 +1,6 @@
 package com.example.e_tradeandroid.adapter;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,62 +17,65 @@ import com.example.e_tradeandroid.network.ApiClient;
 
 import java.util.List;
 
-public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHolder> {
-    private List<Product> productList;
-    private OnItemClickListener listener;
+public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductViewHolder> {
+    private final Context mContext;
+    private final List<Product> mProductList;
+    private OnProductClickListener mListener;
 
-    public interface OnItemClickListener {
-        void onItemClick(Product product);
+    public interface OnProductClickListener {
+        void onProductClick(Product product);
     }
 
-    public ProductAdapter(List<Product> productList, OnItemClickListener listener) {
-        this.productList = productList;
-        this.listener = listener;
+    public void setOnItemClickListener(OnProductClickListener listener) {
+        this.mListener = listener;
+    }
+
+    public ProductAdapter(Context context, List<Product> productList) {
+        this.mContext = context;
+        this.mProductList = productList;
     }
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_product, parent, false);
-        return new ViewHolder(view);
+    public ProductViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(mContext).inflate(R.layout.item_product, parent, false);
+        return new ProductViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Product product = productList.get(position);
+    public void onBindViewHolder(@NonNull ProductViewHolder holder, int position) {
+        Product product = mProductList.get(position);
         holder.tvName.setText(product.getName());
-        holder.tvPrice.setText("¥" + product.getPrice().toString());
+        holder.tvPrice.setText("¥" + product.getPrice());
+
         if (product.getMainImage() != null && !product.getMainImage().isEmpty()) {
-            Glide.with(holder.itemView.getContext())
+            Glide.with(mContext)
                     .load(ApiClient.BASE_URL + product.getMainImage())
                     .placeholder(R.drawable.ic_launcher_foreground)
                     .into(holder.ivImage);
-        } else if (product.getImages() != null && !product.getImages().isEmpty()) {
-            String firstUrl = product.getImages().get(0);
-            Glide.with(holder.itemView.getContext())
-                    .load(ApiClient.BASE_URL + firstUrl)
-                    .placeholder(R.drawable.ic_launcher_foreground)
-                    .into(holder.ivImage);
-        } else {
-            holder.ivImage.setImageResource(R.drawable.ic_launcher_foreground);
         }
-        holder.itemView.setOnClickListener(v -> listener.onItemClick(product));
+
+        holder.itemView.setOnClickListener(v -> {
+            if (mListener != null) {
+                mListener.onProductClick(product);
+            }
+        });
     }
 
     @Override
     public int getItemCount() {
-        return productList.size();
+        return mProductList == null ? 0 : mProductList.size();
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
+    public static class ProductViewHolder extends RecyclerView.ViewHolder {
         ImageView ivImage;
         TextView tvName, tvPrice;
 
-        ViewHolder(@NonNull View itemView) {
+        public ProductViewHolder(@NonNull View itemView) {
             super(itemView);
-            ivImage = itemView.findViewById(R.id.iv_product_image);
-            tvName = itemView.findViewById(R.id.tv_product_name);
-            tvPrice = itemView.findViewById(R.id.tv_product_price);
+            ivImage = itemView.findViewById(R.id.iv_image);
+            tvName = itemView.findViewById(R.id.tv_name);
+            tvPrice = itemView.findViewById(R.id.tv_price);
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.example.e_tradeandroid.adapter;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,65 +14,53 @@ import com.example.e_tradeandroid.model.Order;
 
 import java.util.List;
 
-public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> {
-    private List<Order> orderList;
-    private OnItemClickListener listener;
-    public interface OnItemClickListener {
-        void onItemClick(Order order);
-    }
+public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHolder> {
+    private final Context mContext;
+    private final List<Order> mOrderList;
 
-    public OrderAdapter(List<Order> orderList, OnItemClickListener listener) {
-        this.orderList = orderList;
-        this.listener = listener;
+    public OrderAdapter(Context context, List<Order> orderList) {
+        this.mContext = context;
+        this.mOrderList = orderList;
     }
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_order, parent, false);
-        return new ViewHolder(view);
+    public OrderViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(mContext).inflate(R.layout.item_order, parent, false);
+        return new OrderViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Order order = orderList.get(position);
-        holder.tvOrderNo.setText("订单号: " + order.getOrderNo());
-        holder.tvProductName.setText("商品: " + order.getProductName());
-        holder.tvQuantity.setText("数量: " + order.getQuantity());
-        holder.tvTotalAmount.setText("总价: ¥" + order.getTotalAmount().toString());
-        holder.tvStatus.setText("状态: " + getStatusText(order.getStatus()));
-        holder.tvCreateTime.setText("时间: " + (order.getCreateTime() != null ? order.getCreateTime() : ""));
-        
-        holder.itemView.setOnClickListener(v -> listener.onItemClick(order));
+    public void onBindViewHolder(@NonNull OrderViewHolder holder, int position) {
+        Order order = mOrderList.get(position);
+        holder.tvOrderNo.setText("订单号：" + order.getOrderNo());
+        holder.tvProductName.setText(order.getProductName());
+        holder.tvPrice.setText("¥" + order.getTotalAmount());
+
+        String statusStr;
+        switch (order.getStatus()) {
+            case 1: statusStr = "待交易"; break;
+            case 2: statusStr = "已完成"; break;
+            case 3: statusStr = "已取消"; break;
+            default: statusStr = "未知状态";
+        }
+        holder.tvStatus.setText(statusStr);
     }
 
     @Override
     public int getItemCount() {
-        return orderList.size();
+        return mOrderList == null ? 0 : mOrderList.size();
     }
 
-    private String getStatusText(int status) {
-        switch (status) {
-            case 0: return "待支付";
-            case 1: return "已支付待发货";
-            case 2: return "已发货";
-            case 3: return "已完成";
-            case 4: return "已取消";
-            default: return "未知";
-        }
-    }
+    public static class OrderViewHolder extends RecyclerView.ViewHolder {
+        TextView tvOrderNo, tvProductName, tvPrice, tvStatus;
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvOrderNo, tvProductName, tvQuantity, tvTotalAmount, tvStatus, tvCreateTime;
-
-        ViewHolder(@NonNull View itemView) {
+        public OrderViewHolder(@NonNull View itemView) {
             super(itemView);
             tvOrderNo = itemView.findViewById(R.id.tv_order_no);
-            tvProductName = itemView.findViewById(R.id.tv_product_name);
-            tvQuantity = itemView.findViewById(R.id.tv_quantity);
-            tvTotalAmount = itemView.findViewById(R.id.tv_total_amount);
-            tvStatus = itemView.findViewById(R.id.tv_status);
-            tvCreateTime = itemView.findViewById(R.id.tv_create_time);
+            tvProductName = itemView.findViewById(R.id.tv_order_name);
+            tvPrice = itemView.findViewById(R.id.tv_order_price);
+            tvStatus = itemView.findViewById(R.id.tv_order_status);
         }
     }
 }

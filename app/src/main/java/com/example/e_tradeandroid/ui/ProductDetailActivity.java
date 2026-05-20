@@ -17,19 +17,18 @@ import com.example.e_tradeandroid.R;
 import com.example.e_tradeandroid.model.BaseResponse;
 import com.example.e_tradeandroid.model.CreateOrderRequest;
 import com.example.e_tradeandroid.model.CreateOrderResponse;
-import com.example.e_tradeandroid.model.CreditDetailResponse;
 import com.example.e_tradeandroid.model.Product;
 import com.example.e_tradeandroid.network.ApiClient;
-import com.example.e_tradeandroid.network.RetrofitClient;
+import com.example.e_tradeandroid.model.User;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
+import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.Request;
 import okhttp3.Response;
 
 public class ProductDetailActivity extends AppCompatActivity {
@@ -37,6 +36,7 @@ public class ProductDetailActivity extends AppCompatActivity {
     private ImageView ivImage;
     private Button btnBuy;
     private Product product;
+    private User seller;
     private BottomNavigationView bottomNavigation;
     private final Gson gson = new Gson();
 
@@ -57,6 +57,7 @@ public class ProductDetailActivity extends AppCompatActivity {
 
         setupBottomNavigation();
 
+        // 修复：直接用 long 接收，不转 int
         long productId = getIntent().getLongExtra("product_id", -1);
         if (productId == -1) {
             finish();
@@ -64,7 +65,6 @@ public class ProductDetailActivity extends AppCompatActivity {
         }
 
         loadProductDetail(productId);
-
         btnBuy.setOnClickListener(v -> showNewTradeDialog());
     }
 
@@ -73,20 +73,20 @@ public class ProductDetailActivity extends AppCompatActivity {
         bottomNavigation.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.nav_home) {
-                startActivity(new Intent(ProductDetailActivity.this, MainActivity.class));
+                startActivity(new Intent(this, MainActivity.class));
                 finish();
                 return true;
-            } else if (itemId == R.id.nav_category) {
-                startActivity(new Intent(ProductDetailActivity.this, MainActivity.class));
-                return true;
             } else if (itemId == R.id.nav_publish) {
-                startActivity(new Intent(ProductDetailActivity.this, PublishActivity.class));
+                startActivity(new Intent(this, PublishActivity.class));
+                finish();
                 return true;
             } else if (itemId == R.id.nav_orders) {
-                startActivity(new Intent(ProductDetailActivity.this, OrderListActivity.class));
+                startActivity(new Intent(this, OrderListActivity.class));
+                finish();
                 return true;
             } else if (itemId == R.id.nav_profile) {
-                startActivity(new Intent(ProductDetailActivity.this, MyProfileActivity.class));
+                startActivity(new Intent(this, MyProfileActivity.class));
+                finish();
                 return true;
             }
             return false;
@@ -94,12 +94,7 @@ public class ProductDetailActivity extends AppCompatActivity {
     }
 
     private void loadProductDetail(long productId) {
-        Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "product/detail/" + productId)
-                .get()
-                .build();
-
-        ApiClient.getClient().newCall(request).enqueue(new Callback() {
+        ApiClient.get("product/detail/" + productId, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 runOnUiThread(() -> Toast.makeText(ProductDetailActivity.this, "加载失败", Toast.LENGTH_SHORT).show());
@@ -113,7 +108,7 @@ public class ProductDetailActivity extends AppCompatActivity {
                     product = baseResp.getData();
                     runOnUiThread(() -> {
                         tvName.setText(product.getName());
-                        tvPrice.setText("¥" + (product.getPrice() != null ? product.getPrice().toString() : "0"));
+                        tvPrice.setText("¥" + product.getPrice());
                         tvStock.setText("库存：" + product.getStock());
                         tvDescription.setText(product.getDescription());
                         tvViewCount.setText("浏览量: " + (product.getViewCount() != null ? product.getViewCount() : 0));
@@ -124,29 +119,20 @@ public class ProductDetailActivity extends AppCompatActivity {
                                     .placeholder(R.drawable.ic_launcher_foreground)
                                     .into(ivImage);
                         } else if (product.getImages() != null && !product.getImages().isEmpty()) {
-                            String firstUrl = product.getImages().get(0);
                             Glide.with(ProductDetailActivity.this)
-                                    .load(ApiClient.BASE_URL + firstUrl)
+                                    .load(ApiClient.BASE_URL + product.getImages().get(0))
                                     .placeholder(R.drawable.ic_launcher_foreground)
                                     .into(ivImage);
                         }
-
                         loadSellerInfo(product.getSellerId());
                     });
-                } else {
-                    runOnUiThread(() -> Toast.makeText(ProductDetailActivity.this, "获取商品详情失败", Toast.LENGTH_SHORT).show());
                 }
             }
         });
     }
 
     private void loadSellerInfo(Long sellerId) {
-        Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "v1/trade/credit/" + sellerId)
-                .get()
-                .build();
-
-        ApiClient.getClient().newCall(request).enqueue(new Callback() {
+        ApiClient.get("user/info/" + sellerId, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 runOnUiThread(() -> tvSeller.setText("卖家ID: " + sellerId));
@@ -155,16 +141,10 @@ public class ProductDetailActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String respBody = response.body().string();
-                BaseResponse<CreditDetailResponse> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<CreditDetailResponse>>(){}.getType());
+                BaseResponse<User> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<User>>(){}.getType());
                 if (baseResp.isSuccess() && baseResp.getData() != null) {
-                    CreditDetailResponse credit = baseResp.getData();
-                    runOnUiThread(() -> {
-                        String sellerInfo = "卖家: " + credit.getUsername()
-                                + "  信用分: " + (credit.getCreditScore() != null ? credit.getCreditScore() : 0);
-                        tvSeller.setText(sellerInfo);
-                    });
-                } else {
-                    runOnUiThread(() -> tvSeller.setText("卖家ID: " + sellerId));
+                    seller = baseResp.getData();
+                    runOnUiThread(() -> tvSeller.setText("卖家: " + seller.getUsername()));
                 }
             }
         });
@@ -174,28 +154,28 @@ public class ProductDetailActivity extends AppCompatActivity {
         if (product == null) return;
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("校园二手下单");
+        builder.setTitle("填写交易信息");
 
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(50, 40, 50, 10);
+        layout.setPadding(50,40,50,10);
 
-        EditText etMeetTime = new EditText(this);
-        etMeetTime.setHint("约定时间 格式：2024-05-01 12:00:00");
-        layout.addView(etMeetTime);
+        EditText etTime = new EditText(this);
+        etTime.setHint("交易时间 例：2025-05-20 15:00");
+        layout.addView(etTime);
 
-        EditText etMeetLoc = new EditText(this);
-        etMeetLoc.setHint("约定地点 例：学校二食堂门口");
-        layout.addView(etMeetLoc);
+        EditText etLocation = new EditText(this);
+        etLocation.setHint("交易地点 例：二食堂门口");
+        layout.addView(etLocation);
 
         builder.setView(layout);
 
         builder.setPositiveButton("确认下单", (dialog, which) -> {
-            String meetTime = etMeetTime.getText().toString().trim();
-            String meetLoc = etMeetLoc.getText().toString().trim();
+            String time = etTime.getText().toString().trim();
+            String location = etLocation.getText().toString().trim();
 
-            if (meetTime.isEmpty() || meetLoc.isEmpty()) {
-                Toast.makeText(this, "请填写面交时间和地点", Toast.LENGTH_SHORT).show();
+            if (time.isEmpty() || location.isEmpty()) {
+                Toast.makeText(this, "请填写完整", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -203,50 +183,40 @@ public class ProductDetailActivity extends AppCompatActivity {
             req.setProductId(product.getId());
             req.setQuantity(1);
             req.setTradeType(1);
-            req.setMeetingTime(meetTime);
-            req.setMeetingLocation(meetLoc);
+            req.setMeetingTime(time);
+            req.setMeetingLocation(location);
             req.setPayType(3);
             req.setAddressId(null);
 
-            submitNewOrder(req);
+            createOrder(req);
         });
-
         builder.setNegativeButton("取消", null);
         builder.show();
     }
 
-    private void submitNewOrder(CreateOrderRequest req) {
-        RetrofitClient.getInstance()
-                .getTradeApi()
-                .createTradeOrder(req)
-                .enqueue(new retrofit2.Callback<BaseResponse<CreateOrderResponse>>() {
-                    @Override
-                    public void onResponse(retrofit2.Call<BaseResponse<CreateOrderResponse>> call, retrofit2.Response<BaseResponse<CreateOrderResponse>> response) {
-                        if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
-                            CreateOrderResponse data = response.body().getData();
-                            runOnUiThread(() -> {
-                                Toast.makeText(ProductDetailActivity.this,
-                                        "下单成功！订单号：" + data.getOrderNo(),
-                                        Toast.LENGTH_SHORT).show();
-                                Intent intent = new Intent(ProductDetailActivity.this, OrderListActivity.class);
-                                startActivity(intent);
-                            });
-                        } else {
-                            String msg = "下单失败";
-                            if (response.body() != null) {
-                                msg = response.body().getMsg() != null ? response.body().getMsg() : "下单失败";
-                            }
-                            final String finalMsg = msg;
-                            runOnUiThread(() -> Toast.makeText(ProductDetailActivity.this, finalMsg, Toast.LENGTH_SHORT).show());
-                        }
-                    }
+    private void createOrder(CreateOrderRequest req) {
+        String json = gson.toJson(req);
 
-                    @Override
-                    public void onFailure(retrofit2.Call<BaseResponse<CreateOrderResponse>> call, Throwable t) {
-                        runOnUiThread(() -> Toast.makeText(ProductDetailActivity.this,
-                                "网络错误：" + t.getMessage(),
-                                Toast.LENGTH_SHORT).show());
+        ApiClient.post("v1/trade/order", json, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                runOnUiThread(() -> Toast.makeText(ProductDetailActivity.this, "下单失败：" + e.getMessage(), Toast.LENGTH_SHORT).show());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                String body = response.body().string();
+                BaseResponse<CreateOrderResponse> resp = gson.fromJson(body, new TypeToken<BaseResponse<CreateOrderResponse>>() {}.getType());
+
+                runOnUiThread(() -> {
+                    if (resp.isSuccess()) {
+                        Toast.makeText(ProductDetailActivity.this, "下单成功！", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(ProductDetailActivity.this, OrderListActivity.class));
+                    } else {
+                        Toast.makeText(ProductDetailActivity.this, resp.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
+            }
+        });
     }
 }

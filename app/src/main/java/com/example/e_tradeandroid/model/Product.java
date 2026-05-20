@@ -1,6 +1,5 @@
 package com.example.e_tradeandroid.model;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 public class Product {
@@ -8,7 +7,8 @@ public class Product {
     private Long sellerId;
     private Integer categoryId;
     private String name;
-    private BigDecimal price;
+    // 把类型改成和变量一致的 double
+    private double price;
     private Integer stock;
     private String description;
     private String mainImage;
@@ -51,11 +51,13 @@ public class Product {
         this.name = name;
     }
 
-    public BigDecimal getPrice() {
+    // 修正 getPrice 返回类型
+    public double getPrice() {
         return price;
     }
 
-    public void setPrice(BigDecimal price) {
+    // 修正 setPrice 参数类型
+    public void setPrice(double price) {
         this.price = price;
     }
 
@@ -130,4 +132,7 @@ public class Product {
     public void setCoverImage(String coverImage) {
         this.coverImage = coverImage;
     }
+
+    // 把字段改成成员变量
+    public boolean isCollected; // 是否收藏
 }

@@ -88,10 +88,6 @@ public class EditProductActivity extends AppCompatActivity {
                 startActivity(new Intent(EditProductActivity.this, MainActivity.class));
                 finish();
                 return true;
-            } else if (itemId == R.id.nav_category) {
-                startActivity(new Intent(EditProductActivity.this, MainActivity.class));
-                finish();
-                return true;
             } else if (itemId == R.id.nav_publish) {
                 startActivity(new Intent(EditProductActivity.this, PublishActivity.class));
                 return true;
@@ -127,10 +123,11 @@ public class EditProductActivity extends AppCompatActivity {
                     product = baseResp.getData();
                     runOnUiThread(() -> {
                         etName.setText(product.getName());
-                        etPrice.setText(product.getPrice() != null ? product.getPrice().toString() : "");
+                        // 修复：double 类型直接转字符串，不用判空
+                        etPrice.setText(String.valueOf(product.getPrice()));
                         etStock.setText(String.valueOf(product.getStock()));
                         etDescription.setText(product.getDescription());
-                        
+
                         if (product.getMainImage() != null && !product.getMainImage().isEmpty()) {
                             Glide.with(EditProductActivity.this)
                                     .load(ApiClient.BASE_URL + product.getMainImage())
@@ -170,16 +167,16 @@ public class EditProductActivity extends AppCompatActivity {
         try {
             JSONObject updateData = new JSONObject();
             updateData.put("name", name);
-            updateData.put("price", price);
+            updateData.put("price", Double.parseDouble(price));
             updateData.put("stock", Integer.parseInt(stock));
             updateData.put("description", description);
             updateData.put("categoryId", product.getCategoryId() != null ? product.getCategoryId() : 0);
 
             RequestBody body = RequestBody.create(
-                updateData.toString(), 
-                MediaType.parse("application/json; charset=utf-8")
+                    updateData.toString(),
+                    MediaType.parse("application/json; charset=utf-8")
             );
-            
+
             Request request = new Request.Builder()
                     .url(ApiClient.BASE_URL + "product/update/" + productId)
                     .post(body)
@@ -213,11 +210,11 @@ public class EditProductActivity extends AppCompatActivity {
 
     private void showOffshelfDialog() {
         new AlertDialog.Builder(this)
-            .setTitle("下架商品")
-            .setMessage("确定要下架这个商品吗？")
-            .setPositiveButton("确定", (dialog, which) -> offshelfProduct())
-            .setNegativeButton("取消", null)
-            .show();
+                .setTitle("下架商品")
+                .setMessage("确定要下架这个商品吗？")
+                .setPositiveButton("确定", (dialog, which) -> offshelfProduct())
+                .setNegativeButton("取消", null)
+                .show();
     }
 
     private void offshelfProduct() {
@@ -250,11 +247,11 @@ public class EditProductActivity extends AppCompatActivity {
 
     private void showDeleteDialog() {
         new AlertDialog.Builder(this)
-            .setTitle("删除商品")
-            .setMessage("确定要删除这个商品吗？此操作不可恢复！")
-            .setPositiveButton("确定", (dialog, which) -> deleteProduct())
-            .setNegativeButton("取消", null)
-            .show();
+                .setTitle("删除商品")
+                .setMessage("确定要删除这个商品吗？此操作不可恢复！")
+                .setPositiveButton("确定", (dialog, which) -> deleteProduct())
+                .setNegativeButton("取消", null)
+                .show();
     }
 
     private void deleteProduct() {

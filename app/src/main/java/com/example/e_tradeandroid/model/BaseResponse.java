@@ -5,9 +5,12 @@ public class BaseResponse<T> {
     private String msg;
     private T data;
 
-    // 判断是否成功
     public boolean isSuccess() {
         return code == 200;
+    }
+
+    public int getCode() {
+        return code;
     }
 
     public String getMsg() {
@@ -18,20 +21,16 @@ public class BaseResponse<T> {
         return msg;
     }
 
-    public void setMsg(String msg) {
-        this.msg = msg;
-    }
-
-    public int getCode() {
-        return code;
+    public T getData() {
+        return data;
     }
 
     public void setCode(int code) {
         this.code = code;
     }
 
-    public T getData() {
-        return data;
+    public void setMsg(String msg) {
+        this.msg = msg;
     }
 
     public void setData(T data) {
