@@ -20,7 +20,6 @@ import okhttp3.Callback;
 import okhttp3.Response;
 
 public class CreditActivity extends AppCompatActivity {
-    // 和 XML 里的 ID 完全对应
     private TextView tvCreditScore, tvTradeCount, tvGoodRate;
     private final Gson gson = new Gson();
 
@@ -28,10 +27,11 @@ public class CreditActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_credit);
-        // 修正 ID
+
         tvCreditScore = findViewById(R.id.tvCreditScore);
         tvTradeCount = findViewById(R.id.tvTradeCount);
         tvGoodRate = findViewById(R.id.tvGoodRate);
+
         getUserCredit();
     }
 
@@ -39,7 +39,7 @@ public class CreditActivity extends AppCompatActivity {
         ApiClient.get("user/credit", new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                runOnUiThread(() -> Toast.makeText(CreditActivity.this, "获取积分失败", Toast.LENGTH_SHORT).show());
+                runOnUiThread(() -> Toast.makeText(CreditActivity.this, "获取失败", Toast.LENGTH_SHORT).show());
             }
 
             @Override
@@ -48,10 +48,11 @@ public class CreditActivity extends AppCompatActivity {
                 BaseResponse<UserCredit> resp = gson.fromJson(json, new TypeToken<BaseResponse<UserCredit>>() {}.getType());
                 if (resp.isSuccess() && resp.getData() != null) {
                     runOnUiThread(() -> {
-                        UserCredit credit = resp.getData();
-                        tvCreditScore.setText("信用分：" + credit.getCredit());
-                        tvTradeCount.setText("交易次数：" + credit.getTradeCount());
-                        tvGoodRate.setText("好评率：" + credit.getGoodRate() + "%");
+                        UserCredit uc = resp.getData();
+                        // 处理空值，防止 NullPointerException
+                        tvCreditScore.setText("信用分：" + (uc.getCredit() != null ? uc.getCredit() : 0));
+                        tvTradeCount.setText("交易次数：" + (uc.getTradeCount() != null ? uc.getTradeCount() : 0));
+                        tvGoodRate.setText("好评率：" + (uc.getGoodRate() != null ? uc.getGoodRate() : 0) + "%");
                     });
                 }
             }
