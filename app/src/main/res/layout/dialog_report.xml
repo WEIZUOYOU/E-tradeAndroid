@@ -1,15 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="300dp"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="15dp">
+    android:padding="16dp">
 
-    <TextView android:text="举报理由" android:textSize="18sp" android:textStyle="bold"/>
-    <EditText android:id="@+id/etReason" android:hint="请填写举报理由" android:layout_width="match_parent" android:layout_height="100dp"/>
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="10dp">
-        <Button android:id="@+id/btnCancel" android:text="取消" android:layout_weight="1" android:layout_width="0dp"/>
-        <Button android:id="@+id/btnSubmit" android:text="提交" android:layout_weight="1" android:layout_width="0dp"/>
+    <!-- 举报理由输入框 -->
+    <EditText
+        android:id="@+id/etReason"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/report_reason_hint"
+        android:inputType="textMultiLine"
+        android:minLines="3"/>
+
+    <!-- 按钮栏 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cancel"
+            style="?android:attr/buttonBarButtonStyle"/>
+
+        <Button
+            android:id="@+id/btnSubmit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/submit"
+            android:layout_marginStart="8dp"
+            style="?android:attr/buttonBarButtonStyle"/>
+
     </LinearLayout>
 
 </LinearLayout>
