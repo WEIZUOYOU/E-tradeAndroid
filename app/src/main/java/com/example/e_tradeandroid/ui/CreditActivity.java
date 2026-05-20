@@ -20,14 +20,18 @@ import okhttp3.Callback;
 import okhttp3.Response;
 
 public class CreditActivity extends AppCompatActivity {
-    private TextView tvCredit;
+    // 和 XML 里的 ID 完全对应
+    private TextView tvCreditScore, tvTradeCount, tvGoodRate;
     private final Gson gson = new Gson();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_credit);
-        tvCredit = findViewById(R.id.tv_credit_score);
+        // 修正 ID
+        tvCreditScore = findViewById(R.id.tvCreditScore);
+        tvTradeCount = findViewById(R.id.tvTradeCount);
+        tvGoodRate = findViewById(R.id.tvGoodRate);
         getUserCredit();
     }
 
@@ -43,7 +47,12 @@ public class CreditActivity extends AppCompatActivity {
                 String json = response.body().string();
                 BaseResponse<UserCredit> resp = gson.fromJson(json, new TypeToken<BaseResponse<UserCredit>>() {}.getType());
                 if (resp.isSuccess() && resp.getData() != null) {
-                    runOnUiThread(() -> tvCredit.setText("当前信誉积分：" + resp.getData().getCredit()));
+                    runOnUiThread(() -> {
+                        UserCredit credit = resp.getData();
+                        tvCreditScore.setText("信用分：" + credit.getCredit());
+                        tvTradeCount.setText("交易次数：" + credit.getTradeCount());
+                        tvGoodRate.setText("好评率：" + credit.getGoodRate() + "%");
+                    });
                 }
             }
         });
