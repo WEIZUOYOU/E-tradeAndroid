@@ -18,9 +18,17 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
     private final Context mContext;
     private final List<Order> mOrderList;
 
-    public OrderAdapter(Context context, List<Order> orderList) {
+    // 新增：点击回调接口
+    public interface OnOrderClickListener {
+        void onOrderClick(Order order);
+    }
+
+    private OnOrderClickListener mListener;
+
+    public OrderAdapter(Context context, List<Order> orderList, OnOrderClickListener listener) {
         this.mContext = context;
         this.mOrderList = orderList;
+        this.mListener = listener;
     }
 
     @NonNull
@@ -45,6 +53,13 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             default: statusStr = "未知状态";
         }
         holder.tvStatus.setText(statusStr);
+
+        // 绑定点击事件
+        holder.itemView.setOnClickListener(v -> {
+            if (mListener != null) {
+                mListener.onOrderClick(order);
+            }
+        });
     }
 
     @Override

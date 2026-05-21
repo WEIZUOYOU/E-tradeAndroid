@@ -95,7 +95,12 @@ public class OrderListActivity extends AppCompatActivity {
                     swipe_refresh_orders.setRefreshing(false);
                     progress_bar_orders.setVisibility(View.GONE);
                     if (resp.isSuccess() && resp.getData() != null) {
-                        OrderAdapter adapter = new OrderAdapter(OrderListActivity.this, resp.getData());
+                        OrderAdapter adapter = new OrderAdapter(OrderListActivity.this, resp.getData(), order -> {
+                            // 点击跳转订单详情，传递 orderId
+                            Intent intent = new Intent(OrderListActivity.this, OrderDetailActivity.class);
+                            intent.putExtra("orderId", order.getId());
+                            startActivity(intent);
+                        });
                         recycler_view_orders.setAdapter(adapter);
                     }
                 });
