@@ -84,6 +84,10 @@ public class ProductDetailActivity extends AppCompatActivity {
                 startActivity(new Intent(this, OrderListActivity.class));
                 finish();
                 return true;
+            } else if (itemId == R.id.nav_messages) {
+                startActivity(new Intent(this, MessageListActivity.class));
+                finish();
+                return true;
             } else if (itemId == R.id.nav_profile) {
                 startActivity(new Intent(this, MyProfileActivity.class));
                 finish();

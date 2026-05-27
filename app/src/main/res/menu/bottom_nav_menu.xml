@@ -17,6 +17,11 @@
         android:title="订单" />
 
     <item
+        android:id="@+id/nav_messages"
+        android:icon="@android:drawable/ic_menu_send"
+        android:title="消息" />
+
+    <item
         android:id="@+id/nav_profile"
         android:icon="@android:drawable/ic_menu_myplaces"
         android:title="我的" />

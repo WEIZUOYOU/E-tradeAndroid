@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -27,8 +28,9 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class LoginActivity extends AppCompatActivity {
-    private EditText etStudentId, etPassword, etUsername, etPhone;
+    private EditText etStudentId, etPassword, etUsername, etPhone, etConfirmPassword;
     private Button btnLogin, btnRegister;
+    private ImageView ivBack;
     private boolean isLoginMode = true;
     private Gson gson = new Gson();
 
@@ -42,8 +44,12 @@ public class LoginActivity extends AppCompatActivity {
         etPassword = findViewById(R.id.et_password);
         etUsername = findViewById(R.id.et_username);
         etPhone = findViewById(R.id.et_phone);
+        etConfirmPassword = findViewById(R.id.et_confirm_password);
         btnLogin = findViewById(R.id.btn_login);
         btnRegister = findViewById(R.id.btn_register);
+        ivBack = findViewById(R.id.iv_back);
+
+        ivBack.setOnClickListener(v -> finish());
 
         setLoginMode();
 
@@ -68,13 +74,17 @@ public class LoginActivity extends AppCompatActivity {
     private void setLoginMode() {
         etUsername.setVisibility(View.GONE);
         etPhone.setVisibility(View.GONE);
+        etConfirmPassword.setVisibility(View.GONE);
+        etStudentId.setVisibility(View.VISIBLE);
         btnLogin.setText("登录");
         btnRegister.setText("去注册");
     }
 
     private void setRegisterMode() {
+        etStudentId.setVisibility(View.GONE);
         etUsername.setVisibility(View.VISIBLE);
         etPhone.setVisibility(View.VISIBLE);
+        etConfirmPassword.setVisibility(View.VISIBLE);
         btnLogin.setText("注册");
         btnRegister.setText("返回登录");
     }
@@ -124,19 +134,26 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void doRegister() {
-        String studentId = etStudentId.getText().toString().trim();
-        String password = etPassword.getText().toString().trim();
-        String username = etUsername.getText().toString().trim();
         String phone = etPhone.getText().toString().trim();
-        if (studentId.isEmpty() || password.isEmpty() || username.isEmpty() || phone.isEmpty()) {
+        String password = etPassword.getText().toString().trim();
+        String confirmPassword = etConfirmPassword.getText().toString().trim();
+        String username = etUsername.getText().toString().trim();
+
+        if (phone.isEmpty() || password.isEmpty() || confirmPassword.isEmpty() || username.isEmpty()) {
             Toast.makeText(this, "请填写完整信息", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        if (!password.equals(confirmPassword)) {
+            Toast.makeText(this, "两次密码不一致", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         RegisterRequest req = new RegisterRequest();
-        req.setStudentId(studentId);
+        req.setPhone(phone);
         req.setPassword(password);
         req.setUsername(username);
-        req.setPhone(phone);
+
         String json = gson.toJson(req);
         RequestBody body = RequestBody.create(json, MediaType.get("application/json; charset=utf-8"));
         Request request = new Request.Builder()
@@ -163,6 +180,7 @@ public class LoginActivity extends AppCompatActivity {
                         etPassword.setText("");
                         etUsername.setText("");
                         etPhone.setText("");
+                        etConfirmPassword.setText("");
                     });
                 } else {
                     runOnUiThread(() -> Toast.makeText(LoginActivity.this, "注册失败：" + baseResp.getMessage(), Toast.LENGTH_SHORT).show());

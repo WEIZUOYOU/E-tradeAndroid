@@ -294,6 +294,10 @@ public class OrderActivity extends AppCompatActivity {
                 return true;
             } else if (itemId == R.id.nav_orders) {
                 return true;
+            } else if (itemId == R.id.nav_messages) {
+                startActivity(new Intent(OrderActivity.this, MessageListActivity.class));
+                finish();
+                return true;
             } else if (itemId == R.id.nav_profile) {
                 startActivity(new Intent(OrderActivity.this, MyProfileActivity.class));
                 return true;

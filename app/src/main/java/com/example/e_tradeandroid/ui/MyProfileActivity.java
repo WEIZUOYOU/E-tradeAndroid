@@ -3,6 +3,7 @@ package com.example.e_tradeandroid.ui;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -38,10 +39,12 @@ import okhttp3.Response;
 public class MyProfileActivity extends AppCompatActivity {
     private TextView tvStudentId, tvUsername, tvPhone, tvCreditScore, tvAuthStatus;
     private ImageView ivAvatar;
-    private Button btnLogout, btnMyOrders, btnMyProducts, btnRealnameAuth, btnEditProfile;
+    private Button btnLogout, btnMyOrders, btnMyProducts, btnRealnameAuth, btnEditProfile, btnGoLogin;
+    private LinearLayout layoutLoggedIn, layoutNotLoggedIn;
     private BottomNavigationView bottomNavigation;
     private Gson gson = new Gson();
     private static final int PICK_IMAGE_REQUEST = 1;
+    private User currentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,11 +62,17 @@ public class MyProfileActivity extends AppCompatActivity {
         btnMyProducts = findViewById(R.id.btn_my_products);
         btnRealnameAuth = findViewById(R.id.btn_realname_auth);
         btnEditProfile = findViewById(R.id.btn_edit_profile);
+        btnGoLogin = findViewById(R.id.btn_go_login);
+        layoutLoggedIn = findViewById(R.id.layout_logged_in);
+        layoutNotLoggedIn = findViewById(R.id.layout_not_logged_in);
         bottomNavigation = findViewById(R.id.bottom_navigation);
 
         setupBottomNavigation();
-
         loadUserProfile();
+
+        btnGoLogin.setOnClickListener(v ->
+            startActivity(new Intent(MyProfileActivity.this, LoginActivity.class))
+        );
 
         btnMyOrders.setOnClickListener(v ->
             startActivity(new Intent(MyProfileActivity.this, OrderListActivity.class))
@@ -73,32 +82,75 @@ public class MyProfileActivity extends AppCompatActivity {
             startActivity(new Intent(MyProfileActivity.this, MyProductsActivity.class))
         );
 
-        btnLogout.setOnClickListener(v -> {
-            Request request = new Request.Builder()
-                    .url(ApiClient.BASE_URL + "user/logout")
-                    .post(RequestBody.create("", MediaType.parse("application/json; charset=utf-8")))
-                    .build();
-
-            ApiClient.getClient().newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(Call call, IOException e) {
-                    ApiClient.clearCookies();
-                    goToLogin();
-                }
-
-                @Override
-                public void onResponse(Call call, Response response) throws IOException {
-                    ApiClient.clearCookies();
-                    goToLogin();
-                }
-            });
-        });
+        btnLogout.setOnClickListener(v -> doLogout());
 
         btnRealnameAuth.setOnClickListener(v -> showRealnameAuthDialog());
 
         btnEditProfile.setOnClickListener(v -> showEditProfileDialog());
 
         ivAvatar.setOnClickListener(v -> pickImage());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadUserProfile();
+    }
+
+    private void doLogout() {
+        Request request = new Request.Builder()
+                .url(ApiClient.BASE_URL + "user/logout")
+                .post(RequestBody.create("", MediaType.parse("application/json; charset=utf-8")))
+                .build();
+
+        ApiClient.getClient().newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                ApiClient.clearCookies();
+                runOnUiThread(() -> showNotLoggedInState());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                ApiClient.clearCookies();
+                runOnUiThread(() -> showNotLoggedInState());
+            }
+        });
+    }
+
+    private void showNotLoggedInState() {
+        currentUser = null;
+        layoutLoggedIn.setVisibility(View.GONE);
+        layoutNotLoggedIn.setVisibility(View.VISIBLE);
+    }
+
+    private void showLoggedInState(User user) {
+        currentUser = user;
+        layoutNotLoggedIn.setVisibility(View.GONE);
+        layoutLoggedIn.setVisibility(View.VISIBLE);
+
+        tvStudentId.setText("学号：" + (user.getStudentId() != null ? user.getStudentId() : ""));
+        tvUsername.setText("用户名：" + (user.getUsername() != null ? user.getUsername() : ""));
+        tvPhone.setText("手机：" + (user.getPhone() != null ? user.getPhone() : ""));
+        tvCreditScore.setText("信用分：" + (user.getCreditScore() != null ? user.getCreditScore() : 0));
+
+        boolean isAuth = user.getIsAuth() != null && user.getIsAuth() == 1;
+
+        if (isAuth) {
+            tvAuthStatus.setText("已认证 (" + (user.getRealName() != null ? user.getRealName() : "") + ")");
+            btnRealnameAuth.setVisibility(View.GONE);
+        } else {
+            tvAuthStatus.setText("未认证");
+            btnRealnameAuth.setVisibility(View.VISIBLE);
+            btnRealnameAuth.setText("去实名认证");
+        }
+
+        if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
+            Glide.with(MyProfileActivity.this)
+                    .load(ApiClient.BASE_URL + user.getAvatar())
+                    .placeholder(R.drawable.ic_launcher_foreground)
+                    .into(ivAvatar);
+        }
     }
 
     private void showEditProfileDialog() {
@@ -274,7 +326,8 @@ public class MyProfileActivity extends AppCompatActivity {
                 BaseResponse<Void> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<Void>>(){}.getType());
                 runOnUiThread(() -> {
                     if (baseResp.isSuccess()) {
-                        Toast.makeText(MyProfileActivity.this, "认证申请已提交，等待审核", Toast.LENGTH_LONG).show();
+                        Toast.makeText(MyProfileActivity.this, "实名认证成功", Toast.LENGTH_LONG).show();
+                        loadUserProfile();
                     } else {
                         Toast.makeText(MyProfileActivity.this, "认证失败：" + baseResp.getMessage(), Toast.LENGTH_SHORT).show();
                     }
@@ -296,19 +349,17 @@ public class MyProfileActivity extends AppCompatActivity {
                 return true;
             } else if (itemId == R.id.nav_orders) {
                 startActivity(new Intent(MyProfileActivity.this, OrderListActivity.class));
+                finish();
+                return true;
+            } else if (itemId == R.id.nav_messages) {
+                startActivity(new Intent(MyProfileActivity.this, MessageListActivity.class));
+                finish();
                 return true;
             } else if (itemId == R.id.nav_profile) {
                 return true;
             }
             return false;
         });
-    }
-
-    private void goToLogin() {
-        Intent intent = new Intent(MyProfileActivity.this, LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        finish();
     }
 
     private void loadUserProfile() {
@@ -320,37 +371,20 @@ public class MyProfileActivity extends AppCompatActivity {
         ApiClient.getClient().newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                runOnUiThread(() -> Toast.makeText(MyProfileActivity.this, "加载用户信息失败", Toast.LENGTH_SHORT).show());
+                runOnUiThread(() -> showNotLoggedInState());
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String respBody = response.body().string();
                 BaseResponse<User> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<User>>(){}.getType());
-                if (baseResp.isSuccess() && baseResp.getData() != null) {
-                    User user = baseResp.getData();
-                    runOnUiThread(() -> {
-                        tvStudentId.setText("学号：" + (user.getStudentId() != null ? user.getStudentId() : ""));
-                        tvUsername.setText("用户名：" + (user.getUsername() != null ? user.getUsername() : ""));
-                        tvPhone.setText("手机：" + (user.getPhone() != null ? user.getPhone() : ""));
-                        tvCreditScore.setText("信用分：" + (user.getCreditScore() != null ? user.getCreditScore() : 0));
-
-                        if (user.getIsAuth() != null && user.getIsAuth() == 1) {
-                            tvAuthStatus.setText("已认证 (" + (user.getRealName() != null ? user.getRealName() : "") + ")");
-                        } else {
-                            tvAuthStatus.setText("未认证");
-                        }
-
-                        if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
-                            Glide.with(MyProfileActivity.this)
-                                    .load(ApiClient.BASE_URL + user.getAvatar())
-                                    .placeholder(R.drawable.ic_launcher_foreground)
-                                    .into(ivAvatar);
-                        }
-                    });
-                } else {
-                    runOnUiThread(() -> Toast.makeText(MyProfileActivity.this, "获取用户信息失败", Toast.LENGTH_SHORT).show());
-                }
+                runOnUiThread(() -> {
+                    if (baseResp.isSuccess() && baseResp.getData() != null) {
+                        showLoggedInState(baseResp.getData());
+                    } else {
+                        showNotLoggedInState();
+                    }
+                });
             }
         });
     }

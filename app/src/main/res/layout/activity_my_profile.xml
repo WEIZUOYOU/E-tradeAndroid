@@ -17,226 +17,268 @@
         android:orientation="vertical"
         android:padding="@dimen/spacing_medium">
 
-        <!-- 顶部用户信息卡片 -->
-        <com.google.android.material.card.MaterialCardView
+        <!-- ===== 未登录状态 ===== -->
+        <LinearLayout
+            android:id="@+id/layout_not_logged_in"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardCornerRadius="@dimen/radius_large"
-            app:cardElevation="@dimen/elevation_card"
-            app:cardBackgroundColor="@color/background_white"
-            app:strokeColor="@color/gray_100"
-            app:strokeWidth="1dp">
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="@dimen/spacing_xl"
+            android:visibility="gone">
 
-            <LinearLayout
+            <ImageView
+                android:layout_width="@dimen/avatar_size_large"
+                android:layout_height="@dimen/avatar_size_large"
+                android:src="@drawable/ic_launcher_foreground"
+                android:alpha="0.4" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_medium"
+                android:text="登录后查看更多"
+                android:textSize="@dimen/text_size_body"
+                android:textColor="@color/text_secondary" />
+
+            <Button
+                android:id="@+id/btn_go_login"
+                style="@style/PrimaryButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_medium"
+                android:text="去登录" />
+        </LinearLayout>
+
+        <!-- ===== 已登录状态 ===== -->
+        <LinearLayout
+            android:id="@+id/layout_logged_in"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="visible">
+
+            <!-- 顶部用户信息卡片 -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:padding="@dimen/spacing_large">
+                app:cardCornerRadius="@dimen/radius_large"
+                app:cardElevation="@dimen/elevation_card"
+                app:cardBackgroundColor="@color/background_white"
+                app:strokeColor="@color/gray_100"
+                app:strokeWidth="1dp">
 
-                <ImageView
-                    android:id="@+id/iv_avatar"
-                    android:layout_width="@dimen/avatar_size_large"
-                    android:layout_height="@dimen/avatar_size_large"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/ic_launcher_foreground" />
-
-                <TextView
-                    android:id="@+id/tv_username"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/spacing_small"
+                    android:orientation="vertical"
                     android:gravity="center"
-                    android:textSize="@dimen/text_size_title_medium"
-                    android:textStyle="bold"
-                    android:text="用户名" />
+                    android:padding="@dimen/spacing_large">
 
-                <TextView
-                    android:id="@+id/tv_student_id"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/spacing_xs"
-                    android:gravity="center"
-                    android:textSize="@dimen/text_size_body"
-                    android:textColor="@color/text_secondary"
-                    android:text="学号: " />
+                    <ImageView
+                        android:id="@+id/iv_avatar"
+                        android:layout_width="@dimen/avatar_size_large"
+                        android:layout_height="@dimen/avatar_size_large"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/ic_launcher_foreground" />
 
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+                    <TextView
+                        android:id="@+id/tv_username"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_small"
+                        android:gravity="center"
+                        android:textSize="@dimen/text_size_title_medium"
+                        android:textStyle="bold"
+                        android:text="用户名" />
 
-        <!-- 详细信息卡片 -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_small"
-            app:cardCornerRadius="@dimen/radius_large"
-            app:cardElevation="@dimen/elevation_card"
-            app:cardBackgroundColor="@color/background_white"
-            app:strokeColor="@color/gray_100"
-            app:strokeWidth="1dp">
+                    <TextView
+                        android:id="@+id/tv_student_id"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_xs"
+                        android:gravity="center"
+                        android:textSize="@dimen/text_size_body"
+                        android:textColor="@color/text_secondary"
+                        android:text="学号: " />
 
-            <LinearLayout
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 详细信息卡片 -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="@dimen/spacing_medium">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="个人信息"
-                    android:textSize="@dimen/text_size_title_medium"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="@dimen/spacing_small" />
+                android:layout_marginTop="@dimen/spacing_small"
+                app:cardCornerRadius="@dimen/radius_large"
+                app:cardElevation="@dimen/elevation_card"
+                app:cardBackgroundColor="@color/background_white"
+                app:strokeColor="@color/gray_100"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingVertical="@dimen/spacing_small">
+                    android:orientation="vertical"
+                    android:padding="@dimen/spacing_medium">
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="手机号"
-                        android:textSize="@dimen/text_size_body" />
+                        android:text="个人信息"
+                        android:textSize="@dimen/text_size_title_medium"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="@dimen/spacing_small" />
 
-                    <TextView
-                        android:id="@+id/tv_phone"
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text=" - "
-                        android:textSize="@dimen/text_size_body"
-                        android:textColor="@color/text_secondary" />
+                        android:orientation="horizontal"
+                        android:paddingVertical="@dimen/spacing_small">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="手机号"
+                            android:textSize="@dimen/text_size_body" />
+
+                        <TextView
+                            android:id="@+id/tv_phone"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text=" - "
+                            android:textSize="@dimen/text_size_body"
+                            android:textColor="@color/text_secondary" />
+                    </LinearLayout>
+
+                    <View android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/divider" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:paddingVertical="@dimen/spacing_small">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="信用分"
+                            android:textSize="@dimen/text_size_body" />
+
+                        <TextView
+                            android:id="@+id/tv_credit_score"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text=" - "
+                            android:textSize="@dimen/text_size_body"
+                            android:textColor="@color/success_green"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <View android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/divider" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:paddingVertical="@dimen/spacing_small">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="账号状态"
+                            android:textSize="@dimen/text_size_body" />
+
+                        <TextView
+                            android:id="@+id/tv_status"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text=" - "
+                            android:textSize="@dimen/text_size_body" />
+                    </LinearLayout>
+
                 </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
-                <View android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="@color/divider" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingVertical="@dimen/spacing_small">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="信用分"
-                        android:textSize="@dimen/text_size_body" />
-
-                    <TextView
-                        android:id="@+id/tv_credit_score"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text=" - "
-                        android:textSize="@dimen/text_size_body"
-                        android:textColor="@color/success_green"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <View android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="@color/divider" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingVertical="@dimen/spacing_small">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="账号状态"
-                        android:textSize="@dimen/text_size_body" />
-
-                    <TextView
-                        android:id="@+id/tv_status"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text=" - "
-                        android:textSize="@dimen/text_size_body" />
-                </LinearLayout>
-
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- 功能按钮卡片 -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_small"
-            app:cardCornerRadius="@dimen/radius_large"
-            app:cardElevation="@dimen/elevation_card"
-            app:cardBackgroundColor="@color/background_white"
-            app:strokeColor="@color/gray_100"
-            app:strokeWidth="1dp">
-
-            <LinearLayout
+            <!-- 功能按钮卡片 -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="@dimen/spacing_medium">
+                android:layout_marginTop="@dimen/spacing_small"
+                app:cardCornerRadius="@dimen/radius_large"
+                app:cardElevation="@dimen/elevation_card"
+                app:cardBackgroundColor="@color/background_white"
+                app:strokeColor="@color/gray_100"
+                app:strokeWidth="1dp">
 
-                <TextView
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="我的功能"
-                    android:textSize="@dimen/text_size_title_medium"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="@dimen/spacing_small" />
+                    android:orientation="vertical"
+                    android:padding="@dimen/spacing_medium">
 
-                <Button
-                    android:id="@+id/btn_my_orders"
-                    style="@style/PrimaryButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/spacing_small"
-                    android:text="我的订单" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="我的功能"
+                        android:textSize="@dimen/text_size_title_medium"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="@dimen/spacing_small" />
 
-                <Button
-                    android:id="@+id/btn_my_products"
-                    style="@style/PrimaryButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/spacing_small"
-                    android:text="我发布的商品" />
+                    <Button
+                        android:id="@+id/btn_my_orders"
+                        style="@style/PrimaryButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/spacing_small"
+                        android:text="我的订单" />
 
-                <Button
-                    android:id="@+id/btn_edit_profile"
-                    style="@style/PrimaryButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/spacing_small"
-                    android:text="编辑资料" />
+                    <Button
+                        android:id="@+id/btn_my_products"
+                        style="@style/PrimaryButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/spacing_small"
+                        android:text="我发布的商品" />
 
-                <Button
-                    android:id="@+id/btn_logout"
-                    style="@style/DangerButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/spacing_small"
-                    android:text="退出登录" />
+                    <Button
+                        android:id="@+id/btn_realname_auth"
+                        style="@style/SuccessButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/spacing_small"
+                        android:text="去实名认证" />
 
-                <Button
-                    android:id="@+id/btn_realname_auth"
-                    style="@style/SuccessButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/spacing_small"
-                    android:text="实名认证" />
+                    <Button
+                        android:id="@+id/btn_edit_profile"
+                        style="@style/PrimaryButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/spacing_small"
+                        android:text="编辑资料" />
 
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+                    <Button
+                        android:id="@+id/btn_logout"
+                        style="@style/DangerButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_small"
+                        android:text="退出登录" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
 
     </LinearLayout>
     </ScrollView>
 
     <include layout="@layout/include_bottom_nav" />
-
 </LinearLayout>

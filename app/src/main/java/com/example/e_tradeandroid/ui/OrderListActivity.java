@@ -71,6 +71,10 @@ public class OrderListActivity extends AppCompatActivity {
                 return true;
             } else if (id == R.id.nav_orders) {
                 return true;
+            } else if (id == R.id.nav_messages) {
+                startActivity(new Intent(this, MessageListActivity.class));
+                finish();
+                return true;
             }
             return false;
         });

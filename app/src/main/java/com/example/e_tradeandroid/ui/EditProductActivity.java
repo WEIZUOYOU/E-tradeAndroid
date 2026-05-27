@@ -94,6 +94,10 @@ public class EditProductActivity extends AppCompatActivity {
             } else if (itemId == R.id.nav_orders) {
                 startActivity(new Intent(EditProductActivity.this, OrderListActivity.class));
                 return true;
+            } else if (itemId == R.id.nav_messages) {
+                startActivity(new Intent(EditProductActivity.this, MessageListActivity.class));
+                finish();
+                return true;
             } else if (itemId == R.id.nav_profile) {
                 startActivity(new Intent(EditProductActivity.this, MyProfileActivity.class));
                 finish();
