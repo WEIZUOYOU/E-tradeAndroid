@@ -265,6 +265,8 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
+
     private void updateAdapter() {
         ProductAdapter adapter = new ProductAdapter(this, productList);
         adapter.setOnItemClickListener(product -> {
