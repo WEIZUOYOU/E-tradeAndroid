@@ -291,10 +291,6 @@ public class MyProfileActivity extends AppCompatActivity {
                 startActivity(new Intent(MyProfileActivity.this, MainActivity.class));
                 finish();
                 return true;
-            } else if (itemId == R.id.nav_category) {
-                startActivity(new Intent(MyProfileActivity.this, MainActivity.class));
-                finish();
-                return true;
             } else if (itemId == R.id.nav_publish) {
                 startActivity(new Intent(MyProfileActivity.this, PublishActivity.class));
                 return true;

@@ -76,6 +76,7 @@
 
                 <Button
                     android:id="@+id/btn_confirm_order"
+                    style="@style/PrimaryButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="确认接单"
@@ -83,6 +84,7 @@
 
                 <Button
                     android:id="@+id/btn_deliver"
+                    style="@style/SuccessButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
@@ -91,6 +93,7 @@
 
                 <Button
                     android:id="@+id/btn_cancel_order"
+                    style="@style/DangerButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="取消订单"
@@ -98,6 +101,7 @@
 
                 <Button
                     android:id="@+id/btn_confirm_receive"
+                    style="@style/SuccessButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
@@ -108,12 +112,6 @@
         </LinearLayout>
     </ScrollView>
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/white"
-        android:elevation="8dp"
-        app:menu="@menu/bottom_nav_menu" />
+    <include layout="@layout/include_bottom_nav" />
 
 </LinearLayout>

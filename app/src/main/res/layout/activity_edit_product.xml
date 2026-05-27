@@ -61,6 +61,7 @@
 
             <Button
                 android:id="@+id/btn_select_image"
+                style="@style/SecondaryButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -76,6 +77,7 @@
 
             <Button
                 android:id="@+id/btn_update"
+                style="@style/PrimaryButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
@@ -83,30 +85,24 @@
 
             <Button
                 android:id="@+id/btn_offshelf"
+                style="@style/WarningButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="下架商品"
-                android:backgroundTint="@color/warning_orange" />
+                android:text="下架商品" />
 
             <Button
                 android:id="@+id/btn_delete"
+                style="@style/DangerButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="删除商品"
-                android:backgroundTint="@color/error_red" />
+                android:text="删除商品" />
 
         </LinearLayout>
     </ScrollView>
 
     <!-- 底部导航栏 -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/white"
-        android:elevation="8dp"
-        app:menu="@menu/bottom_nav_menu" />
+    <include layout="@layout/include_bottom_nav" />
 
 </LinearLayout>

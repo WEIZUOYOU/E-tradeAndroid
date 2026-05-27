@@ -289,10 +289,6 @@ public class OrderActivity extends AppCompatActivity {
                 startActivity(new Intent(OrderActivity.this, MainActivity.class));
                 finish();
                 return true;
-            } else if (itemId == R.id.nav_category) {
-                startActivity(new Intent(OrderActivity.this, MainActivity.class));
-                finish();
-                return true;
             } else if (itemId == R.id.nav_publish) {
                 startActivity(new Intent(OrderActivity.this, PublishActivity.class));
                 return true;

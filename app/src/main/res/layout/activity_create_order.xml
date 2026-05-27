@@ -82,6 +82,7 @@
 
     <Button
         android:id="@+id/btn_submit"
+        style="@style/PrimaryButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="提交订单"

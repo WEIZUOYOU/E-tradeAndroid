@@ -19,8 +19,7 @@
         android:background="#FFF" android:gravity="center_vertical" android:paddingHorizontal="16dp">
         <EditText android:id="@+id/et_input" android:layout_width="0dp" android:layout_weight="1"
             android:layout_height="40dp" android:background="@drawable/bg_input" android:hint="输入消息"/>
-        <Button android:id="@+id/btn_send" android:layout_width="60dp" android:layout_height="40dp"
-            android:background="@drawable/bg_btn_primary" android:text="发送" android:textColor="#FFF"
-            android:layout_marginStart="8dp"/>
+        <Button android:id="@+id/btn_send" style="@style/PrimaryButton" android:layout_width="60dp"
+            android:layout_height="40dp" android:text="发送" android:layout_marginStart="8dp"/>
     </LinearLayout>
 </LinearLayout>
