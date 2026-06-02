@@ -61,7 +61,7 @@ public class ChatActivity extends AppCompatActivity {
         btnSend = findViewById(R.id.btn_send);
 
         messageList = new ArrayList<>();
-        chatAdapter = new ChatAdapter(messageList, currentUserId);
+        chatAdapter = new ChatAdapter(messageList, (int)currentUserId);
         rvChat.setLayoutManager(new LinearLayoutManager(this));
         rvChat.setAdapter(chatAdapter);
 
@@ -83,7 +83,7 @@ public class ChatActivity extends AppCompatActivity {
             body.put("type", 0);
         } catch (JSONException e) {e.printStackTrace();}
 
-        ApiClient.post("message/send", body.toString(), new Callback() {
+        ApiClient.post("api/v1/message/send", body.toString(), new Callback() {
             @Override public void onFailure(Call call, IOException e) {
                 runOnUiThread(()->Toast.makeText(ChatActivity.this,"发送失败",Toast.LENGTH_SHORT).show());
             }
@@ -94,7 +94,7 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void loadMessage() {
-        String url = ApiClient.BASE_URL + "message/history?targetUserId=" + targetUserId;
+        String url = ApiClient.BASE_URL + "api/v1/message/history?targetUserId=" + targetUserId;
         Request request = new Request.Builder().url(url).build();
         ApiClient.getHttpClient().newCall(request).enqueue(new Callback() {
             @Override public void onFailure(Call call, IOException e) {}
@@ -107,8 +107,13 @@ public class ChatActivity extends AppCompatActivity {
                         for (int i=0;i<arr.length();i++) {
                             JSONObject o = arr.getJSONObject(i);
                             ChatMessage m = new ChatMessage();
-                            m.setSenderId(o.getInt("senderId"));
+                            m.setId(o.optLong("id"));
+                            m.setSenderId(o.getLong("senderId"));
+                            m.setReceiverId(o.optLong("receiverId"));
+                            m.setProductId(o.optLong("productId"));
                             m.setContent(o.getString("content"));
+                            m.setType(o.optInt("type", 0));
+                            m.setIsRead(o.optInt("isRead", 0));
                             m.setCreateTime(o.getString("createTime"));
                             messageList.add(m);
                         }

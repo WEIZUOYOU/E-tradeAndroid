@@ -3,12 +3,25 @@ package com.example.e_tradeandroid.model;
 public class Order {
     private Integer id;
     private String orderNo;
-    private String productName;
-    private Double totalAmount;
     private Integer status;
-    private String createTime;
-    private Long buyerId;
     private Integer quantity;
+    private Double totalAmount;
+    private String createTime;
+    private String payTime;
+    private String completeTime;
+    private Long productId;
+    private String productName;
+    private Double productPriceAtOrder;
+    private String productImage;
+    private Long sellerId;
+    private String sellerName;
+    private String sellerAvatar;
+    private Long buyerId;
+    private String buyerName;
+    private String buyerAvatar;
+    private String receiverName;
+    private String receiverPhone;
+    private String receiverAddress;
     private String meetingLocation;
     private String meetingTime;
 
@@ -90,5 +103,109 @@ public class Order {
 
     public void setMeetingTime(String meetingTime) {
         this.meetingTime = meetingTime;
+    }
+
+    public String getPayTime() {
+        return payTime;
+    }
+
+    public void setPayTime(String payTime) {
+        this.payTime = payTime;
+    }
+
+    public String getCompleteTime() {
+        return completeTime;
+    }
+
+    public void setCompleteTime(String completeTime) {
+        this.completeTime = completeTime;
+    }
+
+    public Long getProductId() {
+        return productId;
+    }
+
+    public void setProductId(Long productId) {
+        this.productId = productId;
+    }
+
+    public Double getProductPriceAtOrder() {
+        return productPriceAtOrder;
+    }
+
+    public void setProductPriceAtOrder(Double productPriceAtOrder) {
+        this.productPriceAtOrder = productPriceAtOrder;
+    }
+
+    public String getProductImage() {
+        return productImage;
+    }
+
+    public void setProductImage(String productImage) {
+        this.productImage = productImage;
+    }
+
+    public Long getSellerId() {
+        return sellerId;
+    }
+
+    public void setSellerId(Long sellerId) {
+        this.sellerId = sellerId;
+    }
+
+    public String getSellerName() {
+        return sellerName;
+    }
+
+    public void setSellerName(String sellerName) {
+        this.sellerName = sellerName;
+    }
+
+    public String getSellerAvatar() {
+        return sellerAvatar;
+    }
+
+    public void setSellerAvatar(String sellerAvatar) {
+        this.sellerAvatar = sellerAvatar;
+    }
+
+    public String getBuyerName() {
+        return buyerName;
+    }
+
+    public void setBuyerName(String buyerName) {
+        this.buyerName = buyerName;
+    }
+
+    public String getBuyerAvatar() {
+        return buyerAvatar;
+    }
+
+    public void setBuyerAvatar(String buyerAvatar) {
+        this.buyerAvatar = buyerAvatar;
+    }
+
+    public String getReceiverName() {
+        return receiverName;
+    }
+
+    public void setReceiverName(String receiverName) {
+        this.receiverName = receiverName;
+    }
+
+    public String getReceiverPhone() {
+        return receiverPhone;
+    }
+
+    public void setReceiverPhone(String receiverPhone) {
+        this.receiverPhone = receiverPhone;
+    }
+
+    public String getReceiverAddress() {
+        return receiverAddress;
+    }
+
+    public void setReceiverAddress(String receiverAddress) {
+        this.receiverAddress = receiverAddress;
     }
 }

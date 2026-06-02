@@ -23,7 +23,7 @@ import okhttp3.RequestBody;
 import okhttp3.logging.HttpLoggingInterceptor;
 
 public class ApiClient {
-    public static final String BASE_URL = "http://10.0.2.2:8080/api/";
+    public static final String BASE_URL = "http://10.0.2.2:8080/";
     private static OkHttpClient client;
     private static SharedPreferences cookiePrefs;
     private static final String COOKIE_PREF_NAME = "cookies";

@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadCategories() {
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "category/list")
+                .url(ApiClient.BASE_URL + "api/v1/product/category/list")
                 .get()
                 .build();
 
@@ -97,13 +97,20 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String respBody = response.body().string();
-                BaseResponse<List<Category>> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<List<Category>>>(){}.getType());
                 runOnUiThread(() -> {
-                    if (baseResp.isSuccess() && baseResp.getData() != null && !baseResp.getData().isEmpty()) {
-                        categories.clear();
-                        categories.addAll(baseResp.getData());
-                        setupCategoriesView();
-                    } else {
+                    swipeRefresh.setRefreshing(false);
+                    progressBar.setVisibility(View.GONE);
+                    try {
+                        BaseResponse<List<Category>> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<List<Category>>>(){}.getType());
+                        if (baseResp.isSuccess() && baseResp.getData() != null && !baseResp.getData().isEmpty()) {
+                            categories.clear();
+                            categories.addAll(baseResp.getData());
+                            setupCategoriesView();
+                        } else {
+                            setupDefaultCategories();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
                         setupDefaultCategories();
                     }
                 });
@@ -191,7 +198,7 @@ public class MainActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
 
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "product/list?page=1&size=20")
+                .url(ApiClient.BASE_URL + "api/v1/product/list?page=1&size=20")
                 .get()
                 .build();
 
@@ -208,16 +215,21 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String respBody = response.body().string();
-                BaseResponse<List<Product>> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<List<Product>>>(){}.getType());
                 runOnUiThread(() -> {
                     swipeRefresh.setRefreshing(false);
                     progressBar.setVisibility(View.GONE);
-                    if (baseResp.isSuccess() && baseResp.getData() != null) {
-                        productList.clear();
-                        productList.addAll(baseResp.getData());
-                        updateAdapter();
-                    } else {
-                        Toast.makeText(MainActivity.this, "获取商品列表失败", Toast.LENGTH_SHORT).show();
+                    try {
+                        BaseResponse<List<Product>> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<List<Product>>>(){}.getType());
+                        if (baseResp.isSuccess() && baseResp.getData() != null) {
+                            productList.clear();
+                            productList.addAll(baseResp.getData());
+                            updateAdapter();
+                        } else {
+                            Toast.makeText(MainActivity.this, "获取商品列表失败", Toast.LENGTH_SHORT).show();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Toast.makeText(MainActivity.this, "数据解析失败：" + e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -229,7 +241,7 @@ public class MainActivity extends AppCompatActivity {
         swipeRefresh.setRefreshing(true);
         progressBar.setVisibility(View.VISIBLE);
 
-        StringBuilder url = new StringBuilder(ApiClient.BASE_URL + "product/search?page=1&size=20");
+        StringBuilder url = new StringBuilder(ApiClient.BASE_URL + "api/v1/product/search?page=1&size=20");
         if (searchKeyword != null && !searchKeyword.isEmpty()) {
             url.append("&keyword=").append(searchKeyword);
         }
@@ -255,16 +267,21 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String respBody = response.body().string();
-                BaseResponse<List<Product>> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<List<Product>>>(){}.getType());
                 runOnUiThread(() -> {
                     swipeRefresh.setRefreshing(false);
                     progressBar.setVisibility(View.GONE);
-                    if (baseResp.isSuccess() && baseResp.getData() != null) {
-                        productList.clear();
-                        productList.addAll(baseResp.getData());
-                        updateAdapter();
-                    } else {
-                        Toast.makeText(MainActivity.this, "搜索无结果", Toast.LENGTH_SHORT).show();
+                    try {
+                        BaseResponse<List<Product>> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<List<Product>>>(){}.getType());
+                        if (baseResp.isSuccess() && baseResp.getData() != null) {
+                            productList.clear();
+                            productList.addAll(baseResp.getData());
+                            updateAdapter();
+                        } else {
+                            Toast.makeText(MainActivity.this, "搜索无结果", Toast.LENGTH_SHORT).show();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Toast.makeText(MainActivity.this, "数据解析失败：" + e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
             }

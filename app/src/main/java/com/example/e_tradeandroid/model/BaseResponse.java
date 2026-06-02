@@ -4,6 +4,7 @@ public class BaseResponse<T> {
     private int code;
     private String msg;
     private T data;
+    public long timestamp;
 
     public boolean isSuccess() {
         return code == 200;

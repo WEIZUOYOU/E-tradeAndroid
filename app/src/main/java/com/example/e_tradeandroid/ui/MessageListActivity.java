@@ -53,8 +53,19 @@ public class MessageListActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
         tvEmpty.setVisibility(View.GONE);
 
+        // Note: Backend doesn't have a sessions endpoint yet
+        // For now, showing empty state - you may need to implement this on backend
+        // or use a different approach to list conversations
+        runOnUiThread(() -> {
+            progressBar.setVisibility(View.GONE);
+            recyclerView.setVisibility(View.GONE);
+            tvEmpty.setText("暂无消息会话（后端暂未提供会话列表接口）");
+            tvEmpty.setVisibility(View.VISIBLE);
+        });
+
+        /* Original code - endpoint doesn't exist on backend
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "message/sessions")
+                .url(ApiClient.BASE_URL + "api/v1/message/sessions")
                 .get()
                 .build();
 
@@ -99,6 +110,7 @@ public class MessageListActivity extends AppCompatActivity {
                 });
             }
         });
+        */
     }
 
     private void setupBottomNav() {

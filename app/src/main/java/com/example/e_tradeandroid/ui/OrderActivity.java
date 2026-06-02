@@ -69,7 +69,7 @@ public class OrderActivity extends AppCompatActivity {
 
     private void loadOrderDetail(long orderId) {
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "order/detail/" + orderId)
+                .url(ApiClient.BASE_URL + "api/v1/trade/order/" + orderId)
                 .get()
                 .build();
 
@@ -162,8 +162,8 @@ public class OrderActivity extends AppCompatActivity {
 
         RequestBody body = RequestBody.create("", MediaType.parse("application/json; charset=utf-8"));
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "order/" + order.getId() + "/cancel")
-                .post(body)
+                .url(ApiClient.BASE_URL + "api/v1/trade/order/" + order.getId() + "/cancel")
+                .put(body)
                 .build();
 
         ApiClient.getClient().newCall(request).enqueue(new Callback() {
@@ -193,8 +193,8 @@ public class OrderActivity extends AppCompatActivity {
 
         RequestBody body = RequestBody.create("", MediaType.parse("application/json; charset=utf-8"));
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "order/" + order.getId() + "/confirm")
-                .post(body)
+                .url(ApiClient.BASE_URL + "api/v1/trade/order/" + order.getId() + "/confirm")
+                .put(body)
                 .build();
 
         ApiClient.getClient().newCall(request).enqueue(new Callback() {
@@ -224,8 +224,8 @@ public class OrderActivity extends AppCompatActivity {
 
         RequestBody body = RequestBody.create("", MediaType.parse("application/json; charset=utf-8"));
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "order/" + order.getId() + "/deliver")
-                .post(body)
+                .url(ApiClient.BASE_URL + "api/v1/trade/order/" + order.getId() + "/deliver")
+                .put(body)
                 .build();
 
         ApiClient.getClient().newCall(request).enqueue(new Callback() {
@@ -255,8 +255,8 @@ public class OrderActivity extends AppCompatActivity {
 
         RequestBody body = RequestBody.create("", MediaType.parse("application/json; charset=utf-8"));
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "order/" + order.getId() + "/receive")
-                .post(body)
+                .url(ApiClient.BASE_URL + "api/v1/trade/order/" + order.getId() + "/receive")
+                .put(body)
                 .build();
 
         ApiClient.getClient().newCall(request).enqueue(new Callback() {

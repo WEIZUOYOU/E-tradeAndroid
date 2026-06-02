@@ -62,7 +62,7 @@ public class OrderDetailActivity extends AppCompatActivity {
 
     private void loadDetail() {
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "order/detail/" + orderId)
+                .url(ApiClient.BASE_URL + "api/v1/trade/order/" + orderId)
                 .get()
                 .build();
 
@@ -131,24 +131,24 @@ public class OrderDetailActivity extends AppCompatActivity {
         String endpoint;
         switch (action) {
             case "confirm":
-                endpoint = "order/" + orderId + "/confirm";
+                endpoint = "api/v1/trade/order/" + orderId + "/confirm";
                 break;
             case "complete":
                 if (isBuyer && status == 2) {
-                    endpoint = "order/" + orderId + "/receive";
+                    endpoint = "api/v1/trade/order/" + orderId + "/receive";
                 } else {
-                    endpoint = "order/" + orderId + "/deliver";
+                    endpoint = "api/v1/trade/order/" + orderId + "/deliver";
                 }
                 break;
             default:
-                endpoint = "order/" + orderId + "/cancel";
+                endpoint = "api/v1/trade/order/" + orderId + "/cancel";
                 break;
         }
 
         RequestBody body = RequestBody.create("", MediaType.parse("application/json; charset=utf-8"));
         Request request = new Request.Builder()
                 .url(ApiClient.BASE_URL + endpoint)
-                .post(body)
+                .put(body)
                 .build();
 
         ApiClient.getClient().newCall(request).enqueue(new Callback() {

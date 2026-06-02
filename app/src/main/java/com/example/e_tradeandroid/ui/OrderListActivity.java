@@ -85,7 +85,7 @@ public class OrderListActivity extends AppCompatActivity {
         swipe_refresh_orders.setRefreshing(true);
         progress_bar_orders.setVisibility(View.VISIBLE);
 
-        ApiClient.get("order/list", new Callback() {
+        ApiClient.get("api/v1/trade/order/buyer/list", new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 runOnUiThread(() -> Toast.makeText(OrderListActivity.this, "订单加载失败", Toast.LENGTH_SHORT).show());

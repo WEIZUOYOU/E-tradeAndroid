@@ -201,7 +201,7 @@ public class ProductDetailActivity extends AppCompatActivity {
     private void createOrder(CreateOrderRequest req) {
         String json = gson.toJson(req);
 
-        ApiClient.post("v1/trade/order", json, new Callback() {
+        ApiClient.post("api/v1/trade/order", json, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 runOnUiThread(() -> Toast.makeText(ProductDetailActivity.this, "下单失败：" + e.getMessage(), Toast.LENGTH_SHORT).show());
