@@ -113,7 +113,41 @@
 
             <!-- 2. 基本信息表单 -->
 
-            <!-- 卡片1：商品标题 -->
+            <!-- 卡片1：商品分类 -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/background_white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="商品分类"
+                        android:textSize="14sp"
+                        android:textColor="@color/text_primary"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp" />
+
+                    <Spinner
+                        android:id="@+id/spinner_category"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_input"
+                        android:padding="12dp"
+                        android:spinnerMode="dropdown" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 卡片2：商品标题 -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -167,7 +201,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- 卡片2：商品描述 -->
+            <!-- 卡片3：商品描述 -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -208,7 +242,7 @@
 
 
 
-            <!-- 卡片3：价格和库存 -->
+            <!-- 卡片4：价格和库存 -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -326,5 +360,8 @@
                 android:text="发布" />
         </LinearLayout>
     </LinearLayout>
+
+    <!-- 底部导航栏 -->
+    <include layout="@layout/include_bottom_nav" />
 
 </LinearLayout>

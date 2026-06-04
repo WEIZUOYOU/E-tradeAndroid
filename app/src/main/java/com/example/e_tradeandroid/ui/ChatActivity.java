@@ -94,6 +94,7 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void loadMessage() {
+        // 根据后端文档，使用 /api/message/history?targetUserId=X
         String url = ApiClient.BASE_URL + "api/message/history?targetUserId=" + targetUserId;
         Request request = new Request.Builder().url(url).build();
         ApiClient.getHttpClient().newCall(request).enqueue(new Callback() {
@@ -108,13 +109,13 @@ public class ChatActivity extends AppCompatActivity {
                             JSONObject o = arr.getJSONObject(i);
                             ChatMessage m = new ChatMessage();
                             m.setId(o.optLong("id"));
-                            m.setSenderId(o.getLong("senderId"));
+                            m.setSenderId(o.optLong("senderId"));
                             m.setReceiverId(o.optLong("receiverId"));
                             m.setProductId(o.optLong("productId"));
-                            m.setContent(o.getString("content"));
+                            m.setContent(o.optString("content", ""));
                             m.setType(o.optInt("type", 0));
                             m.setIsRead(o.optInt("isRead", 0));
-                            m.setCreateTime(o.getString("createTime"));
+                            m.setCreateTime(o.optString("createTime", ""));
                             messageList.add(m);
                         }
                         runOnUiThread(()->{chatAdapter.notifyDataSetChanged();rvChat.scrollToPosition(messageList.size()-1);});

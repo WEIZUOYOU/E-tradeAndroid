@@ -48,11 +48,31 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         holder.tvName.setText(product.getName());
         holder.tvPrice.setText("¥" + product.getPrice());
 
-        if (product.getMainImage() != null && !product.getMainImage().isEmpty()) {
+        // 加载商品图片，处理中文文件名
+        String imageUrl = null;
+        if (product.getCoverImage() != null && !product.getCoverImage().isEmpty()) {
+            imageUrl = product.getCoverImage();
+        } else if (product.getMainImage() != null && !product.getMainImage().isEmpty()) {
+            imageUrl = product.getMainImage();
+        } else if (product.getImages() != null && !product.getImages().isEmpty()) {
+            imageUrl = product.getImages().get(0);
+        }
+        
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            // 如果已经是完整URL，直接使用；否则拼接BASE_URL
+            String fullUrl = imageUrl.startsWith("http") ? imageUrl : ApiClient.BASE_URL + imageUrl;
+            
+            android.util.Log.d("ProductAdapter", "Loading image: " + fullUrl);
+            
             Glide.with(mContext)
-                    .load(ApiClient.BASE_URL + product.getMainImage())
+                    .load(fullUrl)
                     .placeholder(R.drawable.ic_launcher_foreground)
+                    .error(R.drawable.ic_launcher_foreground)
                     .into(holder.ivImage);
+        } else {
+            // 没有图片时显示默认占位图
+            android.util.Log.w("ProductAdapter", "No image URL for product: " + product.getName());
+            holder.ivImage.setImageResource(R.drawable.ic_launcher_foreground);
         }
 
         holder.itemView.setOnClickListener(v -> {
@@ -73,9 +93,9 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
 
         public ProductViewHolder(@NonNull View itemView) {
             super(itemView);
-            ivImage = itemView.findViewById(R.id.iv_image);
-            tvName = itemView.findViewById(R.id.tv_name);
-            tvPrice = itemView.findViewById(R.id.tv_price);
+            ivImage = itemView.findViewById(R.id.iv_product_image);
+            tvName = itemView.findViewById(R.id.tv_product_name);
+            tvPrice = itemView.findViewById(R.id.tv_product_price);
         }
     }
 }

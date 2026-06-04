@@ -33,47 +33,41 @@
                 android:background="@android:color/transparent" />
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- 分类模块标题 -->
+        <!-- 分类模块 - 使用GridLayout让所有分类直接可见 -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="20dp"
-            android:text="热门分类"
+            android:text="商品分类"
             android:textSize="18sp"
             android:textColor="@color/text_primary"
             android:textStyle="bold" />
 
-        <HorizontalScrollView
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/layout_categories"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:scrollbars="none"
-            android:layout_marginTop="8dp">
-
-            <LinearLayout
-                android:id="@+id/layout_categories"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp" />
-        </HorizontalScrollView>
+            android:layout_marginTop="8dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:nestedScrollingEnabled="false" />
 
         <!-- 分隔线 -->
         <View android:layout_width="match_parent"
             android:layout_height="12dp"
             android:background="@color/background_light" />
 
-        <!-- 商品推荐标题 -->
+        <!-- 商品列表标题 -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
             android:layout_marginEnd="20dp"
-            android:text="为你推荐"
+            android:text="全部商品"
             android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="@color/text_primary" />

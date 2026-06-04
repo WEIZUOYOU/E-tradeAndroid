@@ -4,12 +4,14 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -39,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
     private SwipeRefreshLayout swipeRefresh;
     private ProgressBar progressBar;
     private SearchView searchView;
-    private LinearLayout layoutCategories;
+    private RecyclerView layoutCategories; // 改为RecyclerView
     private BottomNavigationView bottomNavigation;
     private Gson gson = new Gson();
     private List<Product> productList = new ArrayList<>();
@@ -47,6 +49,12 @@ public class MainActivity extends AppCompatActivity {
     private String searchKeyword = "";
     private Long selectedCategoryId = null;
     private boolean isSearchMode = false;
+    
+    // 分页相关
+    private int currentPage = 1;
+    private int pageSize = 20;
+    private boolean isLoading = false;
+    private boolean hasMoreData = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,12 +80,45 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigation = findViewById(R.id.bottom_navigation);
 
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
+        
+        // 分类使用GridLayoutManager，每行4个，让所有分类直接可见
+        int categoryCount = 7; // 预计最多7个分类
+        int spanCount = Math.min(categoryCount, 4); // 最多4列
+        GridLayoutManager categoryLayoutManager = new GridLayoutManager(this, spanCount);
+        categoryLayoutManager.setAutoMeasureEnabled(true); // 允许RecyclerView根据内容自动调整高度
+        layoutCategories.setLayoutManager(categoryLayoutManager);
 
         swipeRefresh.setOnRefreshListener(() -> {
+            currentPage = 1;
+            hasMoreData = true;
             if (isSearchMode) {
                 searchProducts();
             } else {
                 loadProducts();
+            }
+        });
+        
+        // 添加滚动监听，实现上拉加载更多
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                
+                if (dy > 0) { // 向下滚动
+                    GridLayoutManager layoutManager = (GridLayoutManager) recyclerView.getLayoutManager();
+                    if (layoutManager != null) {
+                        int visibleItemCount = layoutManager.getChildCount();
+                        int totalItemCount = layoutManager.getItemCount();
+                        int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
+                        
+                        // 判断是否滑动到底部
+                        if (!isLoading && hasMoreData && 
+                            (visibleItemCount + firstVisibleItemPosition) >= totalItemCount &&
+                            firstVisibleItemPosition >= 0) {
+                            loadMoreProducts();
+                        }
+                    }
+                }
             }
         });
     }
@@ -131,24 +172,65 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupCategoriesView() {
-        layoutCategories.removeAllViews();
-        for (Category category : categories) {
-            TextView tvCategory = (TextView) LayoutInflater.from(this)
-                    .inflate(R.layout.item_category, layoutCategories, false);
-            tvCategory.setText(category.getName());
-
-            tvCategory.setOnClickListener(v -> {
+        // 创建分类Adapter
+        CategoryAdapter adapter = new CategoryAdapter(categories);
+        layoutCategories.setAdapter(adapter);
+    }
+    
+    // 分类Adapter内部类
+    private class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder> {
+        private List<Category> categories;
+        
+        public CategoryAdapter(List<Category> categories) {
+            this.categories = categories;
+        }
+        
+        @NonNull
+        @Override
+        public CategoryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            TextView tvCategory = (TextView) LayoutInflater.from(MainActivity.this)
+                    .inflate(R.layout.item_category, parent, false);
+            return new CategoryViewHolder(tvCategory);
+        }
+        
+        @Override
+        public void onBindViewHolder(@NonNull CategoryViewHolder holder, int position) {
+            Category category = categories.get(position);
+            holder.tvCategory.setText(category.getName());
+            
+            holder.tvCategory.setOnClickListener(v -> {
                 if (category.getId() != null && category.getId() == 0L) {
+                    // “全部”分类，清空筛选
                     selectedCategoryId = null;
+                    searchKeyword = "";
+                    searchView.setQuery("", false);
+                    currentPage = 1;
+                    hasMoreData = true;
+                    loadProducts(); // 使用普通列表接口
                 } else {
+                    // 选择了具体分类
                     selectedCategoryId = category.getId();
+                    searchKeyword = "";
+                    searchView.setQuery("", false);
+                    currentPage = 1;
+                    hasMoreData = true;
+                    searchProducts(); // 使用搜索接口，带categoryId参数
                 }
-                searchKeyword = "";
-                searchView.setQuery("", false);
-                searchProducts();
             });
-
-            layoutCategories.addView(tvCategory);
+        }
+        
+        @Override
+        public int getItemCount() {
+            return categories == null ? 0 : categories.size();
+        }
+        
+        class CategoryViewHolder extends RecyclerView.ViewHolder {
+            TextView tvCategory;
+            
+            public CategoryViewHolder(@NonNull View itemView) {
+                super(itemView);
+                this.tvCategory = (TextView) itemView;
+            }
         }
     }
 
@@ -158,6 +240,9 @@ public class MainActivity extends AppCompatActivity {
             public boolean onQueryTextSubmit(String query) {
                 searchKeyword = query;
                 selectedCategoryId = null;
+                // 重置分页
+                currentPage = 1;
+                hasMoreData = true;
                 searchProducts();
                 return true;
             }
@@ -194,11 +279,17 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadProducts() {
         isSearchMode = false;
-        swipeRefresh.setRefreshing(true);
-        progressBar.setVisibility(View.VISIBLE);
+        isLoading = true;
+        
+        if (currentPage == 1) {
+            swipeRefresh.setRefreshing(true);
+            progressBar.setVisibility(View.VISIBLE);
+        }
 
+        String url = ApiClient.BASE_URL + "api/product/list?page=" + currentPage + "&size=" + pageSize;
+        
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "api/product/list?page=1&size=20")
+                .url(url)
                 .get()
                 .build();
 
@@ -208,6 +299,7 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     swipeRefresh.setRefreshing(false);
                     progressBar.setVisibility(View.GONE);
+                    isLoading = false;
                     Toast.makeText(MainActivity.this, "加载失败：" + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
             }
@@ -218,12 +310,30 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     swipeRefresh.setRefreshing(false);
                     progressBar.setVisibility(View.GONE);
+                    isLoading = false;
+                    
                     try {
                         BaseResponse<List<Product>> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<List<Product>>>(){}.getType());
                         if (baseResp.isSuccess() && baseResp.getData() != null) {
-                            productList.clear();
-                            productList.addAll(baseResp.getData());
+                            List<Product> newProducts = baseResp.getData();
+                            
+                            if (currentPage == 1) {
+                                // 第一页，清空列表
+                                productList.clear();
+                                productList.addAll(newProducts);
+                            } else {
+                                // 加载更多，追加到列表
+                                productList.addAll(newProducts);
+                            }
+                            
+                            // 判断是否还有更多数据
+                            hasMoreData = newProducts.size() >= pageSize;
+                            
                             updateAdapter();
+                            
+                            if (!hasMoreData && !productList.isEmpty()) {
+                                Toast.makeText(MainActivity.this, "没有更多商品了", Toast.LENGTH_SHORT).show();
+                            }
                         } else {
                             Toast.makeText(MainActivity.this, "获取商品列表失败", Toast.LENGTH_SHORT).show();
                         }
@@ -235,13 +345,32 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+    
+    // 加载更多商品
+    private void loadMoreProducts() {
+        if (isLoading || !hasMoreData) {
+            return;
+        }
+        
+        currentPage++;
+        
+        if (isSearchMode) {
+            searchProducts();
+        } else {
+            loadProducts();
+        }
+    }
 
     private void searchProducts() {
         isSearchMode = true;
-        swipeRefresh.setRefreshing(true);
-        progressBar.setVisibility(View.VISIBLE);
+        isLoading = true;
+        
+        if (currentPage == 1) {
+            swipeRefresh.setRefreshing(true);
+            progressBar.setVisibility(View.VISIBLE);
+        }
 
-        StringBuilder url = new StringBuilder(ApiClient.BASE_URL + "api/product/search?page=1&size=20");
+        StringBuilder url = new StringBuilder(ApiClient.BASE_URL + "api/product/search?page=" + currentPage + "&size=" + pageSize);
         if (searchKeyword != null && !searchKeyword.isEmpty()) {
             url.append("&keyword=").append(searchKeyword);
         }
@@ -260,6 +389,7 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     swipeRefresh.setRefreshing(false);
                     progressBar.setVisibility(View.GONE);
+                    isLoading = false;
                     Toast.makeText(MainActivity.this, "搜索失败：" + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
             }
@@ -270,12 +400,32 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     swipeRefresh.setRefreshing(false);
                     progressBar.setVisibility(View.GONE);
+                    isLoading = false;
+                    
                     try {
                         BaseResponse<List<Product>> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<List<Product>>>(){}.getType());
                         if (baseResp.isSuccess() && baseResp.getData() != null) {
-                            productList.clear();
-                            productList.addAll(baseResp.getData());
+                            List<Product> newProducts = baseResp.getData();
+                            
+                            if (currentPage == 1) {
+                                // 第一页，清空列表
+                                productList.clear();
+                                productList.addAll(newProducts);
+                            } else {
+                                // 加载更多，追加到列表
+                                productList.addAll(newProducts);
+                            }
+                            
+                            // 判断是否还有更多数据
+                            hasMoreData = newProducts.size() >= pageSize;
+                            
                             updateAdapter();
+                            
+                            if (currentPage == 1 && productList.isEmpty()) {
+                                Toast.makeText(MainActivity.this, "搜索无结果", Toast.LENGTH_SHORT).show();
+                            } else if (!hasMoreData && !productList.isEmpty()) {
+                                Toast.makeText(MainActivity.this, "没有更多商品了", Toast.LENGTH_SHORT).show();
+                            }
                         } else {
                             Toast.makeText(MainActivity.this, "搜索无结果", Toast.LENGTH_SHORT).show();
                         }

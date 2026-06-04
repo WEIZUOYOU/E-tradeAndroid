@@ -4,12 +4,15 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -18,8 +21,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.e_tradeandroid.R;
 import com.example.e_tradeandroid.model.BaseResponse;
+import com.example.e_tradeandroid.model.Category;
 import com.example.e_tradeandroid.network.ApiClient;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,13 +43,19 @@ public class PublishActivity extends AppCompatActivity {
     // 表单字段
     private EditText et_name, et_price, et_stock, et_description;
     private TextView tv_title_counter;
+    private Spinner spinner_category;
     
-    // 底部按钮
+    // 底部按钮和导航
     private Button btn_publish;
+    private com.google.android.material.bottomnavigation.BottomNavigationView bottom_navigation;
 
     private final Gson gson = new Gson();
     private List<android.net.Uri> selectedImageUris = new ArrayList<>();
     private static final int PICK_IMAGE_REQUEST = 1;
+    
+    // 分类相关
+    private List<Category> categoryList = new ArrayList<>();
+    private Long selectedCategoryId = 1L; // 默认分类ID
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,12 +82,20 @@ public class PublishActivity extends AppCompatActivity {
         et_stock = findViewById(R.id.et_stock);
         et_description = findViewById(R.id.et_description);
         tv_title_counter = findViewById(R.id.tv_title_counter);
+        spinner_category = findViewById(R.id.spinner_category);
         
-        // 底部按钮
+        // 底部按钮和导航
         btn_publish = findViewById(R.id.btn_publish);
+        bottom_navigation = findViewById(R.id.bottom_navigation);
     }
     
     private void initListeners() {
+        // 初始化底部导航
+        initBottomNav();
+        
+        // 加载分类列表
+        loadCategories();
+        
         // 图片上传区点击
         fl_image_upload.setOnClickListener(v -> selectImage());
         
@@ -96,6 +115,150 @@ public class PublishActivity extends AppCompatActivity {
         
         // 发布按钮
         btn_publish.setOnClickListener(v -> submitPublish());
+    }
+    
+    // 初始化底部导航
+    private void initBottomNav() {
+        bottom_navigation.setSelectedItemId(R.id.nav_publish);
+        bottom_navigation.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.nav_home) {
+                startActivity(new Intent(PublishActivity.this, MainActivity.class));
+                finish();
+                return true;
+            } else if (itemId == R.id.nav_orders) {
+                startActivity(new Intent(PublishActivity.this, OrderListActivity.class));
+                finish();
+                return true;
+            } else if (itemId == R.id.nav_messages) {
+                startActivity(new Intent(PublishActivity.this, MessageListActivity.class));
+                finish();
+                return true;
+            } else if (itemId == R.id.nav_profile) {
+                startActivity(new Intent(PublishActivity.this, MyProfileActivity.class));
+                finish();
+                return true;
+            } else if (itemId == R.id.nav_publish) {
+                return true;
+            }
+            return false;
+        });
+    }
+    
+    // 加载分类列表
+    private void loadCategories() {
+        // 调用后端接口获取一级分类列表
+        ApiClient.get("api/category/list", new okhttp3.Callback() {
+            @Override
+            public void onFailure(okhttp3.Call call, IOException e) {
+                runOnUiThread(() -> {
+                    Toast.makeText(PublishActivity.this, "加载分类失败：" + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    // 使用默认分类（降级方案）
+                    setupDefaultCategory();
+                });
+            }
+
+            @Override
+            public void onResponse(okhttp3.Call call, okhttp3.Response response) throws IOException {
+                String res = response.body().string();
+                BaseResponse<List<Category>> resp = gson.fromJson(res, new TypeToken<BaseResponse<List<Category>>>(){}.getType());
+                
+                runOnUiThread(() -> {
+                    if (resp.isSuccess() && resp.getData() != null && !resp.getData().isEmpty()) {
+                        categoryList = resp.getData();
+                        setupCategorySpinner();
+                    } else {
+                        // 如果返回空列表，使用默认分类
+                        setupDefaultCategory();
+                    }
+                });
+            }
+        });
+    }
+    
+    // 设置默认分类（硬编码7个一级分类）
+    private void setupDefaultCategory() {
+        categoryList.clear();
+        
+        // 添加7个一级分类
+        Category cat1 = new Category();
+        cat1.setId(1L);
+        cat1.setName("教材与学习资料");
+        categoryList.add(cat1);
+        
+        Category cat2 = new Category();
+        cat2.setId(2L);
+        cat2.setName("数码产品与配件");
+        categoryList.add(cat2);
+        
+        Category cat3 = new Category();
+        cat3.setId(3L);
+        cat3.setName("生活电器与宿舍用品");
+        categoryList.add(cat3);
+        
+        Category cat4 = new Category();
+        cat4.setId(4L);
+        cat4.setName("运动与户外");
+        categoryList.add(cat4);
+        
+        Category cat5 = new Category();
+        cat5.setId(5L);
+        cat5.setName("服饰与配饰");
+        categoryList.add(cat5);
+        
+        Category cat6 = new Category();
+        cat6.setId(6L);
+        cat6.setName("美妆与个护");
+        categoryList.add(cat6);
+        
+        Category cat7 = new Category();
+        cat7.setId(7L);
+        cat7.setName("其他/闲置杂物");
+        categoryList.add(cat7);
+        
+        setupCategorySpinner();
+    }
+    
+    // 设置分类选择器
+    private void setupCategorySpinner() {
+        if (categoryList.isEmpty()) {
+            return;
+        }
+        
+        // 创建分类名称列表
+        List<String> categoryNames = new ArrayList<>();
+        for (Category category : categoryList) {
+            categoryNames.add(category.getName());
+        }
+        
+        // 创建 ArrayAdapter
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+            this,
+            android.R.layout.simple_spinner_item,
+            categoryNames
+        );
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner_category.setAdapter(adapter);
+        
+        // 设置默认选中第一个分类
+        if (!categoryList.isEmpty()) {
+            selectedCategoryId = categoryList.get(0).getId();
+        }
+        
+        // 监听分类选择变化
+        spinner_category.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (position < categoryList.size()) {
+                    selectedCategoryId = categoryList.get(position).getId();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // 不做处理
+            }
+        });
     }
 
     // 选择图片
@@ -285,8 +448,51 @@ public class PublishActivity extends AppCompatActivity {
         String stockStr = et_stock.getText().toString().trim();
         String desc = et_description.getText().toString().trim();
 
-        if (name.isEmpty() || priceStr.isEmpty() || stockStr.isEmpty()) {
-            Toast.makeText(this, "请填写完整信息", Toast.LENGTH_SHORT).show();
+        // 表单验证
+        if (name.isEmpty()) {
+            Toast.makeText(this, "请输入商品名称", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        if (name.length() > 50) {
+            Toast.makeText(this, "商品名称不能超过50个字符", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        if (priceStr.isEmpty()) {
+            Toast.makeText(this, "请输入商品价格", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        try {
+            double price = Double.parseDouble(priceStr);
+            if (price <= 0) {
+                Toast.makeText(this, "价格必须大于0", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        } catch (NumberFormatException e) {
+            Toast.makeText(this, "请输入有效的价格", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        if (stockStr.isEmpty()) {
+            Toast.makeText(this, "请输入库存数量", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        try {
+            int stock = Integer.parseInt(stockStr);
+            if (stock < 1) {
+                Toast.makeText(this, "库存至少为1", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        } catch (NumberFormatException e) {
+            Toast.makeText(this, "请输入有效的库存数量", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        if (!desc.isEmpty() && desc.length() > 500) {
+            Toast.makeText(this, "商品描述不能超过500个字符", Toast.LENGTH_SHORT).show();
             return;
         }
         
@@ -294,11 +500,27 @@ public class PublishActivity extends AppCompatActivity {
             Toast.makeText(this, "请至少上传一张图片", Toast.LENGTH_SHORT).show();
             return;
         }
+        
+        if (selectedImageUris.size() > 9) {
+            Toast.makeText(this, "最多只能上传9张图片", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         try {
+            // 根据API文档，需要添加 categoryId 字段（必填）
+            // 使用用户选择的分类ID
+            Long categoryId = selectedCategoryId;
+            
+            // 验证分类ID是否有效
+            if (categoryId == null || categoryId <= 0) {
+                Toast.makeText(this, "请选择商品分类", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
             // 使用 multipart/form-data 格式提交
             okhttp3.MultipartBody.Builder bodyBuilder = new okhttp3.MultipartBody.Builder()
                     .setType(okhttp3.MultipartBody.FORM)
+                    .addFormDataPart("categoryId", String.valueOf(categoryId))
                     .addFormDataPart("name", name)
                     .addFormDataPart("price", priceStr)
                     .addFormDataPart("stock", stockStr);
@@ -353,10 +575,17 @@ public class PublishActivity extends AppCompatActivity {
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
                     String res = response.body().string();
-                    BaseResponse<Object> resp = gson.fromJson(res, BaseResponse.class);
+                    // 根据API文档，发布商品返回的是商品ID (Long类型)
+                    BaseResponse<Long> resp = gson.fromJson(res, new TypeToken<BaseResponse<Long>>(){}.getType());
                     runOnUiThread(() -> {
-                        if (resp.isSuccess()) {
+                        if (resp.isSuccess() && resp.getData() != null) {
+                            Long productId = resp.getData();
                             Toast.makeText(PublishActivity.this, "发布成功", Toast.LENGTH_SHORT).show();
+                            
+                            // 跳转到商品详情页
+                            Intent intent = new Intent(PublishActivity.this, ProductDetailActivity.class);
+                            intent.putExtra("product_id", productId);
+                            startActivity(intent);
                             finish();
                         } else {
                             Toast.makeText(PublishActivity.this, resp.getMessage(), Toast.LENGTH_SHORT).show();
