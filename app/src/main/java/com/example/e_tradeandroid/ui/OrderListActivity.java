@@ -81,12 +81,12 @@ public class OrderListActivity extends AppCompatActivity {
     
     private void updateTabStyle() {
         if (isBuyerTab) {
-            btn_tab_buyer.setTextColor(getResources().getColor(R.color.primary_blue));
+            btn_tab_buyer.setTextColor(getResources().getColor(R.color.primary_green));
             btn_tab_buyer.setBackgroundResource(R.drawable.bg_btn_primary);
             btn_tab_seller.setTextColor(getResources().getColor(R.color.gray_500));
             btn_tab_seller.setBackgroundColor(getResources().getColor(android.R.color.transparent));
         } else {
-            btn_tab_seller.setTextColor(getResources().getColor(R.color.primary_blue));
+            btn_tab_seller.setTextColor(getResources().getColor(R.color.primary_green));
             btn_tab_seller.setBackgroundResource(R.drawable.bg_btn_primary);
             btn_tab_buyer.setTextColor(getResources().getColor(R.color.gray_500));
             btn_tab_buyer.setBackgroundColor(getResources().getColor(android.R.color.transparent));

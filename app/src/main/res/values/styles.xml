@@ -11,7 +11,7 @@
         <item name="android:paddingStart">@dimen/btn_padding_horizontal</item>
         <item name="android:paddingEnd">@dimen/btn_padding_horizontal</item>
         <item name="cornerRadius">@dimen/radius_full</item>
-        <item name="backgroundTint">@color/primary_blue</item>
+        <item name="backgroundTint">@color/primary_green</item>
         <item name="android:textColor">@color/white</item>
         <item name="android:textSize">@dimen/text_size_body</item>
         <item name="android:textAllCaps">false</item>
@@ -110,7 +110,7 @@
     <!-- 价格文字样式 -->
     <style name="TextPrice">
         <item name="android:textSize">@dimen/text_size_price</item>
-        <item name="android:textColor">@color/accent_orange</item>
+        <item name="android:textColor">@color/accent_yellow_dark</item>
         <item name="android:textStyle">bold</item>
     </style>
 
@@ -120,7 +120,7 @@
         <item name="boxCornerRadiusTopEnd">@dimen/radius_medium</item>
         <item name="boxCornerRadiusBottomStart">@dimen/radius_medium</item>
         <item name="boxCornerRadiusBottomEnd">@dimen/radius_medium</item>
-        <item name="boxStrokeColor">@color/primary_blue</item>
+        <item name="boxStrokeColor">@color/primary_green</item>
         <item name="hintTextColor">@color/text_secondary</item>
     </style>
 
