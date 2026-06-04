@@ -10,6 +10,7 @@
         android:maxSdkVersion="28" />
 
     <application
+        android:name=".network.AppContext"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -34,7 +35,6 @@
         <activity android:name=".ui.LoginActivity" />
         <activity android:name=".ui.ProductDetailActivity" />
         <activity android:name=".ui.PublishActivity" />
-        <activity android:name=".ui.OrderActivity" />
         <activity android:name=".ui.OrderListActivity" />
         <activity android:name=".ui.MyProfileActivity" />
         <activity android:name=".ui.MyProductsActivity" />

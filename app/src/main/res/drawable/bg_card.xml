@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 卡片背景 - 极浅绿 -->
+    <solid android:color="@color/background_card" />
+    <!-- 大圆角 -->
+    <corners android:radius="20dp" />
+    <!-- 柔和阴影（通过描边模拟） -->
+    <stroke 
+        android:width="1dp" 
+        android:color="@color/divider" />
+</shape>

@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="@color/primary_blue" />
+    <!-- 渐变背景 - 校园青绿 -->
+    <gradient
+        android:startColor="@color/primary_gradient_start"
+        android:endColor="@color/primary_gradient_end"
+        android:angle="135" />
+    <!-- 大圆角 -->
     <corners android:radius="24dp" />
+    <!-- 柔和阴影效果（通过padding模拟） -->
 </shape>

@@ -10,7 +10,8 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:padding="16dp">
+        android:padding="16dp"
+        android:background="@color/background_light">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -21,31 +22,48 @@
                 android:id="@+id/et_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="商品名称" />
+                android:hint="商品名称"
+                android:background="@drawable/bg_input"
+                android:padding="16dp"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint" />
 
             <EditText
                 android:id="@+id/et_price"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="12dp"
                 android:hint="价格"
-                android:inputType="numberDecimal" />
+                android:inputType="numberDecimal"
+                android:background="@drawable/bg_input"
+                android:padding="16dp"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint" />
 
             <EditText
                 android:id="@+id/et_stock"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="12dp"
                 android:hint="库存"
-                android:inputType="number" />
+                android:inputType="number"
+                android:background="@drawable/bg_input"
+                android:padding="16dp"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint" />
 
             <EditText
                 android:id="@+id/et_description"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="12dp"
                 android:hint="描述"
-                android:maxLines="5" />
+                android:maxLines="5"
+                android:background="@drawable/bg_input"
+                android:padding="16dp"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint"
+                android:gravity="top" />
 
             <Button
                 android:id="@+id/btn_select_image"
@@ -59,9 +77,11 @@
                 android:id="@+id/iv_preview"
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="12dp"
                 android:scaleType="centerCrop"
-                android:visibility="gone" />
+                android:visibility="gone"
+                android:background="@drawable/bg_card"
+                android:padding="8dp" />
 
             <Button
                 android:id="@+id/btn_publish"

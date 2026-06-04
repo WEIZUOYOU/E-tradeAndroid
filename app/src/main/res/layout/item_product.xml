@@ -3,10 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="@dimen/spacing_small"
-    app:cardCornerRadius="@dimen/radius_large"
-    app:cardElevation="@dimen/elevation_card"
-    app:cardBackgroundColor="@color/background_white">
+    android:layout_margin="8dp"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="3dp"
+    app:cardBackgroundColor="@color/background_card"
+    app:strokeWidth="0.5dp"
+    app:strokeColor="@color/divider">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -26,7 +28,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="@dimen/spacing_small">
+            android:padding="12dp">
 
             <!-- 商品名称 -->
             <TextView
@@ -35,20 +37,25 @@
                 android:layout_height="wrap_content"
                 android:maxLines="2"
                 android:ellipsize="end"
-                android:textSize="@dimen/text_size_body"
+                android:textSize="15sp"
                 android:textColor="@color/text_primary"
                 android:textStyle="bold"
                 android:lineSpacingMultiplier="1.3" />
 
-            <!-- 价格 -->
+            <!-- 价格 - 使用木质暖黄强调 -->
             <TextView
                 android:id="@+id/tv_product_price"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/spacing_xs"
-                android:textSize="@dimen/text_size_price"
-                android:textColor="@color/accent_orange"
-                android:textStyle="bold" />
+                android:layout_marginTop="8dp"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:textSize="16sp"
+                android:textColor="@color/text_price"
+                android:textStyle="bold"
+                android:background="@drawable/bg_price_tag" />
 
         </LinearLayout>
     </LinearLayout>

@@ -38,7 +38,6 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        ApiClient.init(this);
 
         etStudentId = findViewById(R.id.et_student_id);
         etPassword = findViewById(R.id.et_password);
@@ -102,7 +101,7 @@ public class LoginActivity extends AppCompatActivity {
         String json = gson.toJson(req);
         RequestBody body = RequestBody.create(json, MediaType.get("application/json; charset=utf-8"));
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "user/login")
+                .url(ApiClient.BASE_URL + "api/user/login")
                 .post(body)
                 .build();
 
@@ -157,7 +156,7 @@ public class LoginActivity extends AppCompatActivity {
         String json = gson.toJson(req);
         RequestBody body = RequestBody.create(json, MediaType.get("application/json; charset=utf-8"));
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "user/register")
+                .url(ApiClient.BASE_URL + "api/user/register")
                 .post(body)
                 .build();
 

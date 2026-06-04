@@ -58,7 +58,7 @@ public class TradeInfoDialog extends Dialog {
             body.put("meetingLocation", loc);
         } catch (JSONException e) {e.printStackTrace();}
 
-        ApiClient.post("order/review", body.toString(), new Callback() {
+        ApiClient.post("api/v1/trade/order", body.toString(), new Callback() {
             @Override public void onFailure(okhttp3.Call call, IOException e) {}
             @Override public void onResponse(okhttp3.Call call, Response response) throws IOException {
                 try {

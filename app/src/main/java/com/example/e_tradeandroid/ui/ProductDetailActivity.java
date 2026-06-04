@@ -98,7 +98,7 @@ public class ProductDetailActivity extends AppCompatActivity {
     }
 
     private void loadProductDetail(long productId) {
-        ApiClient.get("product/detail/" + productId, new Callback() {
+        ApiClient.get("api/product/detail/" + productId, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 runOnUiThread(() -> Toast.makeText(ProductDetailActivity.this, "加载失败", Toast.LENGTH_SHORT).show());
@@ -136,7 +136,7 @@ public class ProductDetailActivity extends AppCompatActivity {
     }
 
     private void loadSellerInfo(Long sellerId) {
-        ApiClient.get("user/info/" + sellerId, new Callback() {
+        ApiClient.get("api/user/info/" + sellerId, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 runOnUiThread(() -> tvSeller.setText("卖家ID: " + sellerId));

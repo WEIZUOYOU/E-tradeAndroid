@@ -33,8 +33,10 @@ public class OrderListActivity extends AppCompatActivity {
     private SwipeRefreshLayout swipe_refresh_orders;
     private ProgressBar progress_bar_orders;
     private BottomNavigationView bottom_navigation;
+    private android.widget.Button btn_tab_buyer, btn_tab_seller;
 
     private final Gson gson = new Gson();
+    private boolean isBuyerTab = true; // 默认显示买家订单
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,8 +50,47 @@ public class OrderListActivity extends AppCompatActivity {
         bottom_navigation = findViewById(R.id.bottom_navigation);
 
         recycler_view_orders.setLayoutManager(new LinearLayoutManager(this));
+        initTabs();
         initNav();
         loadOrderData();
+    }
+
+    // 初始化 Tab
+    private void initTabs() {
+        btn_tab_buyer = findViewById(R.id.btn_tab_buyer);
+        btn_tab_seller = findViewById(R.id.btn_tab_seller);
+        
+        updateTabStyle();
+        
+        btn_tab_buyer.setOnClickListener(v -> {
+            if (!isBuyerTab) {
+                isBuyerTab = true;
+                updateTabStyle();
+                loadOrderData();
+            }
+        });
+        
+        btn_tab_seller.setOnClickListener(v -> {
+            if (isBuyerTab) {
+                isBuyerTab = false;
+                updateTabStyle();
+                loadOrderData();
+            }
+        });
+    }
+    
+    private void updateTabStyle() {
+        if (isBuyerTab) {
+            btn_tab_buyer.setTextColor(getResources().getColor(R.color.primary_blue));
+            btn_tab_buyer.setBackgroundResource(R.drawable.bg_btn_primary);
+            btn_tab_seller.setTextColor(getResources().getColor(R.color.gray_500));
+            btn_tab_seller.setBackgroundColor(getResources().getColor(android.R.color.transparent));
+        } else {
+            btn_tab_seller.setTextColor(getResources().getColor(R.color.primary_blue));
+            btn_tab_seller.setBackgroundResource(R.drawable.bg_btn_primary);
+            btn_tab_buyer.setTextColor(getResources().getColor(R.color.gray_500));
+            btn_tab_buyer.setBackgroundColor(getResources().getColor(android.R.color.transparent));
+        }
     }
 
     // 底部导航
@@ -85,7 +126,9 @@ public class OrderListActivity extends AppCompatActivity {
         swipe_refresh_orders.setRefreshing(true);
         progress_bar_orders.setVisibility(View.VISIBLE);
 
-        ApiClient.get("api/v1/trade/order/buyer/list", new Callback() {
+        String apiUrl = isBuyerTab ? "api/v1/trade/order/buyer/list" : "api/v1/trade/order/seller/list";
+        
+        ApiClient.get(apiUrl, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 runOnUiThread(() -> Toast.makeText(OrderListActivity.this, "订单加载失败", Toast.LENGTH_SHORT).show());

@@ -9,13 +9,14 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="@dimen/spacing_medium">
+        android:padding="16dp">
 
         <!-- ===== 未登录状态 ===== -->
         <LinearLayout
@@ -62,10 +63,10 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="@dimen/radius_large"
-                app:cardElevation="@dimen/elevation_card"
-                app:cardBackgroundColor="@color/background_white"
-                app:strokeColor="@color/gray_100"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="3dp"
+                app:cardBackgroundColor="@color/background_card"
+                app:strokeColor="@color/divider"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -73,12 +74,12 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:gravity="center"
-                    android:padding="@dimen/spacing_large">
+                    android:padding="24dp">
 
                     <ImageView
                         android:id="@+id/iv_avatar"
-                        android:layout_width="@dimen/avatar_size_large"
-                        android:layout_height="@dimen/avatar_size_large"
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
                         android:scaleType="centerCrop"
                         android:src="@drawable/ic_launcher_foreground" />
 
@@ -86,19 +87,20 @@
                         android:id="@+id/tv_username"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/spacing_small"
+                        android:layout_marginTop="12dp"
                         android:gravity="center"
-                        android:textSize="@dimen/text_size_title_medium"
+                        android:textSize="20sp"
                         android:textStyle="bold"
+                        android:textColor="@color/text_primary"
                         android:text="用户名" />
 
                     <TextView
                         android:id="@+id/tv_student_id"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/spacing_xs"
+                        android:layout_marginTop="6dp"
                         android:gravity="center"
-                        android:textSize="@dimen/text_size_body"
+                        android:textSize="14sp"
                         android:textColor="@color/text_secondary"
                         android:text="学号: " />
 
@@ -109,47 +111,49 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/spacing_small"
-                app:cardCornerRadius="@dimen/radius_large"
-                app:cardElevation="@dimen/elevation_card"
-                app:cardBackgroundColor="@color/background_white"
-                app:strokeColor="@color/gray_100"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/background_card"
+                app:strokeColor="@color/divider"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="@dimen/spacing_medium">
+                    android:padding="20dp">
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="个人信息"
-                        android:textSize="@dimen/text_size_title_medium"
+                        android:textSize="16sp"
                         android:textStyle="bold"
-                        android:layout_marginBottom="@dimen/spacing_small" />
+                        android:textColor="@color/text_primary"
+                        android:layout_marginBottom="16dp" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:paddingVertical="@dimen/spacing_small">
+                        android:paddingVertical="12dp">
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="手机号"
-                            android:textSize="@dimen/text_size_body" />
+                            android:textSize="15sp"
+                            android:textColor="@color/text_secondary" />
 
                         <TextView
                             android:id="@+id/tv_phone"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text=" - "
-                            android:textSize="@dimen/text_size_body"
-                            android:textColor="@color/text_secondary" />
+                            android:textSize="15sp"
+                            android:textColor="@color/text_primary" />
                     </LinearLayout>
 
                     <View android:layout_width="match_parent"
@@ -160,22 +164,23 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:paddingVertical="@dimen/spacing_small">
+                        android:paddingVertical="12dp">
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="信用分"
-                            android:textSize="@dimen/text_size_body" />
+                            android:textSize="15sp"
+                            android:textColor="@color/text_secondary" />
 
                         <TextView
                             android:id="@+id/tv_credit_score"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text=" - "
-                            android:textSize="@dimen/text_size_body"
-                            android:textColor="@color/success_green"
+                            android:textSize="15sp"
+                            android:textColor="@color/primary_green"
                             android:textStyle="bold" />
                     </LinearLayout>
 
@@ -187,21 +192,23 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:paddingVertical="@dimen/spacing_small">
+                        android:paddingVertical="12dp">
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="账号状态"
-                            android:textSize="@dimen/text_size_body" />
+                            android:textSize="15sp"
+                            android:textColor="@color/text_secondary" />
 
                         <TextView
                             android:id="@+id/tv_status"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text=" - "
-                            android:textSize="@dimen/text_size_body" />
+                            android:textSize="15sp"
+                            android:textColor="@color/text_primary" />
                     </LinearLayout>
 
                 </LinearLayout>
@@ -211,33 +218,34 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/spacing_small"
-                app:cardCornerRadius="@dimen/radius_large"
-                app:cardElevation="@dimen/elevation_card"
-                app:cardBackgroundColor="@color/background_white"
-                app:strokeColor="@color/gray_100"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/background_card"
+                app:strokeColor="@color/divider"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="@dimen/spacing_medium">
+                    android:padding="20dp">
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="我的功能"
-                        android:textSize="@dimen/text_size_title_medium"
+                        android:textSize="16sp"
                         android:textStyle="bold"
-                        android:layout_marginBottom="@dimen/spacing_small" />
+                        android:textColor="@color/text_primary"
+                        android:layout_marginBottom="16dp" />
 
                     <Button
                         android:id="@+id/btn_my_orders"
                         style="@style/PrimaryButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/spacing_small"
+                        android:layout_marginBottom="10dp"
                         android:text="我的订单" />
 
                     <Button
@@ -245,7 +253,7 @@
                         style="@style/PrimaryButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/spacing_small"
+                        android:layout_marginBottom="10dp"
                         android:text="我发布的商品" />
 
                     <Button
@@ -253,7 +261,7 @@
                         style="@style/SuccessButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/spacing_small"
+                        android:layout_marginBottom="10dp"
                         android:text="去实名认证" />
 
                     <Button
@@ -261,7 +269,7 @@
                         style="@style/PrimaryButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/spacing_small"
+                        android:layout_marginBottom="10dp"
                         android:text="编辑资料" />
 
                     <Button
@@ -269,7 +277,7 @@
                         style="@style/DangerButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/spacing_small"
+                        android:layout_marginTop="12dp"
                         android:text="退出登录" />
 
                 </LinearLayout>

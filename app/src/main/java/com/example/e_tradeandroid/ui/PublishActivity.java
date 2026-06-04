@@ -30,6 +30,8 @@ public class PublishActivity extends AppCompatActivity {
     private BottomNavigationView bottom_navigation;
 
     private final Gson gson = new Gson();
+    private android.net.Uri selectedImageUri;
+    private static final int PICK_IMAGE_REQUEST = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +49,7 @@ public class PublishActivity extends AppCompatActivity {
         bottom_navigation = findViewById(R.id.bottom_navigation);
 
         initNav();
+        btn_select_image.setOnClickListener(v -> selectImage());
         btn_publish.setOnClickListener(v -> submitPublish());
     }
 
@@ -76,6 +79,24 @@ public class PublishActivity extends AppCompatActivity {
         });
     }
 
+    // 选择图片
+    private void selectImage() {
+        Intent intent = new Intent(Intent.ACTION_PICK);
+        intent.setType("image/*");
+        startActivityForResult(intent, PICK_IMAGE_REQUEST);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            selectedImageUri = data.getData();
+            iv_preview.setImageURI(selectedImageUri);
+            iv_preview.setVisibility(android.view.View.VISIBLE);
+            Toast.makeText(this, "图片已选择", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     // 发布商品逻辑
     private void submitPublish() {
         String name = et_name.getText().toString().trim();
@@ -88,32 +109,65 @@ public class PublishActivity extends AppCompatActivity {
             return;
         }
 
-        Product product = new Product();
-        product.setName(name);
-        product.setPrice(Double.parseDouble(priceStr));
-        product.setStock(Integer.parseInt(stockStr));
-        product.setDescription(desc);
-
-        String json = gson.toJson(product);
-        ApiClient.post("product/publish", json, new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                runOnUiThread(() -> Toast.makeText(PublishActivity.this, "发布失败", Toast.LENGTH_SHORT).show());
+        try {
+            // 使用 multipart/form-data 格式提交
+            okhttp3.MultipartBody.Builder bodyBuilder = new okhttp3.MultipartBody.Builder()
+                    .setType(okhttp3.MultipartBody.FORM)
+                    .addFormDataPart("name", name)
+                    .addFormDataPart("price", priceStr)
+                    .addFormDataPart("stock", stockStr);
+            
+            if (!desc.isEmpty()) {
+                bodyBuilder.addFormDataPart("description", desc);
             }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                String res = response.body().string();
-                BaseResponse<Object> resp = gson.fromJson(res, BaseResponse.class);
-                runOnUiThread(() -> {
-                    if (resp.isSuccess()) {
-                        Toast.makeText(PublishActivity.this, "发布成功", Toast.LENGTH_SHORT).show();
-                        finish();
-                    } else {
-                        Toast.makeText(PublishActivity.this, resp.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
+            
+            // 如果有图片，添加图片文件
+            if (selectedImageUri != null) {
+                try {
+                    java.io.InputStream inputStream = getContentResolver().openInputStream(selectedImageUri);
+                    byte[] imageBytes = new byte[inputStream.available()];
+                    inputStream.read(imageBytes);
+                    inputStream.close();
+                    
+                    bodyBuilder.addFormDataPart("images", "image.jpg",
+                        okhttp3.RequestBody.create(imageBytes, okhttp3.MediaType.parse("image/jpeg")));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    runOnUiThread(() -> Toast.makeText(this, "图片读取失败", Toast.LENGTH_SHORT).show());
+                    return;
+                }
             }
-        });
+            
+            okhttp3.RequestBody requestBody = bodyBuilder.build();
+            
+            okhttp3.Request request = new okhttp3.Request.Builder()
+                    .url(ApiClient.BASE_URL + "api/product/publish")
+                    .post(requestBody)
+                    .build();
+            
+            ApiClient.getClient().newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    runOnUiThread(() -> Toast.makeText(PublishActivity.this, "发布失败：" + e.getMessage(), Toast.LENGTH_SHORT).show());
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    String res = response.body().string();
+                    BaseResponse<Object> resp = gson.fromJson(res, BaseResponse.class);
+                    runOnUiThread(() -> {
+                        if (resp.isSuccess()) {
+                            Toast.makeText(PublishActivity.this, "发布成功", Toast.LENGTH_SHORT).show();
+                            finish();
+                        } else {
+                            Toast.makeText(PublishActivity.this, resp.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+            runOnUiThread(() -> Toast.makeText(this, "发布失败：" + e.getMessage(), Toast.LENGTH_SHORT).show());
+        }
     }
 }

@@ -83,7 +83,7 @@ public class ChatActivity extends AppCompatActivity {
             body.put("type", 0);
         } catch (JSONException e) {e.printStackTrace();}
 
-        ApiClient.post("api/v1/message/send", body.toString(), new Callback() {
+        ApiClient.post("api/message/send", body.toString(), new Callback() {
             @Override public void onFailure(Call call, IOException e) {
                 runOnUiThread(()->Toast.makeText(ChatActivity.this,"发送失败",Toast.LENGTH_SHORT).show());
             }
@@ -94,7 +94,7 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void loadMessage() {
-        String url = ApiClient.BASE_URL + "api/v1/message/history?targetUserId=" + targetUserId;
+        String url = ApiClient.BASE_URL + "api/message/history?targetUserId=" + targetUserId;
         Request request = new Request.Builder().url(url).build();
         ApiClient.getHttpClient().newCall(request).enqueue(new Callback() {
             @Override public void onFailure(Call call, IOException e) {}

@@ -36,7 +36,7 @@ public class CreditActivity extends AppCompatActivity {
     }
 
     private void getUserCredit() {
-        ApiClient.get("user/credit", new Callback() {
+        ApiClient.get("api/user/current", new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 runOnUiThread(() -> Toast.makeText(CreditActivity.this, "获取失败", Toast.LENGTH_SHORT).show());
@@ -45,14 +45,15 @@ public class CreditActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String json = response.body().string();
-                BaseResponse<UserCredit> resp = gson.fromJson(json, new TypeToken<BaseResponse<UserCredit>>() {}.getType());
+                BaseResponse<com.example.e_tradeandroid.model.User> resp = gson.fromJson(json, new TypeToken<BaseResponse<com.example.e_tradeandroid.model.User>>() {}.getType());
                 if (resp.isSuccess() && resp.getData() != null) {
                     runOnUiThread(() -> {
-                        UserCredit uc = resp.getData();
-                        // 处理空值，防止 NullPointerException
-                        tvCreditScore.setText("信用分：" + (uc.getCredit() != null ? uc.getCredit() : 0));
-                        tvTradeCount.setText("交易次数：" + (uc.getTradeCount() != null ? uc.getTradeCount() : 0));
-                        tvGoodRate.setText("好评率：" + (uc.getGoodRate() != null ? uc.getGoodRate() : 0) + "%");
+                        com.example.e_tradeandroid.model.User user = resp.getData();
+                        // 从 User 对象中获取信用分等信息
+                        tvCreditScore.setText("信用分：" + (user.getCreditScore() != null ? user.getCreditScore() : 100));
+                        // TODO: 交易次数和好评率需要从订单统计中获取，这里暂时显示默认值
+                        tvTradeCount.setText("交易次数：0");
+                        tvGoodRate.setText("好评率：100%");
                     });
                 }
             }

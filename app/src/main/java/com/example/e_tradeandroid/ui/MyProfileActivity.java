@@ -99,7 +99,7 @@ public class MyProfileActivity extends AppCompatActivity {
 
     private void doLogout() {
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "user/logout")
+                .url(ApiClient.BASE_URL + "api/user/logout")
                 .post(RequestBody.create("", MediaType.parse("application/json; charset=utf-8")))
                 .build();
 
@@ -183,7 +183,7 @@ public class MyProfileActivity extends AppCompatActivity {
         try {
             JSONObject body = new JSONObject();
             body.put("username", newUsername);
-            ApiClient.put("user/profile", body.toString(), new Callback() {
+            ApiClient.put("api/user/profile", body.toString(), new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
                     runOnUiThread(() -> Toast.makeText(MyProfileActivity.this, "修改失败：" + e.getMessage(), Toast.LENGTH_SHORT).show());
@@ -237,7 +237,7 @@ public class MyProfileActivity extends AppCompatActivity {
                     .build();
 
             Request request = new Request.Builder()
-                    .url(ApiClient.BASE_URL + "user/avatar")
+                    .url(ApiClient.BASE_URL + "api/user/avatar")
                     .post(requestBody)
                     .build();
 
@@ -310,7 +310,7 @@ public class MyProfileActivity extends AppCompatActivity {
         RequestBody body = RequestBody.create(json, MediaType.parse("application/json; charset=utf-8"));
 
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "user/verify")
+                .url(ApiClient.BASE_URL + "api/user/verify")
                 .post(body)
                 .build();
 
@@ -364,7 +364,7 @@ public class MyProfileActivity extends AppCompatActivity {
 
     private void loadUserProfile() {
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "user/current")
+                .url(ApiClient.BASE_URL + "api/user/current")
                 .get()
                 .build();
 

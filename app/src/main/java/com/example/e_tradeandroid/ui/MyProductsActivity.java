@@ -85,7 +85,7 @@ public class MyProductsActivity extends AppCompatActivity {
         swipe_refresh_my_products.setRefreshing(true);
         progress_bar_my_products.setVisibility(View.VISIBLE);
 
-        ApiClient.get("product/my", new Callback() {
+        ApiClient.get("api/product/my", new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 runOnUiThread(() -> Toast.makeText(MyProductsActivity.this, "加载失败", Toast.LENGTH_SHORT).show());

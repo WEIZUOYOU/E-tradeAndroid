@@ -109,7 +109,7 @@ public class EditProductActivity extends AppCompatActivity {
 
     private void loadProductDetail() {
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "product/detail/" + productId)
+                .url(ApiClient.BASE_URL + "api/product/detail/" + productId)
                 .get()
                 .build();
 
@@ -182,7 +182,7 @@ public class EditProductActivity extends AppCompatActivity {
             );
 
             Request request = new Request.Builder()
-                    .url(ApiClient.BASE_URL + "product/update/" + productId)
+                    .url(ApiClient.BASE_URL + "api/product/update/" + productId)
                     .post(body)
                     .build();
 
@@ -223,7 +223,7 @@ public class EditProductActivity extends AppCompatActivity {
 
     private void offshelfProduct() {
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "product/offline/" + productId)
+                .url(ApiClient.BASE_URL + "api/product/offline/" + productId)
                 .put(RequestBody.create("", MediaType.parse("application/json; charset=utf-8")))
                 .build();
 
@@ -259,7 +259,7 @@ public class EditProductActivity extends AppCompatActivity {
     }
 
     private void deleteProduct() {
-        ApiClient.delete("product/delete/" + productId, new Callback() {
+        ApiClient.delete("api/product/delete/" + productId, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 runOnUiThread(() -> Toast.makeText(EditProductActivity.this, "删除失败：" + e.getMessage(), Toast.LENGTH_SHORT).show());

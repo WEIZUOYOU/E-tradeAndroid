@@ -1,14 +1,44 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <style name="Base.Theme.EtradeAndroid" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/primary_blue</item>
+        <!-- 主色调 - 校园青绿 -->
+        <item name="colorPrimary">@color/primary_green</item>
         <item name="colorOnPrimary">@color/white</item>
-        <item name="colorSecondary">@color/accent_orange</item>
-        <item name="colorOnSecondary">@color/white</item>
-        <item name="android:statusBarColor">@color/primary_blue_dark</item>
-        <item name="android:navigationBarColor">@color/white</item>
+        <item name="colorPrimaryVariant">@color/primary_green_dark</item>
+        
+        <!-- 辅助色 - 木质暖黄 -->
+        <item name="colorSecondary">@color/accent_yellow</item>
+        <item name="colorOnSecondary">@color/text_primary</item>
+        
+        <!-- 状态栏和导航栏 -->
+        <item name="android:statusBarColor">@color/primary_green</item>
+        <item name="android:navigationBarColor">@color/background_white</item>
+        
+        <!-- 背景和表面 -->
+        <item name="android:windowBackground">@color/background_light</item>
         <item name="colorSurface">@color/background_white</item>
         <item name="colorOnSurface">@color/text_primary</item>
+        
+        <!-- Material3 圆角配置 -->
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.Etrade.Small</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.Etrade.Medium</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.Etrade.Large</item>
     </style>
 
     <style name="Theme.EtradeAndroid" parent="Base.Theme.EtradeAndroid" />
+    
+    <!-- 大圆角样式 - 卡片、按钮 -->
+    <style name="ShapeAppearance.Etrade.Small" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">12dp</item>
+    </style>
+    
+    <style name="ShapeAppearance.Etrade.Medium" parent="ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+    
+    <style name="ShapeAppearance.Etrade.Large" parent="ShapeAppearance.Material3.LargeComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">20dp</item>
+    </style>
 </resources>

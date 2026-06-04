@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="24dp"
+    android:background="@color/background_card">
 
     <!-- 举报理由输入框 -->
     <EditText
@@ -12,7 +13,11 @@
         android:layout_height="wrap_content"
         android:hint="@string/report_reason_hint"
         android:inputType="textMultiLine"
-        android:minLines="3"/>
+        android:minLines="3"
+        android:background="@drawable/bg_input"
+        android:padding="16dp"
+        android:textColor="@color/text_primary"
+        android:textColorHint="@color/text_hint"/>
 
     <!-- 按钮栏 -->
     <LinearLayout
@@ -27,7 +32,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/cancel"
-            style="?android:attr/buttonBarButtonStyle"/>
+            style="?android:attr/buttonBarButtonStyle"
+            android:textColor="@color/text_secondary"/>
 
         <Button
             android:id="@+id/btnSubmit"
@@ -35,7 +41,8 @@
             android:layout_height="wrap_content"
             android:text="@string/submit"
             android:layout_marginStart="8dp"
-            style="?android:attr/buttonBarButtonStyle"/>
+            style="?android:attr/buttonBarButtonStyle"
+            android:textColor="@color/error_red"/>
 
     </LinearLayout>
 

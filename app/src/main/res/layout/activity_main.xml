@@ -17,10 +17,12 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="@dimen/spacing_medium"
-            app:cardCornerRadius="@dimen/radius_full"
-            app:cardElevation="@dimen/elevation_appbar"
-            app:cardBackgroundColor="@color/background_white">
+            android:layout_margin="16dp"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="@color/background_white"
+            app:strokeWidth="1dp"
+            app:strokeColor="@color/primary_green_light">
 
             <SearchView
                 android:id="@+id/search_view"
@@ -35,40 +37,46 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/spacing_medium"
-            android:layout_marginTop="@dimen/spacing_small"
-            android:layout_marginEnd="@dimen/spacing_medium"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="20dp"
             android:text="热门分类"
-            android:textSize="@dimen/text_size_title_medium"
+            android:textSize="18sp"
             android:textColor="@color/text_primary"
             android:textStyle="bold" />
 
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:scrollbars="none">
+            android:scrollbars="none"
+            android:layout_marginTop="8dp">
 
             <LinearLayout
                 android:id="@+id/layout_categories"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:padding="8dp" />
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp" />
         </HorizontalScrollView>
 
+        <!-- 分隔线 -->
         <View android:layout_width="match_parent"
-            android:layout_height="6dp"
+            android:layout_height="12dp"
             android:background="@color/background_light" />
 
         <!-- 商品推荐标题 -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/spacing_medium"
-            android:layout_marginEnd="@dimen/spacing_medium"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
             android:text="为你推荐"
-            android:textSize="@dimen/text_size_title_medium"
-            android:textStyle="bold" />
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary" />
 
         <!-- 商品列表 -->
         <FrameLayout
@@ -85,7 +93,8 @@
                     android:id="@+id/recycler_view"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:padding="8dp" />
+                    android:padding="12dp"
+                    android:clipToPadding="false" />
 
             </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
