@@ -39,12 +39,9 @@
         <activity android:name=".ui.MyProfileActivity" />
         <activity android:name=".ui.MyProductsActivity" />
         <activity android:name=".ui.EditProductActivity" />
-        <!-- 注册页 -->
         <activity android:name=".ui.ChatActivity" />
         <activity android:name=".ui.OrderDetailActivity" />
         <activity android:name=".ui.MessageListActivity" />
-
-        <activity android:name=".ui.CreditActivity"/>
     </application>
 
 </manifest>

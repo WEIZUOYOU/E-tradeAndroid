@@ -33,7 +33,7 @@ public class OrderListActivity extends AppCompatActivity {
     private SwipeRefreshLayout swipe_refresh_orders;
     private ProgressBar progress_bar_orders;
     private BottomNavigationView bottom_navigation;
-    private android.widget.Button btn_tab_buyer, btn_tab_seller;
+    private android.widget.TextView btn_tab_buyer, btn_tab_seller;
 
     private final Gson gson = new Gson();
     private boolean isBuyerTab = true; // 默认显示买家订单
@@ -81,15 +81,15 @@ public class OrderListActivity extends AppCompatActivity {
     
     private void updateTabStyle() {
         if (isBuyerTab) {
-            btn_tab_buyer.setTextColor(getResources().getColor(R.color.primary_green));
-            btn_tab_buyer.setBackgroundResource(R.drawable.bg_btn_primary);
-            btn_tab_seller.setTextColor(getResources().getColor(R.color.gray_500));
-            btn_tab_seller.setBackgroundColor(getResources().getColor(android.R.color.transparent));
+            btn_tab_buyer.setTextColor(getResources().getColor(R.color.white));
+            btn_tab_buyer.setBackgroundResource(R.drawable.bg_tab_selected);
+            btn_tab_seller.setTextColor(getResources().getColor(R.color.text_secondary));
+            btn_tab_seller.setBackgroundResource(R.drawable.bg_tab_unselected);
         } else {
-            btn_tab_seller.setTextColor(getResources().getColor(R.color.primary_green));
-            btn_tab_seller.setBackgroundResource(R.drawable.bg_btn_primary);
-            btn_tab_buyer.setTextColor(getResources().getColor(R.color.gray_500));
-            btn_tab_buyer.setBackgroundColor(getResources().getColor(android.R.color.transparent));
+            btn_tab_seller.setTextColor(getResources().getColor(R.color.white));
+            btn_tab_seller.setBackgroundResource(R.drawable.bg_tab_selected);
+            btn_tab_buyer.setTextColor(getResources().getColor(R.color.text_secondary));
+            btn_tab_buyer.setBackgroundResource(R.drawable.bg_tab_unselected);
         }
     }
 

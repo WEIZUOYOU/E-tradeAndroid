@@ -39,7 +39,7 @@ import okhttp3.Response;
 public class MyProfileActivity extends AppCompatActivity {
     private TextView tvStudentId, tvUsername, tvPhone, tvCreditScore, tvAuthStatus;
     private ImageView ivAvatar;
-    private Button btnLogout, btnMyOrders, btnMyProducts, btnRealnameAuth, btnEditProfile, btnGoLogin;
+    private Button btnLogout, btnMyProducts, btnRealnameAuth, btnEditProfile, btnGoLogin;
     private LinearLayout layoutLoggedIn, layoutNotLoggedIn;
     private BottomNavigationView bottomNavigation;
     private Gson gson = new Gson();
@@ -58,7 +58,6 @@ public class MyProfileActivity extends AppCompatActivity {
         tvAuthStatus = findViewById(R.id.tv_status);
         ivAvatar = findViewById(R.id.iv_avatar);
         btnLogout = findViewById(R.id.btn_logout);
-        btnMyOrders = findViewById(R.id.btn_my_orders);
         btnMyProducts = findViewById(R.id.btn_my_products);
         btnRealnameAuth = findViewById(R.id.btn_realname_auth);
         btnEditProfile = findViewById(R.id.btn_edit_profile);
@@ -72,10 +71,6 @@ public class MyProfileActivity extends AppCompatActivity {
 
         btnGoLogin.setOnClickListener(v ->
             startActivity(new Intent(MyProfileActivity.this, LoginActivity.class))
-        );
-
-        btnMyOrders.setOnClickListener(v ->
-            startActivity(new Intent(MyProfileActivity.this, OrderListActivity.class))
         );
 
         btnMyProducts.setOnClickListener(v ->

@@ -1,36 +1,49 @@
 package com.example.e_tradeandroid.ui;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.e_tradeandroid.R;
 import com.example.e_tradeandroid.model.BaseResponse;
-import com.example.e_tradeandroid.model.Product;
 import com.example.e_tradeandroid.network.ApiClient;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
 
 public class PublishActivity extends AppCompatActivity {
-    // 👇 完全匹配你 XML 里的 id 名称
+    // 图片上传区
+    private FrameLayout fl_image_upload;
+    private LinearLayout ll_upload_hint, ll_image_list;
+    private HorizontalScrollView hsv_image_preview;
+    
+    // 表单字段
     private EditText et_name, et_price, et_stock, et_description;
-    private Button btn_select_image, btn_publish;
-    private ImageView iv_preview;
-    private BottomNavigationView bottom_navigation;
+    private TextView tv_title_counter;
+    
+    // 底部按钮
+    private Button btn_publish;
 
     private final Gson gson = new Gson();
-    private android.net.Uri selectedImageUri;
+    private List<android.net.Uri> selectedImageUris = new ArrayList<>();
     private static final int PICK_IMAGE_REQUEST = 1;
 
     @Override
@@ -38,49 +51,60 @@ public class PublishActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_publish);
 
-        // 👇 绑定 XML 里的所有控件（100% 匹配）
+        // 绑定所有控件
+        initViews();
+        
+        // 设置点击事件
+        initListeners();
+    }
+    
+    private void initViews() {
+        // 图片上传区
+        fl_image_upload = findViewById(R.id.fl_image_upload);
+        ll_upload_hint = findViewById(R.id.ll_upload_hint);
+        ll_image_list = findViewById(R.id.ll_image_list);
+        hsv_image_preview = findViewById(R.id.hsv_image_preview);
+        
+        // 表单字段
         et_name = findViewById(R.id.et_name);
         et_price = findViewById(R.id.et_price);
         et_stock = findViewById(R.id.et_stock);
         et_description = findViewById(R.id.et_description);
-        btn_select_image = findViewById(R.id.btn_select_image);
-        iv_preview = findViewById(R.id.iv_preview);
+        tv_title_counter = findViewById(R.id.tv_title_counter);
+        
+        // 底部按钮
         btn_publish = findViewById(R.id.btn_publish);
-        bottom_navigation = findViewById(R.id.bottom_navigation);
-
-        initNav();
-        btn_select_image.setOnClickListener(v -> selectImage());
-        btn_publish.setOnClickListener(v -> submitPublish());
     }
-
-    // 底部导航
-    private void initNav() {
-        bottom_navigation.setSelectedItemId(R.id.nav_publish);
-        bottom_navigation.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
-            if (id == R.id.nav_home) {
-                startActivity(new Intent(this, MainActivity.class));
-                finish();
-                return true;
-            } else if (id == R.id.nav_orders) {
-                startActivity(new Intent(this, OrderListActivity.class));
-                finish();
-                return true;
-            } else if (id == R.id.nav_messages) {
-                startActivity(new Intent(this, MessageListActivity.class));
-                finish();
-                return true;
-            } else if (id == R.id.nav_profile) {
-                startActivity(new Intent(this, MyProfileActivity.class));
-                finish();
-                return true;
+    
+    private void initListeners() {
+        // 图片上传区点击
+        fl_image_upload.setOnClickListener(v -> selectImage());
+        
+        // 标题字符计数
+        et_name.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                tv_title_counter.setText(s.length() + "/50");
             }
-            return true;
+            
+            @Override
+            public void afterTextChanged(android.text.Editable s) {}
         });
+        
+        // 发布按钮
+        btn_publish.setOnClickListener(v -> submitPublish());
     }
 
     // 选择图片
     private void selectImage() {
+        if (selectedImageUris.size() >= 6) {
+            Toast.makeText(this, "最多只能上传6张图片", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
         Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType("image/*");
         startActivityForResult(intent, PICK_IMAGE_REQUEST);
@@ -90,12 +114,169 @@ public class PublishActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
-            selectedImageUri = data.getData();
-            iv_preview.setImageURI(selectedImageUri);
-            iv_preview.setVisibility(android.view.View.VISIBLE);
-            Toast.makeText(this, "图片已选择", Toast.LENGTH_SHORT).show();
+            android.net.Uri imageUri = data.getData();
+            selectedImageUris.add(imageUri);
+            
+            // 显示图片预览
+            updateImagePreview();
+            
+            Toast.makeText(this, "图片已添加（" + selectedImageUris.size() + "/6）", Toast.LENGTH_SHORT).show();
         }
     }
+    
+    // 更新图片预览显示
+    private void updateImagePreview() {
+        if (selectedImageUris.isEmpty()) {
+            ll_upload_hint.setVisibility(View.VISIBLE);
+            hsv_image_preview.setVisibility(View.GONE);
+            return;
+        }
+        
+        ll_upload_hint.setVisibility(View.GONE);
+        hsv_image_preview.setVisibility(View.VISIBLE);
+        
+        // 清空现有图片
+        ll_image_list.removeAllViews();
+        
+        // 添加所有图片缩略图
+        for (int i = 0; i < selectedImageUris.size(); i++) {
+            addImageThumbnail(i);
+        }
+        
+        // 如果未达到上限，添加“+”按钮
+        if (selectedImageUris.size() < 6) {
+            addAddImageButton();
+        }
+    }
+    
+    // 添加图片缩略图
+    private void addImageThumbnail(final int index) {
+        FrameLayout imageContainer = new FrameLayout(this);
+        int size = dpToPx(80);
+        imageContainer.setLayoutParams(new LinearLayout.LayoutParams(size, size));
+        imageContainer.setPadding(dpToPx(4), 0, dpToPx(4), 0);
+        
+        // 图片
+        ImageView imageView = new ImageView(this);
+        imageView.setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        imageView.setBackgroundResource(R.drawable.bg_card);
+        
+        // 设置圆角
+        imageView.setClipToOutline(true);
+        android.graphics.drawable.GradientDrawable background = new android.graphics.drawable.GradientDrawable();
+        background.setColor(getResources().getColor(R.color.background_white));
+        background.setCornerRadius(dpToPx(8));
+        imageView.setBackground(background);
+        
+        // 加载图片
+        try {
+            Bitmap bitmap = decodeSampledBitmapFromUri(selectedImageUris.get(index), 200, 200);
+            if (bitmap != null) {
+                imageView.setImageBitmap(bitmap);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        // 删除按钮
+        ImageView deleteBtn = new ImageView(this);
+        int deleteSize = dpToPx(24);
+        FrameLayout.LayoutParams deleteParams = new FrameLayout.LayoutParams(deleteSize, deleteSize);
+        deleteParams.gravity = android.view.Gravity.TOP | android.view.Gravity.END;
+        deleteParams.setMargins(0, dpToPx(4), dpToPx(4), 0);
+        deleteBtn.setLayoutParams(deleteParams);
+        deleteBtn.setImageResource(android.R.drawable.ic_menu_close_clear_cancel);
+        deleteBtn.setBackgroundResource(R.drawable.bg_pill_button);
+        deleteBtn.setPadding(dpToPx(4), dpToPx(4), dpToPx(4), dpToPx(4));
+        
+        final int finalIndex = index;
+        deleteBtn.setOnClickListener(v -> {
+            selectedImageUris.remove(finalIndex);
+            updateImagePreview();
+        });
+        
+        imageContainer.addView(imageView);
+        imageContainer.addView(deleteBtn);
+        ll_image_list.addView(imageContainer);
+    }
+    
+    // 添加“+”按钮
+    private void addAddImageButton() {
+        Button addBtn = new Button(this);
+        int size = dpToPx(80);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(size, size);
+        params.setMargins(dpToPx(4), 0, dpToPx(4), 0);
+        addBtn.setLayoutParams(params);
+        addBtn.setText("+");
+        addBtn.setTextSize(24);
+        addBtn.setTextColor(getResources().getColor(R.color.primary_green));
+        addBtn.setBackgroundResource(R.drawable.bg_image_upload);
+        addBtn.setPadding(0, 0, 0, 0);
+        
+        addBtn.setOnClickListener(v -> selectImage());
+        
+        ll_image_list.addView(addBtn);
+    }
+    
+    // dp转px
+    private int dpToPx(int dp) {
+        float density = getResources().getDisplayMetrics().density;
+        return Math.round(dp * density);
+    }
+    
+    // 从Uri解码并压缩图片
+    private android.graphics.Bitmap decodeSampledBitmapFromUri(android.net.Uri uri, int reqWidth, int reqHeight) {
+        try {
+            // 首先获取图片尺寸
+            android.content.res.AssetFileDescriptor afd = getContentResolver().openAssetFileDescriptor(uri, "r");
+            if (afd == null) return null;
+            
+            java.io.InputStream inputStream = afd.createInputStream();
+            android.graphics.BitmapFactory.Options options = new android.graphics.BitmapFactory.Options();
+            options.inJustDecodeBounds = true;
+            android.graphics.BitmapFactory.decodeStream(inputStream, null, options);
+            inputStream.close();
+            afd.close();
+            
+            // 计算压缩比例
+            options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+            options.inJustDecodeBounds = false;
+            
+            // 解码并返回压缩后的图片
+            afd = getContentResolver().openAssetFileDescriptor(uri, "r");
+            if (afd == null) return null;
+            
+            inputStream = afd.createInputStream();
+            android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeStream(inputStream, null, options);
+            inputStream.close();
+            afd.close();
+            
+            return bitmap;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    
+    // 计算采样率
+    private int calculateInSampleSize(android.graphics.BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+        
+        if (height > reqHeight || width > reqWidth) {
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+            
+            while ((halfHeight / inSampleSize) >= reqHeight && (halfWidth / inSampleSize) >= reqWidth) {
+                inSampleSize *= 2;
+            }
+        }
+        
+        return inSampleSize;
+    }
+
 
     // 发布商品逻辑
     private void submitPublish() {
@@ -106,6 +287,11 @@ public class PublishActivity extends AppCompatActivity {
 
         if (name.isEmpty() || priceStr.isEmpty() || stockStr.isEmpty()) {
             Toast.makeText(this, "请填写完整信息", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        if (selectedImageUris.isEmpty()) {
+            Toast.makeText(this, "请至少上传一张图片", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -121,20 +307,33 @@ public class PublishActivity extends AppCompatActivity {
                 bodyBuilder.addFormDataPart("description", desc);
             }
             
-            // 如果有图片，添加图片文件
-            if (selectedImageUri != null) {
+            // 添加所有图片
+            for (int i = 0; i < selectedImageUris.size(); i++) {
                 try {
-                    java.io.InputStream inputStream = getContentResolver().openInputStream(selectedImageUri);
-                    byte[] imageBytes = new byte[inputStream.available()];
-                    inputStream.read(imageBytes);
+                    android.net.Uri imageUri = selectedImageUris.get(i);
+                    
+                    // 获取文件名
+                    String fileName = getFileName(imageUri);
+                    
+                    // 读取图片数据
+                    java.io.InputStream inputStream = getContentResolver().openInputStream(imageUri);
+                    if (inputStream == null) {
+                        continue;
+                    }
+                    
+                    byte[] imageBytes = readInputStream(inputStream);
                     inputStream.close();
                     
-                    bodyBuilder.addFormDataPart("images", "image.jpg",
-                        okhttp3.RequestBody.create(imageBytes, okhttp3.MediaType.parse("image/jpeg")));
+                    // 确定MIME类型
+                    String mimeType = getContentResolver().getType(imageUri);
+                    if (mimeType == null) {
+                        mimeType = "image/jpeg"; // 默认类型
+                    }
+                    
+                    bodyBuilder.addFormDataPart("images", fileName,
+                        okhttp3.RequestBody.create(imageBytes, okhttp3.MediaType.parse(mimeType)));
                 } catch (Exception e) {
                     e.printStackTrace();
-                    runOnUiThread(() -> Toast.makeText(this, "图片读取失败", Toast.LENGTH_SHORT).show());
-                    return;
                 }
             }
             
@@ -169,5 +368,39 @@ public class PublishActivity extends AppCompatActivity {
             e.printStackTrace();
             runOnUiThread(() -> Toast.makeText(this, "发布失败：" + e.getMessage(), Toast.LENGTH_SHORT).show());
         }
+    }
+    
+    // 从Uri获取文件名
+    private String getFileName(android.net.Uri uri) {
+        String fileName = "image.jpg";
+        if (uri.getScheme().equals("content")) {
+            android.database.Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+            try {
+                if (cursor != null && cursor.moveToFirst()) {
+                    int displayNameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME);
+                    if (displayNameIndex != -1) {
+                        fileName = cursor.getString(displayNameIndex);
+                    }
+                }
+            } finally {
+                if (cursor != null) {
+                    cursor.close();
+                }
+            }
+        } else if (uri.getScheme().equals("file")) {
+            fileName = new java.io.File(uri.getPath()).getName();
+        }
+        return fileName;
+    }
+    
+    // 读取输入流为字节数组
+    private byte[] readInputStream(java.io.InputStream inputStream) throws java.io.IOException {
+        java.io.ByteArrayOutputStream byteArrayOutputStream = new java.io.ByteArrayOutputStream();
+        byte[] buffer = new byte[4096];
+        int bytesRead;
+        while ((bytesRead = inputStream.read(buffer)) != -1) {
+            byteArrayOutputStream.write(buffer, 0, bytesRead);
+        }
+        return byteArrayOutputStream.toByteArray();
     }
 }

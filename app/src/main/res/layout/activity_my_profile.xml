@@ -241,14 +241,6 @@
                         android:layout_marginBottom="16dp" />
 
                     <Button
-                        android:id="@+id/btn_my_orders"
-                        style="@style/PrimaryButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="10dp"
-                        android:text="我的订单" />
-
-                    <Button
                         android:id="@+id/btn_my_products"
                         style="@style/PrimaryButton"
                         android:layout_width="match_parent"

@@ -17,10 +17,12 @@
     </LinearLayout>
 
     <ScrollView android:layout_width="match_parent" android:layout_height="0dp"
-        android:layout_weight="1" android:padding="16dp">
+        android:layout_weight="1" android:fillViewport="true">
 
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="24dp">
 
             <!-- 手机号（登录时使用） -->
             <EditText
@@ -32,76 +34,76 @@
                 android:background="@drawable/bg_input"
                 android:padding="16dp"
                 android:textColor="@color/text_primary"
-                android:textColorHint="@color/text_hint" />
+                android:textColorHint="@color/text_hint"
+                android:layout_marginBottom="12dp" />
 
             <!-- 密码 -->
             <EditText
                 android:id="@+id/et_password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
                 android:hint="密码"
                 android:inputType="textPassword"
                 android:background="@drawable/bg_input"
                 android:padding="16dp"
                 android:textColor="@color/text_primary"
-                android:textColorHint="@color/text_hint" />
+                android:textColorHint="@color/text_hint"
+                android:layout_marginBottom="12dp" />
 
             <!-- 确认密码（注册时使用） -->
             <EditText
                 android:id="@+id/et_confirm_password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
                 android:hint="确认密码"
                 android:inputType="textPassword"
                 android:visibility="gone"
                 android:background="@drawable/bg_input"
                 android:padding="16dp"
                 android:textColor="@color/text_primary"
-                android:textColorHint="@color/text_hint" />
+                android:textColorHint="@color/text_hint"
+                android:layout_marginBottom="12dp" />
 
             <!-- 用户名（注册时使用） -->
             <EditText
                 android:id="@+id/et_username"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
                 android:hint="用户名"
                 android:visibility="gone"
                 android:background="@drawable/bg_input"
                 android:padding="16dp"
                 android:textColor="@color/text_primary"
-                android:textColorHint="@color/text_hint" />
+                android:textColorHint="@color/text_hint"
+                android:layout_marginBottom="12dp" />
 
             <!-- 手机号（注册时使用，单独一栏） -->
             <EditText
                 android:id="@+id/et_phone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
                 android:hint="手机号"
                 android:inputType="phone"
                 android:visibility="gone"
                 android:background="@drawable/bg_input"
                 android:padding="16dp"
                 android:textColor="@color/text_primary"
-                android:textColorHint="@color/text_hint" />
+                android:textColorHint="@color/text_hint"
+                android:layout_marginBottom="20dp" />
 
             <Button
                 android:id="@+id/btn_login"
                 style="@style/PrimaryButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/spacing_medium"
-                android:text="登录" />
+                android:text="登录"
+                android:layout_marginBottom="10dp" />
 
             <Button
                 android:id="@+id/btn_register"
                 style="@style/SecondaryButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/spacing_small"
                 android:text="去注册" />
         </LinearLayout>
     </ScrollView>

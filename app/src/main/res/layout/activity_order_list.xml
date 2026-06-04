@@ -27,32 +27,33 @@
                 android:gravity="center"
                 android:orientation="horizontal">
 
-                <Button
+                <TextView
                     android:id="@+id/btn_tab_buyer"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:text="买家订单"
-                    android:textAllCaps="false"
+                    android:gravity="center"
                     android:textSize="15sp"
-                    android:textColor="@color/primary_green"
-                    android:background="@drawable/bg_btn_primary" />
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:background="@drawable/bg_tab_selected" />
 
                 <View
                     android:layout_width="1dp"
                     android:layout_height="32dp"
                     android:background="@color/divider" />
 
-                <Button
+                <TextView
                     android:id="@+id/btn_tab_seller"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:text="卖家订单"
-                    android:textAllCaps="false"
+                    android:gravity="center"
                     android:textSize="15sp"
                     android:textColor="@color/text_secondary"
-                    android:background="@android:color/transparent" />
+                    android:background="@drawable/bg_tab_unselected" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
