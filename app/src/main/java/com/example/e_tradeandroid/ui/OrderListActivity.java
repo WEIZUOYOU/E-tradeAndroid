@@ -12,9 +12,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.e_tradeandroid.R;
-import com.example.e_tradeandroid.adapter.OrderAdapter;
+import com.example.e_tradeandroid.adapter.TradeAdapter;
 import com.example.e_tradeandroid.model.BaseResponse;
-import com.example.e_tradeandroid.model.Order;
+import com.example.e_tradeandroid.model.TradeInfo;
 import com.example.e_tradeandroid.network.ApiClient;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
@@ -33,10 +33,8 @@ public class OrderListActivity extends AppCompatActivity {
     private SwipeRefreshLayout swipe_refresh_orders;
     private ProgressBar progress_bar_orders;
     private BottomNavigationView bottom_navigation;
-    private android.widget.TextView btn_tab_buyer, btn_tab_seller;
 
     private final Gson gson = new Gson();
-    private boolean isBuyerTab = true; // 默认显示买家订单
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,47 +48,8 @@ public class OrderListActivity extends AppCompatActivity {
         bottom_navigation = findViewById(R.id.bottom_navigation);
 
         recycler_view_orders.setLayoutManager(new LinearLayoutManager(this));
-        initTabs();
         initNav();
         loadOrderData();
-    }
-
-    // 初始化 Tab
-    private void initTabs() {
-        btn_tab_buyer = findViewById(R.id.btn_tab_buyer);
-        btn_tab_seller = findViewById(R.id.btn_tab_seller);
-        
-        updateTabStyle();
-        
-        btn_tab_buyer.setOnClickListener(v -> {
-            if (!isBuyerTab) {
-                isBuyerTab = true;
-                updateTabStyle();
-                loadOrderData();
-            }
-        });
-        
-        btn_tab_seller.setOnClickListener(v -> {
-            if (isBuyerTab) {
-                isBuyerTab = false;
-                updateTabStyle();
-                loadOrderData();
-            }
-        });
-    }
-    
-    private void updateTabStyle() {
-        if (isBuyerTab) {
-            btn_tab_buyer.setTextColor(getResources().getColor(R.color.white));
-            btn_tab_buyer.setBackgroundResource(R.drawable.bg_tab_selected);
-            btn_tab_seller.setTextColor(getResources().getColor(R.color.text_secondary));
-            btn_tab_seller.setBackgroundResource(R.drawable.bg_tab_unselected);
-        } else {
-            btn_tab_seller.setTextColor(getResources().getColor(R.color.white));
-            btn_tab_seller.setBackgroundResource(R.drawable.bg_tab_selected);
-            btn_tab_buyer.setTextColor(getResources().getColor(R.color.text_secondary));
-            btn_tab_buyer.setBackgroundResource(R.drawable.bg_tab_unselected);
-        }
     }
 
     // 底部导航
@@ -121,31 +80,35 @@ public class OrderListActivity extends AppCompatActivity {
         });
     }
 
-    // 加载订单
+    // 加载交易列表
     private void loadOrderData() {
         swipe_refresh_orders.setRefreshing(true);
         progress_bar_orders.setVisibility(View.VISIBLE);
 
-        String apiUrl = isBuyerTab ? "api/v1/trade/order/buyer/list" : "api/v1/trade/order/seller/list";
+        // 使用交易API
+        String apiUrl = "api/trade/my/list";
         
         ApiClient.get(apiUrl, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                runOnUiThread(() -> Toast.makeText(OrderListActivity.this, "订单加载失败", Toast.LENGTH_SHORT).show());
+                runOnUiThread(() -> Toast.makeText(OrderListActivity.this, "交易列表加载失败", Toast.LENGTH_SHORT).show());
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String body = response.body().string();
-                BaseResponse<List<Order>> resp = gson.fromJson(body, new TypeToken<BaseResponse<List<Order>>>() {}.getType());
+                BaseResponse<List<TradeInfo>> resp = gson.fromJson(body, new TypeToken<BaseResponse<List<TradeInfo>>>() {}.getType());
                 runOnUiThread(() -> {
                     swipe_refresh_orders.setRefreshing(false);
                     progress_bar_orders.setVisibility(View.GONE);
                     if (resp.isSuccess() && resp.getData() != null) {
-                        OrderAdapter adapter = new OrderAdapter(OrderListActivity.this, resp.getData(), order -> {
-                            // 点击跳转订单详情，传递 orderId
-                            Intent intent = new Intent(OrderListActivity.this, OrderDetailActivity.class);
-                            intent.putExtra("orderId", order.getId());
+                        TradeAdapter adapter = new TradeAdapter(OrderListActivity.this, resp.getData(), trade -> {
+                            // 点击跳转交易详情
+                            Intent intent = new Intent(OrderListActivity.this, TradeInfoActivity.class);
+                            intent.putExtra("tradeId", trade.getId());
+                            intent.putExtra("productId", trade.getProductId());
+                            intent.putExtra("sellerId", trade.getSellerId());
+                            intent.putExtra("isSellerMode", trade.getSellerId() == ApiClient.getCurrentUserId());
                             startActivity(intent);
                         });
                         recycler_view_orders.setAdapter(adapter);

@@ -122,8 +122,8 @@ public class ProductDetailActivity extends AppCompatActivity {
         // 分享按钮
         iv_share.setOnClickListener(v -> shareProduct());
         
-        // 购买按钮
-        btn_buy.setOnClickListener(v -> showNewTradeDialog());
+        // 购买按钮 - 跳转到聊天界面进行交易
+        btn_buy.setOnClickListener(v -> startChat());
     }
 
     private void loadProductDetail(long productId) {
@@ -260,73 +260,5 @@ public class ProductDetailActivity extends AppCompatActivity {
         startActivity(Intent.createChooser(shareIntent, "分享到"));
     }
 
-    private void showNewTradeDialog() {
-        if (product == null) return;
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("填写交易信息");
-
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(50,40,50,10);
-
-        EditText etTime = new EditText(this);
-        etTime.setHint("交易时间 例：2025-05-20 15:00");
-        layout.addView(etTime);
-
-        EditText etLocation = new EditText(this);
-        etLocation.setHint("交易地点 例：二食堂门口");
-        layout.addView(etLocation);
-
-        builder.setView(layout);
-
-        builder.setPositiveButton("确认下单", (dialog, which) -> {
-            String time = etTime.getText().toString().trim();
-            String location = etLocation.getText().toString().trim();
-
-            if (time.isEmpty() || location.isEmpty()) {
-                Toast.makeText(this, "请填写完整", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            CreateOrderRequest req = new CreateOrderRequest();
-            req.setProductId(product.getId());
-            req.setQuantity(1);
-            req.setTradeType(1);
-            req.setMeetingTime(time);
-            req.setMeetingLocation(location);
-            req.setPayType(3);
-            req.setAddressId(null);
-
-            createOrder(req);
-        });
-        builder.setNegativeButton("取消", null);
-        builder.show();
-    }
-
-    private void createOrder(CreateOrderRequest req) {
-        String json = gson.toJson(req);
-
-        ApiClient.post("api/v1/trade/order", json, new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                runOnUiThread(() -> Toast.makeText(ProductDetailActivity.this, "下单失败：" + e.getMessage(), Toast.LENGTH_SHORT).show());
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                String body = response.body().string();
-                BaseResponse<CreateOrderResponse> resp = gson.fromJson(body, new TypeToken<BaseResponse<CreateOrderResponse>>() {}.getType());
-
-                runOnUiThread(() -> {
-                    if (resp.isSuccess()) {
-                        Toast.makeText(ProductDetailActivity.this, "下单成功！", Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(ProductDetailActivity.this, OrderListActivity.class));
-                    } else {
-                        Toast.makeText(ProductDetailActivity.this, resp.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-        });
-    }
 }

@@ -11,7 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.e_tradeandroid.R;
 import com.example.e_tradeandroid.model.BaseResponse;
-import com.example.e_tradeandroid.model.Order;
+import com.example.e_tradeandroid.model.TradeInfo;
 import com.example.e_tradeandroid.network.ApiClient;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -28,7 +28,7 @@ import okhttp3.Response;
 public class OrderDetailActivity extends AppCompatActivity {
     private TextView tvStatus, tvName, tvPrice, tvInfo;
     private Button btnConfirm, btnComplete, btnCancel;
-    private int orderId;
+    private long orderId;  // 改为 long 类型，与 TradeInfo 一致
     private int status;
     private boolean isBuyer;
     private Gson gson = new Gson();
@@ -37,7 +37,7 @@ public class OrderDetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_order_detail);
-        orderId = getIntent().getIntExtra("orderId", 0);
+        orderId = getIntent().getLongExtra("orderId", 0L);  // 改为 getLongExtra
         initView();
         loadDetail();
     }
@@ -61,12 +61,8 @@ public class OrderDetailActivity extends AppCompatActivity {
     }
 
     private void loadDetail() {
-        Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "api/v1/trade/order/" + orderId)
-                .get()
-                .build();
-
-        ApiClient.getClient().newCall(request).enqueue(new Callback() {
+        // 使用正确的交易详情API路径
+        ApiClient.get("api/trade/detail/" + orderId, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 runOnUiThread(() -> Toast.makeText(OrderDetailActivity.this, "加载失败", Toast.LENGTH_SHORT).show());
@@ -75,18 +71,18 @@ public class OrderDetailActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String respBody = response.body().string();
-                BaseResponse<Order> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<Order>>(){}.getType());
+                BaseResponse<TradeInfo> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<TradeInfo>>(){}.getType());
                 if (baseResp.isSuccess() && baseResp.getData() != null) {
-                    Order order = baseResp.getData();
-                    status = order.getStatus() != null ? order.getStatus() : 0;
+                    TradeInfo trade = baseResp.getData();
+                    status = trade.getTradeStatus() != null ? trade.getTradeStatus() : 0;
                     long currentUserId = ApiClient.getCurrentUserId();
-                    isBuyer = order.getBuyerId() != null && order.getBuyerId() == currentUserId;
+                    isBuyer = trade.getBuyerId() != null && trade.getBuyerId() == currentUserId;
 
                     runOnUiThread(() -> {
-                        tvName.setText(order.getProductName() != null ? order.getProductName() : "");
-                        tvPrice.setText("¥" + (order.getTotalAmount() != null ? order.getTotalAmount().toString() : "0"));
-                        tvInfo.setText("地点：" + (order.getMeetingLocation() != null ? order.getMeetingLocation() : "")
-                                + "\n时间：" + (order.getMeetingTime() != null ? order.getMeetingTime() : ""));
+                        tvName.setText(trade.getProductName() != null ? trade.getProductName() : "");
+                        tvPrice.setText("¥" + (trade.getProductPrice() != null ? trade.getProductPrice().toString() : "0"));
+                        tvInfo.setText("地点：" + (trade.getMeetingLocation() != null ? trade.getMeetingLocation() : "")
+                                + "\n时间：" + (trade.getMeetingTime() != null ? trade.getMeetingTime() : ""));
                         refreshStatusUI();
                     });
                 }
@@ -95,8 +91,9 @@ public class OrderDetailActivity extends AppCompatActivity {
     }
 
     private void refreshStatusUI() {
-        String[] statusTexts = {"待确认", "交易中", "已交付", "已完成", "已取消"};
-        tvStatus.setText(status < statusTexts.length ? statusTexts[status] : "未知");
+        // 根据API文档：0-待卖家确认,1-待交易,4-已完成,5-已取消
+        String[] statusTexts = {"待确认", "交易中", "未知", "未知", "已完成", "已取消"};
+        tvStatus.setText(status >= 0 && status < statusTexts.length ? statusTexts[status] : "未知");
 
         btnConfirm.setVisibility(View.GONE);
         btnComplete.setVisibility(View.GONE);
@@ -105,12 +102,14 @@ public class OrderDetailActivity extends AppCompatActivity {
         if (isBuyer) {
             switch (status) {
                 case 0:
-                case 1:
+                    // 待确认状态下买家可以取消订单
                     btnCancel.setVisibility(View.VISIBLE);
                     break;
-                case 2:
+                case 1:
+                    // 待交易状态下买家可以取消订单或完成交易
+                    btnCancel.setVisibility(View.VISIBLE);
                     btnComplete.setVisibility(View.VISIBLE);
-                    btnComplete.setText("确认收货");
+                    btnComplete.setText("确认完成");
                     break;
             }
         } else {
@@ -121,37 +120,33 @@ public class OrderDetailActivity extends AppCompatActivity {
                     break;
                 case 1:
                     btnComplete.setVisibility(View.VISIBLE);
-                    btnComplete.setText("已交付");
+                    btnComplete.setText("确认完成");
                     break;
             }
         }
     }
 
     private void updateOrder(String action) {
+        String jsonBody = "{\"tradeId\":" + orderId + "}";
+        
         String endpoint;
         switch (action) {
             case "confirm":
-                endpoint = "api/v1/trade/order/" + orderId + "/confirm";
+                // 卖家确认交易
+                endpoint = "api/trade/confirm";
+                jsonBody = "{\"tradeId\":" + orderId + ",\"sellerPhone\":\"\"}";  // 需要卖家电话
                 break;
             case "complete":
-                if (isBuyer && status == 2) {
-                    endpoint = "api/v1/trade/order/" + orderId + "/receive";
-                } else {
-                    endpoint = "api/v1/trade/order/" + orderId + "/deliver";
-                }
+                // 完成交易
+                endpoint = "api/trade/complete";
                 break;
             default:
-                endpoint = "api/v1/trade/order/" + orderId + "/cancel";
+                // 取消交易
+                endpoint = "api/trade/cancel";
                 break;
         }
 
-        RequestBody body = RequestBody.create("", MediaType.parse("application/json; charset=utf-8"));
-        Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + endpoint)
-                .put(body)
-                .build();
-
-        ApiClient.getClient().newCall(request).enqueue(new Callback() {
+        ApiClient.post(endpoint, jsonBody, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 runOnUiThread(() -> Toast.makeText(OrderDetailActivity.this, "操作失败", Toast.LENGTH_SHORT).show());

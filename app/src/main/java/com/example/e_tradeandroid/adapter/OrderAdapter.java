@@ -47,9 +47,12 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
 
         String statusStr;
         switch (order.getStatus()) {
-            case 1: statusStr = "待交易"; break;
-            case 2: statusStr = "已完成"; break;
-            case 3: statusStr = "已取消"; break;
+            case 0: statusStr = "待卖家确认"; break;
+            case 1: statusStr = "交易中"; break;
+            case 2: statusStr = "待买家确认"; break;
+            case 3: statusStr = "待卖家确认完成"; break;
+            case 4: statusStr = "已完成"; break;
+            case 5: statusStr = "已取消"; break;
             default: statusStr = "未知状态";
         }
         holder.tvStatus.setText(statusStr);

@@ -52,13 +52,11 @@ public class TradeInfoDialog extends Dialog {
         try {
             body.put("productId", productId);
             body.put("quantity", 1);
-            body.put("tradeType", 1);
-            body.put("payType", 3);
             body.put("meetingTime", time);
             body.put("meetingLocation", loc);
         } catch (JSONException e) {e.printStackTrace();}
 
-        ApiClient.post("api/v1/trade/order", body.toString(), new Callback() {
+        ApiClient.post("api/trade/create", body.toString(), new Callback() {
             @Override public void onFailure(okhttp3.Call call, IOException e) {}
             @Override public void onResponse(okhttp3.Call call, Response response) throws IOException {
                 try {

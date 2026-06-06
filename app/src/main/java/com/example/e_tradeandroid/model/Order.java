@@ -7,7 +7,6 @@ public class Order {
     private Integer quantity;
     private Double totalAmount;
     private String createTime;
-    private String payTime;
     private String completeTime;
     private Long productId;
     private String productName;
@@ -19,9 +18,6 @@ public class Order {
     private Long buyerId;
     private String buyerName;
     private String buyerAvatar;
-    private String receiverName;
-    private String receiverPhone;
-    private String receiverAddress;
     private String meetingLocation;
     private String meetingTime;
 
@@ -105,14 +101,6 @@ public class Order {
         this.meetingTime = meetingTime;
     }
 
-    public String getPayTime() {
-        return payTime;
-    }
-
-    public void setPayTime(String payTime) {
-        this.payTime = payTime;
-    }
-
     public String getCompleteTime() {
         return completeTime;
     }
@@ -183,29 +171,5 @@ public class Order {
 
     public void setBuyerAvatar(String buyerAvatar) {
         this.buyerAvatar = buyerAvatar;
-    }
-
-    public String getReceiverName() {
-        return receiverName;
-    }
-
-    public void setReceiverName(String receiverName) {
-        this.receiverName = receiverName;
-    }
-
-    public String getReceiverPhone() {
-        return receiverPhone;
-    }
-
-    public void setReceiverPhone(String receiverPhone) {
-        this.receiverPhone = receiverPhone;
-    }
-
-    public String getReceiverAddress() {
-        return receiverAddress;
-    }
-
-    public void setReceiverAddress(String receiverAddress) {
-        this.receiverAddress = receiverAddress;
     }
 }
