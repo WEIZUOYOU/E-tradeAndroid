@@ -1,6 +1,8 @@
 package com.example.e_tradeandroid.ui;
 
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.BroadcastReceiver;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -36,6 +38,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -58,6 +61,9 @@ public class ChatActivity extends AppCompatActivity {
     private long targetUserId;
     private long currentUserId;
     private final Handler handler = new Handler();
+    
+    // 按钮防抖标志
+    private AtomicBoolean isProcessingTradeAction = new AtomicBoolean(false);
     private Runnable pollTask;
     private final Gson gson = new Gson();
     private Product product;
@@ -65,6 +71,14 @@ public class ChatActivity extends AppCompatActivity {
 
     private static final int REQUEST_TRADE_INFO = 1001;
     private static final int REQUEST_TRADE_CONFIRM = 1002;
+    private static final int REQUEST_TRADE_REVIEW = 1003;
+
+    // 消息去重：存储最近5秒内收到的交易卡片消息指纹
+    private final java.util.Set<String> recentMsgFingerprint = new java.util.HashSet<>();
+    private final Handler cleanupHandler = new Handler();
+    
+    // 广播接收器：接收评价完成通知，刷新聊天消息
+    private BroadcastReceiver chatRefreshReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +93,9 @@ public class ChatActivity extends AppCompatActivity {
         loadProductInfo();
         loadMessage();
         
+        // 初始化广播接收器
+        initChatRefreshReceiver();
+        
         // 初始化 WebSocket（优先使用实时推送）
         initWebSocket();
 
@@ -91,6 +108,36 @@ public class ChatActivity extends AppCompatActivity {
         }, 3000);
     }
     
+    /**
+     * 初始化聊天刷新广播接收器
+     */
+    private void initChatRefreshReceiver() {
+        chatRefreshReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(android.content.Context context, Intent intent) {
+                if ("com.example.e_tradeandroid.CHAT_REFRESH".equals(intent.getAction())) {
+                    long receivedUserId = intent.getLongExtra("targetUserId", 0);
+                    Log.d("ChatActivity", "收到聊天刷新广播: targetUserId=" + receivedUserId + ", current targetUserId=" + targetUserId);
+                    
+                    // 只刷新与当前聊天对象相关的消息
+                    if (receivedUserId == targetUserId) {
+                        Log.d("ChatActivity", "刷新当前聊天消息列表");
+                        loadMessage();
+                    }
+                }
+            }
+        };
+        
+        // 注册广播接收器 - 兼容 Android 12+
+        IntentFilter filter = new IntentFilter("com.example.e_tradeandroid.CHAT_REFRESH");
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(chatRefreshReceiver, filter, android.content.Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            registerReceiver(chatRefreshReceiver, filter);
+        }
+        Log.d("ChatActivity", "注册聊天刷新广播接收器");
+    }
+
     /**
      * 初始化 WebSocket 服务
      */
@@ -151,6 +198,13 @@ public class ChatActivity extends AppCompatActivity {
         runOnUiThread(() -> {
             if (isFinishing() || isDestroyed()) return;
 
+            // 指纹去重：防止5秒内收到相同的交易卡片消息
+            if (isDuplicate(message)) {
+                Log.d("ChatActivity", "消息指纹重复，跳过添加: tradeId=" + message.getTradeId() 
+                    + ", tradeStatus=" + message.getTradeStatus());
+                return;
+            }
+
             // 根据消息 ID 去重
             for (ChatMessage existing : messageList) {
                 if (existing.getId() != null && existing.getId().equals(message.getId())) {
@@ -167,6 +221,38 @@ public class ChatActivity extends AppCompatActivity {
                 rvChat.scrollToPosition(messageList.size() - 1);
             }
         });
+    }
+
+    /**
+     * 检查消息是否重复（交易卡片专用）
+     * 使用 tradeId + tradeStatus + senderId 作为指纹，5秒内相同指纹视为重复
+     */
+    private boolean isDuplicate(ChatMessage msg) {
+        // 只有交易卡片消息需要去重
+        if (msg.getType() == null || msg.getType() != 1) {
+            return false;
+        }
+        // 必须有 tradeId 才能去重
+        if (msg.getTradeId() == null || msg.getTradeId() <= 0) {
+            return false;
+        }
+        
+        String fp = getFingerprint(msg);
+        if (recentMsgFingerprint.contains(fp)) {
+            Log.d("ChatActivity", "检测到重复消息指纹: " + fp);
+            return true;
+        }
+        recentMsgFingerprint.add(fp);
+        // 5秒后自动清理指纹，允许再次接收相同消息
+        cleanupHandler.postDelayed(() -> recentMsgFingerprint.remove(fp), 5000);
+        return false;
+    }
+
+    /**
+     * 生成消息指纹
+     */
+    private String getFingerprint(ChatMessage msg) {
+        return msg.getTradeId() + "_" + msg.getTradeStatus() + "_" + msg.getSenderId();
     }
 
     private void initView() {
@@ -257,41 +343,77 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void goToTradeInfo() {
-        // 调试日志
-        Log.d("ChatActivity", "goToTradeInfo called");
-        Log.d("ChatActivity", "productId: " + productId);
-        Log.d("ChatActivity", "sellerId: " + targetUserId);
-        Log.d("ChatActivity", "currentUserId: " + currentUserId);
-        
-        if (latestTradeInfo != null && latestTradeInfo.getId() != null && latestTradeInfo.getId() > 0) {
-            // 已有交易信息，跳转到交易详情
-            Log.d("ChatActivity", "已有交易信息，跳转到交易详情");
-            Intent intent = new Intent(this, TradeInfoActivity.class);
-            intent.putExtra("productId", productId);
-            intent.putExtra("sellerId", targetUserId);
-            intent.putExtra("tradeId", latestTradeInfo.getId());
-            
-            boolean isBuyer = currentUserId == latestTradeInfo.getBuyerId();
-            intent.putExtra("isSellerMode", !isBuyer);
-            
-            startActivityForResult(intent, REQUEST_TRADE_CONFIRM);
-        } else {
-            // 无交易信息，跳转到创建交易页面
-            Log.d("ChatActivity", "无交易信息，跳转到创建交易页面");
-            Intent intent = new Intent(this, TradeInfoActivity.class);
-            intent.putExtra("productId", productId);
-            intent.putExtra("sellerId", targetUserId);
-            
-            // 判断当前用户是否是卖家（通过比较目标用户ID和当前用户ID）
-            // 如果 targetUserId 等于 currentUserId，说明当前用户是卖家
-            boolean isSeller = (targetUserId == currentUserId);
-            Log.d("ChatActivity", "isSeller: " + isSeller);
-            intent.putExtra("isSellerMode", isSeller);
-            
-            startActivityForResult(intent, REQUEST_TRADE_INFO);
+        // 防抖检查
+        if (!isProcessingTradeAction.compareAndSet(false, true)) {
+            Log.d("ChatActivity", "操作进行中，忽略重复点击");
+            return;
         }
-        
-        Log.d("ChatActivity", "startActivityForResult called, should navigate to TradeInfoActivity");
+        try {
+            // 1. 判断是否需要直接跳转到评价页面
+            if (latestTradeInfo != null && latestTradeInfo.getTradeStatus() != null) {
+                int status = latestTradeInfo.getTradeStatus();
+                boolean isBuyer = currentUserId == latestTradeInfo.getBuyerId();
+                boolean isSeller = currentUserId == latestTradeInfo.getSellerId();
+
+                // 状态4：交易完成，可评价
+                if (status == 4) {
+                    Intent intent = new Intent(this, TradeReviewActivity.class);
+                    intent.putExtra("tradeId", latestTradeInfo.getId());
+                    intent.putExtra("toUserId", isSeller ? latestTradeInfo.getBuyerId() : latestTradeInfo.getSellerId());
+                    intent.putExtra("isSellerMode", isSeller);
+                    startActivityForResult(intent, REQUEST_TRADE_REVIEW);
+                    return;
+                }
+                // 状态6：买家已评价，等待卖家评价 -> 只有卖家可以评价
+                if (status == 6 && isSeller) {
+                    Intent intent = new Intent(this, TradeReviewActivity.class);
+                    intent.putExtra("tradeId", latestTradeInfo.getId());
+                    intent.putExtra("toUserId", latestTradeInfo.getBuyerId());
+                    intent.putExtra("isSellerMode", true);
+                    startActivityForResult(intent, REQUEST_TRADE_REVIEW);
+                    return;
+                }
+                // 状态7：卖家已评价，等待买家评价 -> 只有买家可以评价
+                if (status == 7 && isBuyer) {
+                    Intent intent = new Intent(this, TradeReviewActivity.class);
+                    intent.putExtra("tradeId", latestTradeInfo.getId());
+                    intent.putExtra("toUserId", latestTradeInfo.getSellerId());
+                    intent.putExtra("isSellerMode", false);
+                    startActivityForResult(intent, REQUEST_TRADE_REVIEW);
+                    return;
+                }
+            }
+
+            // 2. 原有逻辑：跳转到交易详情或创建交易
+            Log.d("ChatActivity", "goToTradeInfo called");
+            Log.d("ChatActivity", "productId: " + productId);
+            Log.d("ChatActivity", "sellerId: " + targetUserId);
+            Log.d("ChatActivity", "currentUserId: " + currentUserId);
+
+            if (latestTradeInfo != null && latestTradeInfo.getId() != null && latestTradeInfo.getId() > 0) {
+                // 已有交易信息，跳转到交易详情
+                Log.d("ChatActivity", "已有交易信息，跳转到交易详情");
+                Intent intent = new Intent(this, TradeInfoActivity.class);
+                intent.putExtra("productId", productId);
+                intent.putExtra("sellerId", targetUserId);
+                intent.putExtra("tradeId", latestTradeInfo.getId());
+                boolean isBuyer = currentUserId == latestTradeInfo.getBuyerId();
+                intent.putExtra("isSellerMode", !isBuyer);
+                startActivityForResult(intent, REQUEST_TRADE_CONFIRM);
+            } else {
+                // 无交易信息，跳转到创建交易页面
+                Log.d("ChatActivity", "无交易信息，跳转到创建交易页面");
+                Intent intent = new Intent(this, TradeInfoActivity.class);
+                intent.putExtra("productId", productId);
+                intent.putExtra("sellerId", targetUserId);
+                boolean isSeller = (targetUserId == currentUserId);
+                Log.d("ChatActivity", "isSeller: " + isSeller);
+                intent.putExtra("isSellerMode", isSeller);
+                startActivityForResult(intent, REQUEST_TRADE_INFO);
+            }
+        } finally {
+            isProcessingTradeAction.set(false);
+        }
     }
 
     private void sendMsg() {
@@ -398,13 +520,9 @@ public class ChatActivity extends AppCompatActivity {
                             tempList.add(m);
                         }
                         
-                        // 先清空再添加，避免闪烁
-                        messageList.clear();
-                        messageList.addAll(tempList);
-                        
-                        // 查找最新的交易信息
+                        // 查找最新的交易信息（在增量合并前）
                         latestTradeInfo = null;
-                        for (ChatMessage m : messageList) {
+                        for (ChatMessage m : tempList) {
                             if (m.getTradeData() != null && !m.getTradeData().isEmpty()) {
                                 latestTradeInfo = gson.fromJson(m.getTradeData(), TradeInfo.class);
                             }
@@ -415,6 +533,30 @@ public class ChatActivity extends AppCompatActivity {
                         
                         runOnUiThread(() -> {
                             if (isFinishing() || isDestroyed()) return;
+                            
+                            // 增量合并，去重
+                            Map<Long, ChatMessage> existingMap = new HashMap<>();
+                            for (ChatMessage msg : messageList) {
+                                if (msg.getId() != null && msg.getId() > 0) {
+                                    existingMap.put(msg.getId(), msg);
+                                }
+                            }
+                            
+                            // 添加新消息
+                            for (ChatMessage newMsg : tempList) {
+                                if (newMsg.getId() != null && newMsg.getId() > 0 && !existingMap.containsKey(newMsg.getId())) {
+                                    messageList.add(newMsg);
+                                }
+                            }
+                            
+                            // 按时间排序
+                            messageList.sort((a, b) -> {
+                                String t1 = a.getCreateTime();
+                                String t2 = b.getCreateTime();
+                                if (t1 == null || t2 == null) return 0;
+                                return t1.compareTo(t2);
+                            });
+                            
                             chatAdapter.notifyDataSetChanged();
                             if (messageList.size() > 0) {
                                 rvChat.scrollToPosition(messageList.size() - 1);
@@ -456,9 +598,9 @@ public class ChatActivity extends AppCompatActivity {
         java.util.Set<Long> tradeIdsToSync = new java.util.HashSet<>();
         for (ChatMessage m : messageList) {
             if (m.getType() != null && m.getType() == 1 && m.getTradeId() != null && m.getTradeId() > 0) {
-                // 只同步交易状态（0-5）的卡片，评价卡片（6-8）不同步
+                // 同步所有未完结状态（包括评价状态 6-8）
                 Integer outerStatus = m.getTradeStatus();
-                if (outerStatus == null || outerStatus <= 5) {
+                if (outerStatus == null || outerStatus <= 8) {
                     tradeIdsToSync.add(m.getTradeId());
                 }
             }
@@ -470,7 +612,7 @@ public class ChatActivity extends AppCompatActivity {
         
         Log.d("ChatActivity", "syncTradeCardStatus: 需要同步的交易数 = " + tradeIdsToSync.size());
         
-        // 对每个交易ID，调用API获取最新状态
+        // 对每个交易ID，调用API获取最新状态（只更新 latestTradeInfo，不修改消息列表）
         for (Long tradeId : tradeIdsToSync) {
             ApiClient.get("api/trade/detail/" + tradeId, new Callback() {
                 @Override
@@ -487,69 +629,14 @@ public class ChatActivity extends AppCompatActivity {
                         
                         if (baseResp.isSuccess() && baseResp.getData() != null) {
                             TradeInfo latestTradeInfo = baseResp.getData();
-                            int latestStatus = latestTradeInfo.getTradeStatus() != null ? latestTradeInfo.getTradeStatus() : 0;
                             
-                            Log.d("ChatActivity", "获取交易最新状态: tradeId=" + tradeId + ", status=" + latestStatus);
+                            Log.d("ChatActivity", "获取交易最新状态: tradeId=" + tradeId + ", status=" + 
+                                (latestTradeInfo.getTradeStatus() != null ? latestTradeInfo.getTradeStatus() : 0));
                             
-                            // 更新消息列表中所有该交易的卡片状态
+                            // 只更新 latestTradeInfo（用于顶部按钮），不再修改消息列表
                             runOnUiThread(() -> {
                                 if (isFinishing() || isDestroyed()) return;
-                                
-                                // 【注释开始】tradeStatusMap 已在 ChatAdapter 中移除
-                                /*
-                                boolean changed = false;
-                                
-                                // 更新tradeStatusMap
-                                Integer oldStatus = tradeStatusMap.get(tradeId);
-                                if (oldStatus == null || oldStatus != latestStatus) {
-                                    tradeStatusMap.put(tradeId, latestStatus);
-                                    chatAdapter.setTradeStatusMap(tradeStatusMap);
-                                    changed = true;
-                                }
-                                */
-                                // 【注释结束】
-                                
-                                // 【注释开始】不再修改已有的聊天消息，保持发送时的状态快照
-                                /*
-                                for (ChatMessage m : messageList) {
-                                    if (m.getTradeId() != null && m.getTradeId().equals(tradeId)) {
-                                        Integer msgOldStatus = m.getTradeStatus();
-                                        if (msgOldStatus == null || msgOldStatus != latestStatus) {
-                                            // 更新 tradeData 中的状态
-                                            try {
-                                                com.google.gson.JsonObject tradeDataObj = gson.fromJson(m.getTradeData(), com.google.gson.JsonObject.class);
-                                                tradeDataObj.addProperty("tradeStatus", latestStatus);
-                                                
-                                                // 同时更新电话信息（如果有的话）
-                                                if (latestTradeInfo.getSellerPhone() != null) {
-                                                    tradeDataObj.addProperty("sellerPhone", latestTradeInfo.getSellerPhone());
-                                                }
-                                                if (latestTradeInfo.getBuyerPhone() != null) {
-                                                    tradeDataObj.addProperty("buyerPhone", latestTradeInfo.getBuyerPhone());
-                                                }
-                                                
-                                                m.setTradeData(gson.toJson(tradeDataObj));
-                                                m.setTradeStatus(latestStatus);
-                                                
-                                                changed = true;
-                                                Log.d("ChatActivity", "已更新交易卡片状态: tradeId=" + tradeId + ", status=" + latestStatus);
-                                            } catch (Exception e) {
-                                                Log.e("ChatActivity", "更新交易卡片状态失败: " + e.getMessage());
-                                            }
-                                        }
-                                    }
-                                }
-                                */
-                                // 【注释结束】
-                                
-                                // 更新 latestTradeInfo（用于顶部按钮）
                                 ChatActivity.this.latestTradeInfo = latestTradeInfo;
-                                
-                                // 不再刷新消息列表适配器，只刷新按钮状态
-                                // if (changed) {
-                                //     chatAdapter.notifyDataSetChanged();
-                                //     updateTopButton();
-                                // }
                                 updateTopButton();  // 只刷新顶部按钮
                             });
                         }
@@ -678,10 +765,17 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void confirmReceive(Long tradeId) {
+        // 防抖检查
+        if (!isProcessingTradeAction.compareAndSet(false, true)) {
+            Log.d("ChatActivity", "操作进行中，忽略重复点击");
+            return;
+        }
+        
         // 买家确认收到商品 - 使用统一的完成交易接口
         ApiClient.post("api/trade/complete", "{\"tradeId\":" + tradeId + ",\"operatorType\":\"BUYER\"}", new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
+                isProcessingTradeAction.set(false);
                 runOnUiThread(() -> {
                     if (isFinishing() || isDestroyed()) return;
                     Toast.makeText(ChatActivity.this, "确认失败", Toast.LENGTH_SHORT).show();
@@ -690,6 +784,7 @@ public class ChatActivity extends AppCompatActivity {
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
+                isProcessingTradeAction.set(false);
                 String respBody = response.body().string();
                 BaseResponse<String> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<String>>() {}.getType());
                 runOnUiThread(() -> {
@@ -706,10 +801,17 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void confirmComplete(Long tradeId) {
+        // 防抖检查
+        if (!isProcessingTradeAction.compareAndSet(false, true)) {
+            Log.d("ChatActivity", "操作进行中，忽略重复点击");
+            return;
+        }
+        
         // 卖家确认交易完成 - 使用统一的完成交易接口
         ApiClient.post("api/trade/complete", "{\"tradeId\":" + tradeId + ",\"operatorType\":\"SELLER\"}", new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
+                isProcessingTradeAction.set(false);
                 runOnUiThread(() -> {
                     if (isFinishing() || isDestroyed()) return;
                     Toast.makeText(ChatActivity.this, "确认失败", Toast.LENGTH_SHORT).show();
@@ -718,6 +820,7 @@ public class ChatActivity extends AppCompatActivity {
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
+                isProcessingTradeAction.set(false);
                 String respBody = response.body().string();
                 BaseResponse<String> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<String>>() {}.getType());
                 runOnUiThread(() -> {
@@ -746,6 +849,11 @@ public class ChatActivity extends AppCompatActivity {
                 case REQUEST_TRADE_CONFIRM:
                     // 交易确认成功，刷新消息列表
                     Log.d("ChatActivity", "onActivityResult: REQUEST_TRADE_CONFIRM");
+                    loadMessage();
+                    break;
+                case REQUEST_TRADE_REVIEW:
+                    // 评价提交成功，立即刷新消息列表
+                    Log.d("ChatActivity", "onActivityResult: REQUEST_TRADE_REVIEW - 评价成功，刷新消息");
                     loadMessage();
                     break;
             }
@@ -833,12 +941,34 @@ public class ChatActivity extends AppCompatActivity {
                     btnOrder.setText("确认完成");
                 }
                 break;
-            case 4: // 已完成
-                btnOrder.setText("已完成");
-                btnOrder.setEnabled(false);
+            case 4: // 已完成（可评价）
+                btnOrder.setText("去评价");
+                btnOrder.setEnabled(true);
                 break;
             case 5: // 已取消
                 btnOrder.setText("已取消");
+                btnOrder.setEnabled(false);
+                break;
+            case 6: // 买家已评价，等待卖家评价
+                if (isBuyer) {
+                    btnOrder.setText("已评价");
+                    btnOrder.setEnabled(false);
+                } else {
+                    btnOrder.setText("去评价");
+                    btnOrder.setEnabled(true);
+                }
+                break;
+            case 7: // 卖家已评价，等待买家评价
+                if (isBuyer) {
+                    btnOrder.setText("去评价");
+                    btnOrder.setEnabled(true);
+                } else {
+                    btnOrder.setText("已评价");
+                    btnOrder.setEnabled(false);
+                }
+                break;
+            case 8: // 双方已评价，交易完结
+                btnOrder.setText("已完成");
                 btnOrder.setEnabled(false);
                 break;
             default:
@@ -879,6 +1009,12 @@ public class ChatActivity extends AppCompatActivity {
         // 断开 WebSocket
         if (webSocketService != null) {
             webSocketService.disconnect();
+        }
+        
+        // 注销广播接收器
+        if (chatRefreshReceiver != null) {
+            unregisterReceiver(chatRefreshReceiver);
+            Log.d("ChatActivity", "注销聊天刷新广播接收器");
         }
     }
 }

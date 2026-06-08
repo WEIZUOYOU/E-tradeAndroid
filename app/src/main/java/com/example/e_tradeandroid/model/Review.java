@@ -16,6 +16,7 @@ public class Review {
     private String comment;       // 评价内容（兼容旧字段）
     private String tags;          // 评价标签，逗号分隔
     private String productName;   // 商品名称
+    private String productImage;  // 商品图片路径（新增）
     private String createTime;    // 创建时间
     private Boolean isReceived;   // 是否是收到的评价（true=收到的，false=给出的）
 
@@ -115,6 +116,14 @@ public class Review {
 
     public void setProductName(String productName) {
         this.productName = productName;
+    }
+
+    public String getProductImage() {
+        return productImage;
+    }
+
+    public void setProductImage(String productImage) {
+        this.productImage = productImage;
     }
 
     public String getCreateTime() {

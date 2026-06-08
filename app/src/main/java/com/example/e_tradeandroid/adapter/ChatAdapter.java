@@ -103,14 +103,13 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 tradeInfo = gson.fromJson(m.getTradeData(), TradeInfo.class);
             }
         } catch (Exception e) {
-            Log.e("ChatAdapter", "bindTradeCard parse error: " + e.getMessage());
+            Log.e("ChatAdapter", "解析 tradeData 失败: " + e.getMessage());
         }
 
-        // ========== 第三步：如果解析失败或数据无效，显示兜底文案 ==========
         if (tradeInfo == null) {
             h.tvSenderRole.setText("系统");
             h.tvContent.setText("卡片数据异常");
-            // 即使数据异常，也设置点击事件，让用户可以尝试查看详情
+            setCardAlignment(h, false); // 异常消息默认居左
             h.cardRoot.setOnClickListener(v -> {
                 if (tradeCardClickListener != null) {
                     tradeCardClickListener.onTradeCardClick(m);
@@ -119,23 +118,32 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             return;
         }
 
-        // ========== 第四步：正常渲染逻辑 ==========
-        long buyerId = tradeInfo.getBuyerId() != null ? tradeInfo.getBuyerId() : 0;
-        long sellerId = tradeInfo.getSellerId() != null ? tradeInfo.getSellerId() : 0;
-        boolean isCurrentUserBuyer = (buyerId == selfId);
-        boolean isCurrentUserSeller = (sellerId == selfId);
+        // 2. 决定对齐方式：发送者是自己则居右，否则居左
+        boolean isSelfSent = (m.getSenderId() != null && m.getSenderId().intValue() == selfId);
+        setCardAlignment(h, isSelfSent);
 
-        // 获取有效状态：优先用外层消息的 tradeStatus，其次 tradeData 内的
-        int status = (m.getTradeStatus() != null && m.getTradeStatus() != 0)
-                        ? m.getTradeStatus()
-                        : (tradeInfo.getTradeStatus() != null ? tradeInfo.getTradeStatus() : 0);
+        // 3. 生成卡片内的角色和动作文案（使用发送者判断，不再依赖状态码）
+        int status = (m.getTradeStatus() != null) ? m.getTradeStatus() : 0;
+        String roleText = getRoleText(m, tradeInfo);
+        String actionText = getActionText(status, m, tradeInfo);
 
-        // 计算逻辑上的"发送方"角色
-        boolean isLogicalSelfSent = isLogicalSelfSent(status, isCurrentUserBuyer, isCurrentUserSeller);
+        h.tvSenderRole.setText(roleText);
+        h.tvContent.setText(actionText);
 
-        // 设置背景和对齐
-        params = (FrameLayout.LayoutParams) h.cardRoot.getLayoutParams();
-        if (isLogicalSelfSent) {
+        // 4. 点击事件
+        h.cardRoot.setOnClickListener(v -> {
+            if (tradeCardClickListener != null) {
+                tradeCardClickListener.onTradeCardClick(m);
+            }
+        });
+    }
+
+    /**
+     * 设置卡片对齐和背景
+     */
+    private void setCardAlignment(TradeCardVH h, boolean isSelfSent) {
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) h.cardRoot.getLayoutParams();
+        if (isSelfSent) {
             params.gravity = Gravity.END;
             h.cardRoot.setBackgroundResource(R.drawable.bg_trade_card_self_new);
             h.tvSenderRole.setTextColor(0xFF1565C0); // 蓝色
@@ -145,127 +153,60 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             h.tvSenderRole.setTextColor(0xFFD84315); // 橙色
         }
         h.cardRoot.setLayoutParams(params);
-
-        // 获取文案
-        CardContent content = getCardContentStrict(status, isCurrentUserBuyer, isCurrentUserSeller, isLogicalSelfSent);
-        h.tvSenderRole.setText(content.role);
-        h.tvContent.setText(content.message);
-
-        // 点击事件保持不变
-        h.cardRoot.setOnClickListener(v -> {
-            if (tradeCardClickListener != null) {
-                tradeCardClickListener.onTradeCardClick(m);
-            }
-        });
     }
-    
+
     /**
-     * 根据交易状态和当前用户角色，计算这条卡片在逻辑上是否应该显示为"自己发出的"
-     * （即：当前用户是这条卡片所代表操作的实际执行者）
+     * 获取角色文本（直接使用消息发送者）
+     * 不再依赖状态码判断操作方，而是根据实际发送者显示
      */
-    private boolean isLogicalSelfSent(int status, boolean isCurrentUserBuyer, boolean isCurrentUserSeller) {
-        switch (status) {
-            case 0: return isCurrentUserBuyer;
-            case 1: return isCurrentUserSeller;
-            case 2: return isCurrentUserBuyer;
-            case 3: return isCurrentUserSeller;
-            case 4: return false;   // 双方都看到相同的"交易结束"
-            case 6: return isCurrentUserBuyer;
-            case 7: return isCurrentUserSeller;
-            case 8: return false;   // 双方都看到"评价完结"
-            case 5: return false;   // 取消消息统一居左
-            default: return false;
+    private String getRoleText(ChatMessage msg, TradeInfo tradeInfo) {
+        Long senderId = msg.getSenderId();
+        boolean isSelf = (senderId != null && senderId.intValue() == selfId);
+        boolean isSenderBuyer = (senderId != null && senderId.equals(tradeInfo.getBuyerId()));
+        
+        if (isSelf) {
+            return isSenderBuyer ? "我（买家）" : "我（卖家）";
+        } else {
+            return isSenderBuyer ? "买家" : "卖家";
         }
     }
 
     /**
-     * 根据交易状态、用户角色、是否逻辑自己的卡片，获取对应的文案（角色名 + 消息内容）
+     * 获取动作描述（根据状态和发送者角色）
+     * 根据发送者角色动态生成文案，而不是依赖当前用户角色
      */
-    private CardContent getCardContentStrict(int status, boolean isCurrentUserBuyer,
-                                             boolean isCurrentUserSeller, boolean isLogicalSelfSent) {
-        CardContent content = new CardContent();
+    private String getActionText(int status, ChatMessage msg, TradeInfo tradeInfo) {
+        Long senderId = msg.getSenderId();
+        boolean isSenderBuyer = (senderId != null && senderId.equals(tradeInfo.getBuyerId()));
+        
         switch (status) {
-            case 0: // 买家发起交易申请
-                if (isLogicalSelfSent) {
-                    content.role = "我（买家）";
-                    content.message = "你已发起交易申请，等待卖家确认";
-                } else {
-                    content.role = "买家";
-                    content.message = "买家发来新的交易申请，请确认";
-                }
-                break;
-            case 1: // 卖家确认交易申请
-                if (isLogicalSelfSent) {
-                    content.role = "我（卖家）";
-                    content.message = "你已确认申请，等待线下交易";
-                } else {
-                    content.role = "卖家";
-                    content.message = "卖家已确认申请，交易进入待交易阶段";
-                }
-                break;
-            case 2: // 买家已确认完成（等待卖家确认）
-                if (isLogicalSelfSent) {
-                    content.role = "我（买家）";
-                    content.message = "你已确认交易完成，等待卖家确认";
-                } else {
-                    content.role = "买家";
-                    content.message = "买家已确认交易完成，请你确认";
-                }
-                break;
-            case 3: // 卖家已确认完成（等待买家确认）
-                if (isLogicalSelfSent) {
-                    content.role = "我（卖家）";
-                    content.message = "你已确认交易完成，等待买家确认";
-                } else {
-                    content.role = "卖家";
-                    content.message = "卖家已确认交易完成，请你确认";
-                }
-                break;
-            case 4: // 双方均确认交易完成
-                content.role = isCurrentUserBuyer ? "我（买家）" : "我（卖家）";
-                content.message = "双方已确认，交易结束，请评价";
-                break;
-            case 6: // 买家提交评价
-                if (isLogicalSelfSent) {
-                    content.role = "我（买家）";
-                    content.message = "你已评价，等待卖家评价";
-                } else {
-                    content.role = "买家";
-                    content.message = "买家已评价，请你也评价";
-                }
-                break;
-            case 7: // 卖家提交评价
-                if (isLogicalSelfSent) {
-                    content.role = "我（卖家）";
-                    content.message = "你已评价，等待买家评价";
-                } else {
-                    content.role = "卖家";
-                    content.message = "卖家已评价，请你也评价";
-                }
-                break;
-            case 8: // 双方均完成评价
-                content.role = isCurrentUserBuyer ? "我（买家）" : "我（卖家）";
-                content.message = "双方已完成评价，交易完结";
-                break;
-            case 5: // 交易取消
-                content.role = "系统";
-                content.message = "交易已取消";
-                break;
+            case 0:
+                return isSenderBuyer ? "发起了交易申请，等待卖家确认" : "发起了交易申请，请确认";
+            case 1:
+                return isSenderBuyer ? "已确认申请，等待线下交易" : "已确认申请，交易进入待交易阶段";
+            case 2:
+                // 发送者已确认，等待对方确认（兼容后端状态码定义）
+                return isSenderBuyer ? "已确认交易完成，等待卖家确认" : "已确认交易完成，等待买家确认";
+            case 3:
+                // 对方已确认，请当前用户确认
+                return isSenderBuyer ? "已确认交易完成，请你确认" : "已确认交易完成，请你确认";
+            case 4:
+                return "双方已确认，交易结束，请评价";
+            case 5:
+                return "交易已取消";
+            case 6:
+                return isSenderBuyer ? "已评价，等待卖家评价" : "已评价，请你也评价";
+            case 7:
+                return isSenderBuyer ? "已评价，请你也评价" : "已评价，等待买家评价";
+            case 8:
+                return "双方已完成评价，交易完结";
             default:
-                content.role = "未知";
-                content.message = "交易状态更新";
+                return "交易状态更新";
         }
-        return content;
     }
 
-    /**
-     * 卡片内容数据类
-     */
-    private static class CardContent {
-        String role = "";
-        String message = "";
-    }
-    
+
+
     /**
      * 查找交易的最新状态（备用方案）
      */

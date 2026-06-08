@@ -68,6 +68,8 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
         holder.btnAction.setOnClickListener(v -> {
             Intent intent = new Intent(context, TradeInfoActivity.class);
             intent.putExtra("tradeId", order.getId());
+            intent.putExtra("productId", order.getProductId());
+            intent.putExtra("sellerId", order.getSellerId());
             context.startActivity(intent);
         });
         
@@ -83,10 +85,13 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
         switch (status) {
             case 0: return "待卖家确认";
             case 1: return "待线下交易";
-            case 2: return "卖家已确认完成";
-            case 3: return "买家已确认完成";
+            case 2: return "买家已确认完成";
+            case 3: return "卖家已确认完成";
             case 4: return "交易已完成";
             case 5: return "交易已取消";
+            case 6: return "买家已评价";
+            case 7: return "卖家已评价";
+            case 8: return "评价已完成";
             default: return "未知状态";
         }
     }
@@ -138,6 +143,18 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
                 break;
             case 5:
                 btn.setText("交易已取消");
+                btn.setEnabled(false);
+                break;
+            case 6:
+                btn.setText("待卖家评价");
+                btn.setEnabled(false);
+                break;
+            case 7:
+                btn.setText("待买家评价");
+                btn.setEnabled(false);
+                break;
+            case 8:
+                btn.setText("评价完成");
                 btn.setEnabled(false);
                 break;
             default:

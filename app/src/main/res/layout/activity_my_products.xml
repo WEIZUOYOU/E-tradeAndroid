@@ -95,14 +95,33 @@
             <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
                 android:id="@+id/swipe_refresh_active"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="0dp"
+                android:layout_weight="1">
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recycler_view_active"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:padding="8dp" />
+                    android:orientation="vertical">
 
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recycler_view_active"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:padding="8dp" />
+
+                    <TextView
+                        android:id="@+id/tv_load_more_active"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="点击加载更多"
+                        android:textSize="14sp"
+                        android:textColor="@color/text_hint"
+                        android:gravity="center"
+                        android:padding="16dp"
+                        android:visibility="gone"/>
+
+                </LinearLayout>
             </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
             <ProgressBar
@@ -111,6 +130,16 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tv_empty_active"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="暂无上架中的商品"
+                android:textSize="16sp"
+                android:textColor="@color/text_hint"
+                android:gravity="center"
+                android:visibility="gone"/>
 
         </LinearLayout>
 
@@ -125,14 +154,33 @@
             <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
                 android:id="@+id/swipe_refresh_sold_out"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="0dp"
+                android:layout_weight="1">
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recycler_view_sold_out"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:padding="8dp" />
+                    android:orientation="vertical">
 
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recycler_view_sold_out"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:padding="8dp" />
+
+                    <TextView
+                        android:id="@+id/tv_load_more_sold_out"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="点击加载更多"
+                        android:textSize="14sp"
+                        android:textColor="@color/text_hint"
+                        android:gravity="center"
+                        android:padding="16dp"
+                        android:visibility="gone"/>
+
+                </LinearLayout>
             </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
             <ProgressBar
@@ -141,6 +189,16 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tv_empty_sold_out"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="暂无已售罄的商品"
+                android:textSize="16sp"
+                android:textColor="@color/text_hint"
+                android:gravity="center"
+                android:visibility="gone"/>
 
         </LinearLayout>
 

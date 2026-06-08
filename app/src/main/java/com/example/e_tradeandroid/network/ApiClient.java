@@ -145,6 +145,22 @@ public class ApiClient {
         return userSp == null ? 1 : userSp.getLong(KEY_USER_ID, 1);
     }
 
+    /**
+     * 构建图片完整 URL
+     * 自动处理前导斜杠和双斜杠问题
+     * @param imagePath 图片路径（可能是完整 URL 或相对路径）
+     * @return 完整的图片 URL
+     */
+    public static String getImageUrl(String imagePath) {
+        if (imagePath == null || imagePath.isEmpty()) return null;
+        // 如果已经是完整 URL，直接返回
+        if (imagePath.startsWith("http")) return imagePath;
+        // 去掉开头的斜杠（如果有）
+        String path = imagePath.startsWith("/") ? imagePath.substring(1) : imagePath;
+        // 拼接 BASE_URL
+        return BASE_URL + path;
+    }
+
     // 补上 saveUserId 兼容旧代码
     public static void saveUserId(long userId) {
         if (userSp != null) {

@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.e_tradeandroid.R;
 import com.example.e_tradeandroid.model.Review;
 
@@ -48,6 +49,13 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ViewHolder
         // 商品名称
         holder.tvProductName.setText(review.getProductName());
         
+        // 商品图片
+        if (review.getProductImage() != null && !review.getProductImage().isEmpty()) {
+            Glide.with(context).load(review.getProductImage()).into(holder.ivProduct);
+        } else {
+            holder.ivProduct.setImageResource(R.drawable.ic_default_product);
+        }
+        
         // 评价者/被评价者信息
         if (isReceived) {
             holder.tvPersonInfo.setText("来自 " + review.getReviewerName());
@@ -60,6 +68,14 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ViewHolder
         
         // 评价内容
         holder.tvComment.setText(review.getComment() != null ? review.getComment() : "暂无评价内容");
+        
+        // 评价标签
+        if (review.getTags() != null && !review.getTags().isEmpty()) {
+            holder.tvTags.setText(review.getTags());
+            holder.tvTags.setVisibility(View.VISIBLE);
+        } else {
+            holder.tvTags.setVisibility(View.GONE);
+        }
     }
 
     /**
@@ -105,7 +121,8 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ViewHolder
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTradeNo, tvTime, tvProductName, tvPersonInfo, tvComment;
+        TextView tvTradeNo, tvTime, tvProductName, tvPersonInfo, tvComment, tvTags;
+        ImageView ivProduct;
         ImageView star1, star2, star3, star4, star5;
 
         public ViewHolder(View itemView) {
@@ -115,6 +132,8 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ViewHolder
             tvProductName = itemView.findViewById(R.id.tv_product_name);
             tvPersonInfo = itemView.findViewById(R.id.tv_person_info);
             tvComment = itemView.findViewById(R.id.tv_comment);
+            tvTags = itemView.findViewById(R.id.tv_tags);
+            ivProduct = itemView.findViewById(R.id.iv_product);
             star1 = itemView.findViewById(R.id.star1);
             star2 = itemView.findViewById(R.id.star2);
             star3 = itemView.findViewById(R.id.star3);

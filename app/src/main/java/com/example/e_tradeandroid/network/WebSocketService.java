@@ -204,6 +204,12 @@ public class WebSocketService {
             mainHandler.post(() -> {
                 if (messageListener != null) {
                     if (messageType == 1) { // 交易卡片消息
+                        // 添加调试日志：检查评价卡片的 tradeStatus
+                        int tradeStatus = message.getTradeStatus();
+                        if (tradeStatus >= 6 && tradeStatus <= 8) {
+                            Log.d(TAG, "收到评价卡片消息: tradeId=" + message.getTradeId() 
+                                + ", tradeStatus=" + tradeStatus + ", senderId=" + message.getSenderId());
+                        }
                         messageListener.onTradeCardMessage(message);
                     } else { // 普通消息
                         messageListener.onNewMessage(message);

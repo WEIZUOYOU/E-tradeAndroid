@@ -115,9 +115,6 @@ public class TradeInfoActivity extends AppCompatActivity {
         
         // 设置初始按钮状态
         initButtonState();
-        
-        // 加载商品详情并检查库存
-        loadProductDetail();
     }
     
     private void initButtonState() {
@@ -170,7 +167,10 @@ public class TradeInfoActivity extends AppCompatActivity {
     }
 
     private void initListeners() {
-        ivBack.setOnClickListener(v -> finish());
+        ivBack.setOnClickListener(v -> {
+            setResult(RESULT_OK);
+            finish();
+        });
 
         btnConfirm.setOnClickListener(v -> handleConfirm());
         
@@ -351,6 +351,20 @@ public class TradeInfoActivity extends AppCompatActivity {
                     Log.d("TradeInfoActivity", "loadTradeInfo: tradeId=" + tradeId + ", status=" + status + ", isSellerMode=" + isSellerMode);
                     
                     runOnUiThread(() -> {
+                        // 更新商品信息
+                        tvProductName.setText(existingTrade.getProductName());
+                        tvProductPrice.setText("￥" + existingTrade.getProductPrice());
+                        
+                        if (existingTrade.getProductImage() != null && !existingTrade.getProductImage().isEmpty()) {
+                            String imageUrl = existingTrade.getProductImage().startsWith("http")
+                                    ? existingTrade.getProductImage()
+                                    : ApiClient.BASE_URL + existingTrade.getProductImage();
+                            Glide.with(TradeInfoActivity.this)
+                                    .load(imageUrl)
+                                    .placeholder(R.drawable.ic_default_product)
+                                    .into(ivProduct);
+                        }
+                        
                         // 填充交易信息
                         etLocation.setText(existingTrade.getMeetingLocation());
                         
@@ -416,8 +430,8 @@ public class TradeInfoActivity extends AppCompatActivity {
         
         tvBuyerName.setText(existingTrade.getBuyerName() != null ? existingTrade.getBuyerName() : "买家");
         tvBuyerCredit.setText("信誉分: " + (existingTrade.getBuyerCreditScore() != null ? existingTrade.getBuyerCreditScore() : 100));
-        tvBuyerAuth.setText(existingTrade.getBuyerIsAuth() != null && existingTrade.getBuyerIsAuth() == 1 ? "已实名" : "未实名");
-        tvBuyerAuth.setTextColor(existingTrade.getBuyerIsAuth() != null && existingTrade.getBuyerIsAuth() == 1
+        tvBuyerAuth.setText(existingTrade.getBuyerIsAuth() != null && existingTrade.getBuyerIsAuth() ? "已实名" : "未实名");
+        tvBuyerAuth.setTextColor(existingTrade.getBuyerIsAuth() != null && existingTrade.getBuyerIsAuth()
                 ? getResources().getColor(R.color.success_green)
                 : getResources().getColor(R.color.warning_orange));
 
@@ -672,13 +686,13 @@ public class TradeInfoActivity extends AppCompatActivity {
                 String respBody = response.body().string();
                 runOnUiThread(() -> {
                     try {
-                        // 解析交易创建响应
-                        BaseResponse<TradeCreateResponse> baseResp = gson.fromJson(
+                        // 解析交易创建响应（使用 TradeCompleteResponse，因为结构相同）
+                        BaseResponse<TradeCompleteResponse> baseResp = gson.fromJson(
                             respBody, 
-                            new TypeToken<BaseResponse<TradeCreateResponse>>() {}.getType()
+                            new TypeToken<BaseResponse<TradeCompleteResponse>>() {}.getType()
                         );
                         if (baseResp.isSuccess() && baseResp.getData() != null) {
-                            TradeCreateResponse tradeResp = baseResp.getData();
+                            TradeCompleteResponse tradeResp = baseResp.getData();
                             
                             // 检查 sellerId 是否有效
                             if (sellerId == 0) {
@@ -690,8 +704,8 @@ public class TradeInfoActivity extends AppCompatActivity {
                             }
                             
                             // 发送交易卡片消息给卖家（买家创建交易）
-                            Log.d("TradeInfoActivity", "发送交易卡片: tradeId=" + tradeResp.tradeId + ", sellerId=" + sellerId);
-                            sendTradeCardMessage(tradeResp.tradeId, 0, sellerId, () -> {
+                            Log.d("TradeInfoActivity", "发送交易卡片: tradeId=" + tradeResp.getTradeId() + ", sellerId=" + sellerId);
+                            sendTradeCardMessage(tradeResp.getTradeId(), 0, sellerId, () -> {
                                 Toast.makeText(TradeInfoActivity.this, "交易信息已提交，等待卖家确认", Toast.LENGTH_SHORT).show();
                                 setResult(RESULT_OK);
                                 finish();
@@ -771,8 +785,16 @@ public class TradeInfoActivity extends AppCompatActivity {
     }
 
     private void confirmTradeBySeller() {
+        // 防抖检查
+        if (isSubmitting) {
+            Toast.makeText(this, "正在提交中，请稍候", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        isSubmitting = true;
+        
         String sellerPhone = etSellerPhone.getText().toString().trim();
         if (sellerPhone.isEmpty() || sellerPhone.length() != 11) {
+            isSubmitting = false; // 重置状态
             Toast.makeText(this, "请输入正确的手机号码", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -789,6 +811,7 @@ public class TradeInfoActivity extends AppCompatActivity {
         ApiClient.post("api/trade/confirm", json, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
+                isSubmitting = false; // 重置提交状态
                 runOnUiThread(() -> Toast.makeText(TradeInfoActivity.this, "确认失败", Toast.LENGTH_SHORT).show());
             }
 
@@ -797,23 +820,31 @@ public class TradeInfoActivity extends AppCompatActivity {
                 String respBody = response.body().string();
                 Log.d("TradeInfoActivity", "confirmTradeBySeller 响应: " + respBody);
                 
-                BaseResponse<String> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<String>>() {}.getType());
                 runOnUiThread(() -> {
-                    if (baseResp.isSuccess()) {
-                        // 解析后端返回的新状态
-                        int newStatus = 1; // 默认为待交易状态
-                        try {
-                            com.google.gson.JsonObject obj = gson.fromJson(respBody, com.google.gson.JsonObject.class);
+                    // 直接解析 JSON 获取状态，避免类型不匹配问题
+                    int newStatus = 1; // 默认为待交易状态
+                    boolean success = false;
+                    try {
+                        com.google.gson.JsonObject obj = gson.fromJson(respBody, com.google.gson.JsonObject.class);
+                        if (obj.has("code") && obj.get("code").getAsInt() == 200) {
+                            success = true;
                             if (obj.has("data")) {
-                                com.google.gson.JsonObject data = obj.getAsJsonObject("data");
-                                if (data.has("tradeStatus")) {
-                                    newStatus = data.get("tradeStatus").getAsInt();
+                                com.google.gson.JsonElement data = obj.get("data");
+                                if (data != null && !data.isJsonNull()) {
+                                    if (data.isJsonObject()) {
+                                        com.google.gson.JsonObject dataObj = data.getAsJsonObject();
+                                        if (dataObj.has("tradeStatus")) {
+                                            newStatus = dataObj.get("tradeStatus").getAsInt();
+                                        }
+                                    }
                                 }
                             }
-                        } catch (Exception e) {
-                            Log.e("TradeInfoActivity", "解析状态失败: " + e.getMessage());
                         }
-                        
+                    } catch (Exception e) {
+                        Log.e("TradeInfoActivity", "解析响应失败: " + e.getMessage());
+                    }
+                    
+                    if (success) {
                         Log.d("TradeInfoActivity", "confirmTradeBySeller: 新状态 = " + newStatus);
                         
                         // 更新 existingTrade 的状态
@@ -833,6 +864,7 @@ public class TradeInfoActivity extends AppCompatActivity {
                                 finish();
                             });
                         } else {
+                            isSubmitting = false; // 重置提交状态
                             Log.e("TradeInfoActivity", "confirmTradeBySeller: 无法发送卡片，existingTrade=" + (existingTrade != null) 
                                     + ", buyerId=" + (existingTrade != null ? existingTrade.getBuyerId() : "N/A"));
                             Toast.makeText(TradeInfoActivity.this, "交易已确认，进入待交易状态", Toast.LENGTH_SHORT).show();
@@ -840,7 +872,18 @@ public class TradeInfoActivity extends AppCompatActivity {
                             finish();
                         }
                     } else {
-                        Toast.makeText(TradeInfoActivity.this, baseResp.getMessage(), Toast.LENGTH_SHORT).show();
+                        isSubmitting = false; // 重置提交状态
+                        // 从JSON中获取错误消息
+                        String errorMsg = "操作失败";
+                        try {
+                            com.google.gson.JsonObject obj = gson.fromJson(respBody, com.google.gson.JsonObject.class);
+                            if (obj.has("msg")) {
+                                errorMsg = obj.get("msg").getAsString();
+                            }
+                        } catch (Exception e) {
+                            // 解析失败，使用默认消息
+                        }
+                        Toast.makeText(TradeInfoActivity.this, errorMsg, Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -982,9 +1025,19 @@ public class TradeInfoActivity extends AppCompatActivity {
                         @Override
                         public void onResponse(Call call, Response response) throws IOException {
                             String respBody = response.body().string();
-                            BaseResponse<String> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<String>>() {}.getType());
                             runOnUiThread(() -> {
-                                if (baseResp.isSuccess()) {
+                                // 直接解析 JSON 获取成功状态
+                                boolean success = false;
+                                try {
+                                    com.google.gson.JsonObject obj = gson.fromJson(respBody, com.google.gson.JsonObject.class);
+                                    if (obj.has("code") && obj.get("code").getAsInt() == 200) {
+                                        success = true;
+                                    }
+                                } catch (Exception e) {
+                                    Log.e("TradeInfoActivity", "解析取消响应失败: " + e.getMessage());
+                                }
+                                
+                                if (success) {
                                     // 发送取消消息卡片给对方
                                     if (existingTrade != null) {
                                         long receiverId = isSellerMode ? existingTrade.getBuyerId() : existingTrade.getSellerId();
@@ -1002,7 +1055,17 @@ public class TradeInfoActivity extends AppCompatActivity {
                                     setResult(RESULT_OK);
                                     finish();
                                 } else {
-                                    Toast.makeText(TradeInfoActivity.this, baseResp.getMessage(), Toast.LENGTH_SHORT).show();
+                                    // 从JSON中获取错误消息
+                                    String errorMsg = "取消失败";
+                                    try {
+                                        com.google.gson.JsonObject obj = gson.fromJson(respBody, com.google.gson.JsonObject.class);
+                                        if (obj.has("msg")) {
+                                            errorMsg = obj.get("msg").getAsString();
+                                        }
+                                    } catch (Exception e) {
+                                        // 解析失败，使用默认消息
+                                    }
+                                    Toast.makeText(TradeInfoActivity.this, errorMsg, Toast.LENGTH_SHORT).show();
                                 }
                             });
                         }
@@ -1077,9 +1140,19 @@ public class TradeInfoActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String respBody = response.body().string();
-                BaseResponse<String> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<String>>() {}.getType());
                 runOnUiThread(() -> {
-                    if (baseResp.isSuccess()) {
+                    // 直接解析 JSON 获取成功状态
+                    boolean success = false;
+                    try {
+                        com.google.gson.JsonObject obj = gson.fromJson(respBody, com.google.gson.JsonObject.class);
+                        if (obj.has("code") && obj.get("code").getAsInt() == 200) {
+                            success = true;
+                        }
+                    } catch (Exception e) {
+                        Log.e("TradeInfoActivity", "解析修改响应失败: " + e.getMessage());
+                    }
+                    
+                    if (success) {
                         // 发送修改请求消息给对方
                         if (existingTrade != null) {
                             long receiverId = isSellerMode ? existingTrade.getBuyerId() : existingTrade.getSellerId();
@@ -1095,7 +1168,17 @@ public class TradeInfoActivity extends AppCompatActivity {
                         setResult(RESULT_OK);
                         finish();
                     } else {
-                        Toast.makeText(TradeInfoActivity.this, baseResp.getMessage(), Toast.LENGTH_SHORT).show();
+                        // 从JSON中获取错误消息 - 修改交易信息失败分支
+                        String errorMsg = "修改失败";
+                        try {
+                            com.google.gson.JsonObject obj = gson.fromJson(respBody, com.google.gson.JsonObject.class);
+                            if (obj.has("msg")) {
+                                errorMsg = obj.get("msg").getAsString();
+                            }
+                        } catch (Exception e) {
+                            // 解析失败，使用默认消息
+                        }
+                        Toast.makeText(TradeInfoActivity.this, errorMsg, Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -1113,14 +1196,28 @@ public class TradeInfoActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String respBody = response.body().string();
-                BaseResponse<String> baseResp = gson.fromJson(respBody, new TypeToken<BaseResponse<String>>() {}.getType());
                 runOnUiThread(() -> {
-                    if (baseResp.isSuccess()) {
+                    // 直接解析 JSON 获取成功状态
+                    boolean success = false;
+                    String errorMsg = "确认失败";
+                    try {
+                        com.google.gson.JsonObject obj = gson.fromJson(respBody, com.google.gson.JsonObject.class);
+                        if (obj.has("code") && obj.get("code").getAsInt() == 200) {
+                            success = true;
+                        }
+                        if (obj.has("msg")) {
+                            errorMsg = obj.get("msg").getAsString();
+                        }
+                    } catch (Exception e) {
+                        Log.e("TradeInfoActivity", "解析确认修改响应失败: " + e.getMessage());
+                    }
+                    
+                    if (success) {
                         Toast.makeText(TradeInfoActivity.this, "已确认修改", Toast.LENGTH_SHORT).show();
                         setResult(RESULT_OK);
                         finish();
                     } else {
-                        Toast.makeText(TradeInfoActivity.this, baseResp.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(TradeInfoActivity.this, errorMsg, Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -1293,6 +1390,62 @@ public class TradeInfoActivity extends AppCompatActivity {
                 etSellerPhone.setVisibility(View.VISIBLE);
                 etSellerPhone.setEnabled(false);
                 break;
+                
+            case 6: // 买家已评价，等待卖家评价
+                if (isSellerMode) {
+                    // 卖家视角：可以评价
+                    btnConfirm.setText("评价对方");
+                    btnConfirm.setEnabled(true);
+                    btnConfirm.setOnClickListener(v -> {
+                        Intent intent = new Intent(TradeInfoActivity.this, TradeReviewActivity.class);
+                        intent.putExtra("tradeId", tradeId);
+                        intent.putExtra("toUserId", existingTrade.getBuyerId());
+                        intent.putExtra("isSellerMode", isSellerMode);
+                        startActivityForResult(intent, 1003);
+                    });
+                } else {
+                    // 买家视角：已评价，等待卖家评价
+                    btnConfirm.setText("已评价，等待卖家评价");
+                    btnConfirm.setEnabled(false);
+                }
+                etBuyerPhone.setVisibility(View.VISIBLE);
+                etBuyerPhone.setEnabled(false);
+                etSellerPhone.setVisibility(View.VISIBLE);
+                etSellerPhone.setEnabled(false);
+                break;
+                
+            case 7: // 卖家已评价，等待买家评价
+                if (isSellerMode) {
+                    // 卖家视角：已评价，等待买家评价
+                    btnConfirm.setText("已评价，等待买家评价");
+                    btnConfirm.setEnabled(false);
+                } else {
+                    // 买家视角：可以评价
+                    btnConfirm.setText("评价对方");
+                    btnConfirm.setEnabled(true);
+                    btnConfirm.setOnClickListener(v -> {
+                        Intent intent = new Intent(TradeInfoActivity.this, TradeReviewActivity.class);
+                        intent.putExtra("tradeId", tradeId);
+                        intent.putExtra("toUserId", existingTrade.getSellerId());
+                        intent.putExtra("isSellerMode", isSellerMode);
+                        startActivityForResult(intent, 1003);
+                    });
+                }
+                etBuyerPhone.setVisibility(View.VISIBLE);
+                etBuyerPhone.setEnabled(false);
+                etSellerPhone.setVisibility(View.VISIBLE);
+                etSellerPhone.setEnabled(false);
+                break;
+                
+            case 8: // 双方已评价，交易完结
+                btnConfirm.setText("交易已完成");
+                btnConfirm.setEnabled(false);
+                
+                etBuyerPhone.setVisibility(View.VISIBLE);
+                etBuyerPhone.setEnabled(false);
+                etSellerPhone.setVisibility(View.VISIBLE);
+                etSellerPhone.setEnabled(false);
+                break;
         }
     }
 
@@ -1311,6 +1464,22 @@ public class TradeInfoActivity extends AppCompatActivity {
                 intent.putExtra("isSellerMode", isSellerMode);
                 startActivityForResult(intent, 1003);
             });
+        }
+    }
+
+    /**
+     * 处理评价页面返回结果
+     * 评价完成后刷新交易信息，更新按钮状态
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Log.d("TradeInfoActivity", "onActivityResult: requestCode=" + requestCode + ", resultCode=" + resultCode);
+        
+        if (requestCode == 1003 && resultCode == RESULT_OK) {
+            // 评价完成，重新加载交易信息
+            Log.d("TradeInfoActivity", "评价完成，重新加载交易信息");
+            loadTradeInfo();
         }
     }
 }

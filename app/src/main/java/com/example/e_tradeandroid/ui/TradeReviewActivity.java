@@ -1,6 +1,7 @@
 package com.example.e_tradeandroid.ui;
 
 import android.os.Bundle;
+import android.content.Intent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -289,10 +290,9 @@ public class TradeReviewActivity extends AppCompatActivity {
                     if (isFinishing() || isDestroyed()) return;
                     if (baseResp.isSuccess()) {
                         Toast.makeText(TradeReviewActivity.this, "评价提交成功", Toast.LENGTH_SHORT).show();
-                        // 发送评价消息通知对方
+                        // 发送评价消息通知对方（在回调中完成后再关闭页面）
                         sendReviewMessage();
-                        setResult(RESULT_OK);
-                        finish();
+                        // 不在此调用 finish()，改为在 sendReviewMessage 回调中调用
                     } else {
                         btnSubmit.setEnabled(true); // 失败后重新启用按钮
                         Toast.makeText(TradeReviewActivity.this, baseResp.getMessage(), Toast.LENGTH_SHORT).show();
@@ -303,49 +303,148 @@ public class TradeReviewActivity extends AppCompatActivity {
     }
     
     /**
-     * 发送评价消息通知对方 - 前端简化，只需传递 tradeId，后端自动生成快照
+     * 发送评价消息通知对方 - 参考交易确认流程的卡片发送逻辑
      * 评价状态：6=买家已评价，7=卖家已评价，8=双方已评价
      */
     private void sendReviewMessage() {
-        if (tradeInfo == null || toUserId <= 0) {
-            Log.e("TradeReviewActivity", "无法发送评价消息: tradeInfo=" + (tradeInfo != null) + ", toUserId=" + toUserId);
+        // 直接使用 Intent 传入的参数，不需要依赖 tradeInfo
+        if (toUserId <= 0) {
+            Log.e("TradeReviewActivity", "无法发送评价消息: toUserId 无效 = " + toUserId);
+            safeFinish();
             return;
         }
         
         // 计算新的交易状态
-        int newStatus;
-        long currentUserId = ApiClient.getCurrentUserId();
-        boolean isCurrentUserBuyer = (tradeInfo.getBuyerId() != null && tradeInfo.getBuyerId() == currentUserId);
+        int newStatus = calculateReviewStatus();
+        Log.d("TradeReviewActivity", "sendReviewMessage: newStatus=" + newStatus + ", toUserId=" + toUserId);
         
-        if (isCurrentUserBuyer) {
-            newStatus = 6; // 买家已评价
-        } else {
+        // 发送评价卡片消息
+        sendReviewCardMessage(tradeId, newStatus, toUserId, () -> {
+            Log.d("TradeReviewActivity", "评价消息发送成功，关闭页面");
+            // 发送广播通知聊天页面刷新
+            sendBroadcastToRefreshChat(toUserId);
+            safeFinish();
+        });
+    }
+    
+    /**
+     * 计算评价后的交易状态
+     */
+    private int calculateReviewStatus() {
+        // 使用 isSellerMode 判断当前用户身份
+        // isSellerMode = true 表示当前用户是卖家
+        // isSellerMode = false 表示当前用户是买家
+        int newStatus;
+        if (isSellerMode) {
             newStatus = 7; // 卖家已评价
+            Log.d("TradeReviewActivity", "当前用户是卖家，评价后状态变为 7（卖家已评价）");
+        } else {
+            newStatus = 6; // 买家已评价
+            Log.d("TradeReviewActivity", "当前用户是买家，评价后状态变为 6（买家已评价）");
         }
         
-        // 【简化】前端只需传递基本信息，后端自动生成完整的交易快照
+        return newStatus;
+    }
+    
+    /**
+     * 发送评价卡片消息（参考交易确认流程）
+     * 参数说明：tradeId, tradeStatus, receiverId(接收者), callback(发送成功后的回调)
+     */
+    private void sendReviewCardMessage(Long tradeId, int tradeStatus, long receiverId, Runnable callback) {
+        Log.d("TradeReviewActivity", "sendReviewCardMessage 开始: tradeId=" + tradeId 
+            + ", tradeStatus=" + tradeStatus + ", receiverId=" + receiverId);
+        
+        if (receiverId == 0) {
+            Log.e("TradeReviewActivity", "receiverId 为 0，无法发送评价消息");
+            if (callback != null) {
+                runOnUiThread(callback);
+            }
+            return;
+        }
+        
+        // 构建请求 - 参考交易确认流程的消息结构
         com.google.gson.JsonObject msgRequest = new com.google.gson.JsonObject();
-        msgRequest.addProperty("receiverId", toUserId);
-        msgRequest.addProperty("productId", tradeInfo.getProductId() != null ? tradeInfo.getProductId() : 0);
-        msgRequest.addProperty("content", "提交了评价");
-        msgRequest.addProperty("type", 1); // 交易卡片类型
+        msgRequest.addProperty("receiverId", receiverId);
+        msgRequest.addProperty("productId", 0); // productId 在卡片中可选
+        msgRequest.addProperty("content", getReviewContent(tradeStatus));
+        msgRequest.addProperty("type", 1); // 1 表示交易卡片类型
         msgRequest.addProperty("tradeId", tradeId);
-        msgRequest.addProperty("tradeStatus", newStatus);
-        // msgRequest.addProperty("tradeData", null); // 不设置 tradeData，让后端自动生成
+        msgRequest.addProperty("tradeStatus", tradeStatus);
         
         String msgJson = gson.toJson(msgRequest);
-        Log.d("TradeReviewActivity", "发送评价消息: " + msgJson);
+        Log.d("TradeReviewActivity", "发送评价消息 JSON: " + msgJson);
         
         ApiClient.post("api/message/send", msgJson, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 Log.e("TradeReviewActivity", "发送评价消息失败: " + e.getMessage());
+                // 失败时也执行回调，避免卡死
+                if (callback != null) {
+                    runOnUiThread(callback);
+                }
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-                String resp = response.body().string();
-                Log.d("TradeReviewActivity", "发送评价消息响应: " + resp);
+                String respBody = response.body().string();
+                Log.d("TradeReviewActivity", "发送评价消息响应: " + respBody);
+                
+                // 解析响应，检查是否成功
+                try {
+                    com.google.gson.JsonObject respObj = gson.fromJson(respBody, com.google.gson.JsonObject.class);
+                    int code = respObj.has("code") ? respObj.get("code").getAsInt() : -1;
+                    if (code == 200) {
+                        Log.d("TradeReviewActivity", "评价消息发送成功");
+                    } else {
+                        String msg = respObj.has("msg") ? respObj.get("msg").getAsString() : "发送失败";
+                        Log.w("TradeReviewActivity", "评价消息发送返回错误: " + msg);
+                    }
+                } catch (Exception e) {
+                    Log.e("TradeReviewActivity", "解析评价消息响应失败: " + e.getMessage());
+                }
+                
+                // 无论成功与否都执行回调
+                if (callback != null) {
+                    runOnUiThread(callback);
+                }
+            }
+        });
+    }
+    
+    /**
+     * 根据评价状态获取消息内容
+     */
+    private String getReviewContent(int tradeStatus) {
+        switch (tradeStatus) {
+            case 6: return "买家已评价";
+            case 7: return "卖家已评价";
+            case 8: return "双方已评价";
+            default: return "评价状态更新";
+        }
+    }
+    
+    /**
+     * 发送广播通知聊天页面刷新消息列表
+     */
+    private void sendBroadcastToRefreshChat(long targetUserId) {
+        Intent broadcastIntent = new Intent("com.example.e_tradeandroid.CHAT_REFRESH");
+        broadcastIntent.putExtra("targetUserId", targetUserId);
+        sendBroadcast(broadcastIntent);
+        Log.d("TradeReviewActivity", "发送聊天刷新广播: targetUserId=" + targetUserId);
+    }
+
+    /**
+     * 安全关闭页面 - 评价成功后通知 TradeInfoActivity 刷新
+     */
+    private void safeFinish() {
+        runOnUiThread(() -> {
+            if (!isFinishing() && !isDestroyed()) {
+                // 传递评价后的交易状态，让 TradeInfoActivity 刷新
+                int newStatus = calculateReviewStatus();
+                Intent resultIntent = new Intent();
+                resultIntent.putExtra("tradeStatus", newStatus);
+                setResult(RESULT_OK, resultIntent);
+                finish();
             }
         });
     }

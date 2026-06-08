@@ -60,6 +60,13 @@ public class MyReviewsActivity extends AppCompatActivity {
         ivBack.setOnClickListener(v -> finish());
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // 每次回到页面时重新加载数据
+        loadReviews();
+    }
+
     private void initViews() {
         ivBack = findViewById(R.id.iv_back);
         tabReceived = findViewById(R.id.tab_received);
@@ -109,6 +116,9 @@ public class MyReviewsActivity extends AppCompatActivity {
                 android.view.ViewGroup.LayoutParams.WRAP_CONTENT, 
                 1f
         ));
+        
+        // 刷新当前标签的数据
+        loadReceivedReviews();
     }
 
     /**
@@ -145,6 +155,9 @@ public class MyReviewsActivity extends AppCompatActivity {
         // 通过设置 margin 来移动指示器位置
         params.setMarginStart(getResources().getDisplayMetrics().widthPixels / 2);
         tabIndicator.setLayoutParams(params);
+        
+        // 刷新当前标签的数据
+        loadGivenReviews();
     }
 
     /**
