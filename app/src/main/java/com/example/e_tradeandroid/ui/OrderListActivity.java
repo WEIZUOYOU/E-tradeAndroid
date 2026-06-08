@@ -3,6 +3,7 @@ package com.example.e_tradeandroid.ui;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -16,7 +17,6 @@ import com.example.e_tradeandroid.adapter.TradeAdapter;
 import com.example.e_tradeandroid.model.BaseResponse;
 import com.example.e_tradeandroid.model.TradeInfo;
 import com.example.e_tradeandroid.network.ApiClient;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -32,7 +32,7 @@ public class OrderListActivity extends AppCompatActivity {
     private RecyclerView recycler_view_orders;
     private SwipeRefreshLayout swipe_refresh_orders;
     private ProgressBar progress_bar_orders;
-    private BottomNavigationView bottom_navigation;
+    private ImageView iv_back;
 
     private final Gson gson = new Gson();
 
@@ -45,39 +45,16 @@ public class OrderListActivity extends AppCompatActivity {
         recycler_view_orders = findViewById(R.id.recycler_view_orders);
         swipe_refresh_orders = findViewById(R.id.swipe_refresh_orders);
         progress_bar_orders = findViewById(R.id.progress_bar_orders);
-        bottom_navigation = findViewById(R.id.bottom_navigation);
+        iv_back = findViewById(R.id.iv_back);
 
         recycler_view_orders.setLayoutManager(new LinearLayoutManager(this));
         initNav();
         loadOrderData();
     }
 
-    // 底部导航
+    // 返回按钮
     private void initNav() {
-        bottom_navigation.setSelectedItemId(R.id.nav_orders);
-        bottom_navigation.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
-            if (id == R.id.nav_home) {
-                startActivity(new Intent(this, MainActivity.class));
-                finish();
-                return true;
-            } else if (id == R.id.nav_publish) {
-                startActivity(new Intent(this, PublishActivity.class));
-                finish();
-                return true;
-            } else if (id == R.id.nav_profile) {
-                startActivity(new Intent(this, MyProfileActivity.class));
-                finish();
-                return true;
-            } else if (id == R.id.nav_orders) {
-                return true;
-            } else if (id == R.id.nav_messages) {
-                startActivity(new Intent(this, MessageListActivity.class));
-                finish();
-                return true;
-            }
-            return false;
-        });
+        iv_back.setOnClickListener(v -> finish());
     }
 
     // 加载交易列表

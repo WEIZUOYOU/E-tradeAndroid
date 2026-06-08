@@ -265,6 +265,22 @@
                         android:text="编辑资料" />
 
                     <Button
+                        android:id="@+id/btn_my_reviews"
+                        style="@style/PrimaryButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:text="我的评价" />
+
+                    <Button
+                        android:id="@+id/btn_my_orders"
+                        style="@style/PrimaryButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:text="我的订单" />
+
+                    <Button
                         android:id="@+id/btn_logout"
                         style="@style/DangerButton"
                         android:layout_width="match_parent"

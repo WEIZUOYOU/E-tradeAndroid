@@ -16,6 +16,7 @@ import okhttp3.Response;
 
 /**
  * 交易消息助手 - 封装交易卡片消息的发送逻辑
+ * 统一使用 TradeInfo 作为交易数据模型
  */
 public class TradeMessageHelper {
     private static final String TAG = "TradeMessageHelper";
@@ -27,47 +28,6 @@ public class TradeMessageHelper {
     public interface SendCallback {
         void onSuccess();
         void onFailure(String error);
-    }
-    
-    /**
-     * 交易数据对象
-     */
-    private static class TradeData {
-        private String tradeNo;
-        private String productName;
-        private double productPrice;
-        private String productImage;
-        private String meetingLocation;
-        private String meetingTime;
-        private int tradeStatus;
-        private long buyerId;
-        private long sellerId;
-        private String buyerPhone;
-        private String sellerPhone;
-        
-        // Getters and Setters
-        public String getTradeNo() { return tradeNo; }
-        public void setTradeNo(String tradeNo) { this.tradeNo = tradeNo; }
-        public String getProductName() { return productName; }
-        public void setProductName(String productName) { this.productName = productName; }
-        public double getProductPrice() { return productPrice; }
-        public void setProductPrice(double productPrice) { this.productPrice = productPrice; }
-        public String getProductImage() { return productImage; }
-        public void setProductImage(String productImage) { this.productImage = productImage; }
-        public String getMeetingLocation() { return meetingLocation; }
-        public void setMeetingLocation(String meetingLocation) { this.meetingLocation = meetingLocation; }
-        public String getMeetingTime() { return meetingTime; }
-        public void setMeetingTime(String meetingTime) { this.meetingTime = meetingTime; }
-        public int getTradeStatus() { return tradeStatus; }
-        public void setTradeStatus(int tradeStatus) { this.tradeStatus = tradeStatus; }
-        public long getBuyerId() { return buyerId; }
-        public void setBuyerId(long buyerId) { this.buyerId = buyerId; }
-        public long getSellerId() { return sellerId; }
-        public void setSellerId(long sellerId) { this.sellerId = sellerId; }
-        public String getBuyerPhone() { return buyerPhone; }
-        public void setBuyerPhone(String buyerPhone) { this.buyerPhone = buyerPhone; }
-        public String getSellerPhone() { return sellerPhone; }
-        public void setSellerPhone(String sellerPhone) { this.sellerPhone = sellerPhone; }
     }
     
     /**
@@ -98,22 +58,23 @@ public class TradeMessageHelper {
             return;
         }
         
-        // 构建交易数据对象
-        TradeData tradeDataObj = new TradeData();
-        tradeDataObj.setTradeNo(tradeNo);
-        tradeDataObj.setProductName(product != null ? product.getName() : "");
-        tradeDataObj.setProductPrice(product != null ? product.getPrice() : 0);
-        tradeDataObj.setProductImage(product != null && product.getImages() != null && !product.getImages().isEmpty()
+        // 直接使用 TradeInfo 作为交易数据对象
+        TradeInfo tradeInfo = new TradeInfo();
+        tradeInfo.setId(tradeId);
+        tradeInfo.setTradeNo(tradeNo);
+        tradeInfo.setTradeStatus(tradeStatus);
+        tradeInfo.setBuyerId(buyerId);
+        tradeInfo.setSellerId(sellerId);
+        tradeInfo.setProductName(product != null ? product.getName() : "");
+        tradeInfo.setProductPrice(product != null ? product.getPrice() : 0);
+        tradeInfo.setProductImage(product != null && product.getImages() != null && !product.getImages().isEmpty()
                 ? product.getImages().get(0) : "");
-        tradeDataObj.setMeetingLocation(meetingLocation);
-        tradeDataObj.setMeetingTime(meetingTime);
-        tradeDataObj.setTradeStatus(tradeStatus);
-        tradeDataObj.setBuyerId(buyerId);
-        tradeDataObj.setSellerId(sellerId);
-        tradeDataObj.setBuyerPhone(buyerPhone);
-        tradeDataObj.setSellerPhone(sellerPhone);
+        tradeInfo.setMeetingLocation(meetingLocation);
+        tradeInfo.setMeetingTime(meetingTime);
+        tradeInfo.setBuyerPhone(buyerPhone);
+        tradeInfo.setSellerPhone(sellerPhone);
         
-        String tradeDataJson = gson.toJson(tradeDataObj);
+        String tradeDataJson = gson.toJson(tradeInfo);
         
         // 构建消息请求体
         ChatMessage message = new ChatMessage();
@@ -157,6 +118,7 @@ public class TradeMessageHelper {
     
     /**
      * 简化版本 - 从 TradeInfo 对象发送交易卡片
+     * 直接序列化传入的 TradeInfo 对象
      */
     public static void sendTradeCardMessage(TradeInfo tradeInfo, long receiverId, 
                                            Product product, SendCallback callback) {
@@ -165,19 +127,64 @@ public class TradeMessageHelper {
             return;
         }
         
-        sendTradeCardMessage(
-            tradeInfo.getId() != null ? tradeInfo.getId() : 0,
-            tradeInfo.getTradeStatus() != null ? tradeInfo.getTradeStatus() : 0,
-            tradeInfo.getTradeNo(),
-            receiverId,
-            tradeInfo.getBuyerId() != null ? tradeInfo.getBuyerId() : 0,
-            tradeInfo.getSellerId() != null ? tradeInfo.getSellerId() : 0,
-            product,
-            tradeInfo.getMeetingLocation(),
-            tradeInfo.getMeetingTime(),
-            tradeInfo.getBuyerPhone(),
-            tradeInfo.getSellerPhone(),
-            callback
-        );
+        // 补充商品信息（如果 TradeInfo 中缺失）
+        if (product != null) {
+            if (tradeInfo.getProductName() == null || tradeInfo.getProductName().isEmpty()) {
+                tradeInfo.setProductName(product.getName());
+            }
+            if (tradeInfo.getProductPrice() == null || tradeInfo.getProductPrice() == 0) {
+                tradeInfo.setProductPrice(product.getPrice());
+            }
+            if (tradeInfo.getProductImage() == null || tradeInfo.getProductImage().isEmpty()) {
+                if (product.getImages() != null && !product.getImages().isEmpty()) {
+                    tradeInfo.setProductImage(product.getImages().get(0));
+                }
+            }
+        }
+        
+        // 直接序列化 TradeInfo
+        String tradeDataJson = gson.toJson(tradeInfo);
+        
+        long tradeId = tradeInfo.getId() != null ? tradeInfo.getId() : 0;
+        int tradeStatus = tradeInfo.getTradeStatus() != null ? tradeInfo.getTradeStatus() : 0;
+        
+        // 构建消息请求体
+        ChatMessage message = new ChatMessage();
+        message.setReceiverId(receiverId);
+        message.setContent("交易卡片");
+        message.setType(1); // 交易消息类型
+        message.setTradeId(tradeId);
+        message.setTradeStatus(tradeStatus);
+        message.setTradeData(tradeDataJson);
+        
+        String body = gson.toJson(message);
+        
+        ApiClient.post("api/message/send", body, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Log.e(TAG, "发送交易卡片失败: " + e.getMessage());
+                callback.onFailure("发送失败");
+            }
+            
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                String respBody = response.body().string();
+                try {
+                    com.google.gson.JsonObject obj = gson.fromJson(respBody, 
+                        com.google.gson.JsonObject.class);
+                    if (obj.get("code").getAsInt() == 200) {
+                        Log.d(TAG, "交易卡片发送成功");
+                        callback.onSuccess();
+                    } else {
+                        String errorMsg = obj.get("msg").getAsString();
+                        Log.e(TAG, "发送失败: " + errorMsg);
+                        callback.onFailure(errorMsg);
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "解析响应失败: " + e.getMessage());
+                    callback.onFailure("发送失败");
+                }
+            }
+        });
     }
 }

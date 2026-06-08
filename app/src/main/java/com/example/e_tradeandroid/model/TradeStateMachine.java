@@ -134,14 +134,14 @@ public class TradeStateMachine {
      * 判断当前是否为卖家已确认状态
      */
     public boolean isSellerCompleted() {
-        return currentStatus == TradeStatus.SELLER_COMPLETED;
+        return currentStatus == TradeStatus.SELLER_CONFIRMED;
     }
     
     /**
      * 判断当前是否为买家已确认状态
      */
-    public boolean isBuyerCompleted() {
-        return currentStatus == TradeStatus.BUYER_COMPLETED;
+    public boolean isBuyerConfirmed() {
+        return currentStatus == TradeStatus.BUYER_CONFIRMED;
     }
     
     /**
@@ -149,13 +149,6 @@ public class TradeStateMachine {
      */
     public boolean isWaitingForOther() {
         return currentStatus.isWaitingForOther();
-    }
-    
-    /**
-     * 判断当前是否为待确认修改状态
-     */
-    public boolean isPendingUpdate() {
-        return currentStatus == TradeStatus.PENDING_UPDATE;
     }
     
     /**

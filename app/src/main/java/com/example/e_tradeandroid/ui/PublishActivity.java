@@ -17,12 +17,15 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.e_tradeandroid.R;
 import com.example.e_tradeandroid.model.BaseResponse;
 import com.example.e_tradeandroid.model.Category;
 import com.example.e_tradeandroid.network.ApiClient;
+import com.example.e_tradeandroid.util.NavUtils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -45,9 +48,9 @@ public class PublishActivity extends AppCompatActivity {
     private TextView tv_title_counter;
     private Spinner spinner_category;
     
-    // 底部按钮和导航
+    // 底部按钮
     private Button btn_publish;
-    private com.google.android.material.bottomnavigation.BottomNavigationView bottom_navigation;
+    private BottomNavigationView bottom_nav;
 
     private final Gson gson = new Gson();
     private List<android.net.Uri> selectedImageUris = new ArrayList<>();
@@ -84,15 +87,12 @@ public class PublishActivity extends AppCompatActivity {
         tv_title_counter = findViewById(R.id.tv_title_counter);
         spinner_category = findViewById(R.id.spinner_category);
         
-        // 底部按钮和导航
+        // 底部按钮
         btn_publish = findViewById(R.id.btn_publish);
-        bottom_navigation = findViewById(R.id.bottom_navigation);
+        bottom_nav = findViewById(R.id.bottom_nav);
     }
     
     private void initListeners() {
-        // 初始化底部导航
-        initBottomNav();
-        
         // 加载分类列表
         loadCategories();
         
@@ -115,33 +115,11 @@ public class PublishActivity extends AppCompatActivity {
         
         // 发布按钮
         btn_publish.setOnClickListener(v -> submitPublish());
-    }
-    
-    // 初始化底部导航
-    private void initBottomNav() {
-        bottom_navigation.setSelectedItemId(R.id.nav_publish);
-        bottom_navigation.setOnItemSelectedListener(item -> {
-            int itemId = item.getItemId();
-            if (itemId == R.id.nav_home) {
-                startActivity(new Intent(PublishActivity.this, MainActivity.class));
-                finish();
-                return true;
-            } else if (itemId == R.id.nav_orders) {
-                startActivity(new Intent(PublishActivity.this, OrderListActivity.class));
-                finish();
-                return true;
-            } else if (itemId == R.id.nav_messages) {
-                startActivity(new Intent(PublishActivity.this, MessageListActivity.class));
-                finish();
-                return true;
-            } else if (itemId == R.id.nav_profile) {
-                startActivity(new Intent(PublishActivity.this, MyProfileActivity.class));
-                finish();
-                return true;
-            } else if (itemId == R.id.nav_publish) {
-                return true;
-            }
-            return false;
+        
+        // 底部导航栏
+        bottom_nav.setSelectedItemId(R.id.nav_publish);
+        bottom_nav.setOnItemSelectedListener(item -> {
+            return NavUtils.handleNavClick(this, item.getItemId());
         });
     }
     

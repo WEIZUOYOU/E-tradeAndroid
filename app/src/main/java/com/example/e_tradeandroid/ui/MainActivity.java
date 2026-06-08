@@ -23,6 +23,7 @@ import com.example.e_tradeandroid.model.BaseResponse;
 import com.example.e_tradeandroid.model.Category;
 import com.example.e_tradeandroid.model.Product;
 import com.example.e_tradeandroid.network.ApiClient;
+import com.example.e_tradeandroid.util.NavUtils;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -60,7 +61,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        ApiClient.init(this);
+        // ApiClient 已在 AppContext（Application）中初始化，无需重复初始化
+        // 重复初始化会导致 OkHttpClient 被重建，Cookie 可能丢失
 
         setContentView(R.layout.activity_main);
 
@@ -256,24 +258,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupBottomNav() {
         bottomNavigation.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
-            if (id == R.id.nav_home) {
-                return true;
-            } else if (id == R.id.nav_publish) {
-                startActivity(new Intent(this, PublishActivity.class));
-                return true;
-            } else if (id == R.id.nav_orders) {
-                startActivity(new Intent(this, OrderListActivity.class));
-                return true;
-            } else if (id == R.id.nav_messages) {
-                startActivity(new Intent(this, MessageListActivity.class));
-                finish();
-                return true;
-            } else if (id == R.id.nav_profile) {
-                startActivity(new Intent(this, MyProfileActivity.class));
-                return true;
-            }
-            return false;
+            return NavUtils.handleNavClick(this, item.getItemId());
         });
     }
 

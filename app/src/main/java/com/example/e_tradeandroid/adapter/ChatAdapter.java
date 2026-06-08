@@ -1,25 +1,24 @@
 package com.example.e_tradeandroid.adapter;
 
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.ImageView;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 import com.example.e_tradeandroid.R;
 import com.example.e_tradeandroid.model.ChatMessage;
 import com.example.e_tradeandroid.model.TradeInfo;
-import com.example.e_tradeandroid.network.ApiClient;
 import com.google.gson.Gson;
 
 import java.util.List;
+import java.util.Map;
 
 public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final List<ChatMessage> list;
@@ -54,7 +53,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 v = LayoutInflater.from(p.getContext()).inflate(R.layout.item_chat_other, p, false);
                 return new OtherVH(v);
             case TRADE_CARD:
-                v = LayoutInflater.from(p.getContext()).inflate(R.layout.item_trade_card, p, false);
+                v = LayoutInflater.from(p.getContext()).inflate(R.layout.item_trade_card_compact_v2, p, false);
                 return new TradeCardVH(v);
             default:
                 v = LayoutInflater.from(p.getContext()).inflate(R.layout.item_chat_other, p, false);
@@ -72,237 +71,222 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             bindTradeCard(h, m);
         } else {
             BaseVH h = (BaseVH) holder;
-            h.content.setText(m.getContent());
-            h.time.setText(m.getCreateTime());
+            h.content.setText(m.getContent() != null ? m.getContent() : "");
+            String timeStr = formatTime(m.getCreateTime());
+            h.time.setText(timeStr);
         }
     }
 
+    /**
+     * 交易卡片绑定逻辑 - 强制重置+安全解析+异常兜底
+     */
     private void bindTradeCard(TradeCardVH h, ChatMessage m) {
+        // ========== 第一步：强制重置所有可能残留的 UI ==========
+        h.tvSenderRole.setText("");
+        h.tvContent.setText("");
+        h.tvTime.setText("");
+
+        // 重置背景和对齐为默认值（接收方样式）
+        h.cardRoot.setBackgroundResource(R.drawable.bg_trade_card_other_new);
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) h.cardRoot.getLayoutParams();
+        params.gravity = Gravity.START;
+        h.cardRoot.setLayoutParams(params);
+
+        // 时间兜底
+        String timeStr = formatTime(m.getCreateTime());
+        h.tvTime.setText(timeStr);
+
+        // ========== 第二步：安全解析 tradeData ==========
+        TradeInfo tradeInfo = null;
         try {
-            TradeInfo tradeInfo = gson.fromJson(m.getTradeData(), TradeInfo.class);
-
-            // 设置商品信息
-            if (tradeInfo.getProductImage() != null && !tradeInfo.getProductImage().isEmpty()) {
-                String imageUrl = tradeInfo.getProductImage().startsWith("http")
-                        ? tradeInfo.getProductImage()
-                        : ApiClient.BASE_URL + tradeInfo.getProductImage();
-                Glide.with(h.itemView.getContext())
-                        .load(imageUrl)
-                        .placeholder(R.drawable.ic_launcher_foreground)
-                        .into(h.ivProduct);
+            if (m.getTradeData() != null && !m.getTradeData().isEmpty()) {
+                tradeInfo = gson.fromJson(m.getTradeData(), TradeInfo.class);
             }
+        } catch (Exception e) {
+            Log.e("ChatAdapter", "bindTradeCard parse error: " + e.getMessage());
+        }
 
-            h.tvProductName.setText(tradeInfo.getProductName() != null ? tradeInfo.getProductName() : "");
-            h.tvProductPrice.setText("￥" + (tradeInfo.getProductPrice() != null ? tradeInfo.getProductPrice() : "0.00"));
-
-            // 设置交易信息
-            h.tvLocation.setText(tradeInfo.getMeetingLocation() != null ? tradeInfo.getMeetingLocation() : "");
-            h.tvTime.setText(tradeInfo.getMeetingTime() != null ? tradeInfo.getMeetingTime() : "");
-
-            // 设置联系电话（始终显示对方的电话）
-            String phone = "";
-            long buyerId = tradeInfo.getBuyerId() != null ? tradeInfo.getBuyerId() : 0;
-            long sellerId = tradeInfo.getSellerId() != null ? tradeInfo.getSellerId() : 0;
-            
-            if (buyerId == selfId) {
-                // 当前用户是买家，显示卖家电话
-                phone = tradeInfo.getSellerPhone();
-            } else if (sellerId == selfId) {
-                // 当前用户是卖家，显示买家电话
-                phone = tradeInfo.getBuyerPhone();
-            }
-            
-            if (phone != null && phone.length() >= 11) {
-                h.tvPhone.setText(phone.substring(0, 3) + "****" + phone.substring(7));
-            } else {
-                h.tvPhone.setText("未填写");
-            }
-
-            // 设置交易状态
-            h.tvTradeStatus.setText(getTradeStatusText(tradeInfo.getTradeStatus()));
-            h.tvTradeStatus.setBackgroundResource(getTradeStatusBg(tradeInfo.getTradeStatus()));
-
-            // 设置操作按钮
-            int status = tradeInfo.getTradeStatus() != null ? tradeInfo.getTradeStatus() : 0;
-            setupTradeActionButton(h, m, status);
-
-            // 设置卡片点击事件
-            h.llTradeCard.setOnClickListener(v -> {
+        // ========== 第三步：如果解析失败或数据无效，显示兜底文案 ==========
+        if (tradeInfo == null) {
+            h.tvSenderRole.setText("系统");
+            h.tvContent.setText("卡片数据异常");
+            // 即使数据异常，也设置点击事件，让用户可以尝试查看详情
+            h.cardRoot.setOnClickListener(v -> {
                 if (tradeCardClickListener != null) {
                     tradeCardClickListener.onTradeCardClick(m);
                 }
             });
+            return;
+        }
 
-            // 设置操作按钮点击事件
-            h.btnAction.setOnClickListener(v -> {
-                if (tradeCardClickListener != null) {
-                    tradeCardClickListener.onTradeActionClick(m);
-                }
-            });
+        // ========== 第四步：正常渲染逻辑 ==========
+        long buyerId = tradeInfo.getBuyerId() != null ? tradeInfo.getBuyerId() : 0;
+        long sellerId = tradeInfo.getSellerId() != null ? tradeInfo.getSellerId() : 0;
+        boolean isCurrentUserBuyer = (buyerId == selfId);
+        boolean isCurrentUserSeller = (sellerId == selfId);
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        // 获取有效状态：优先用外层消息的 tradeStatus，其次 tradeData 内的
+        int status = (m.getTradeStatus() != null && m.getTradeStatus() != 0)
+                        ? m.getTradeStatus()
+                        : (tradeInfo.getTradeStatus() != null ? tradeInfo.getTradeStatus() : 0);
+
+        // 计算逻辑上的"发送方"角色
+        boolean isLogicalSelfSent = isLogicalSelfSent(status, isCurrentUserBuyer, isCurrentUserSeller);
+
+        // 设置背景和对齐
+        params = (FrameLayout.LayoutParams) h.cardRoot.getLayoutParams();
+        if (isLogicalSelfSent) {
+            params.gravity = Gravity.END;
+            h.cardRoot.setBackgroundResource(R.drawable.bg_trade_card_self_new);
+            h.tvSenderRole.setTextColor(0xFF1565C0); // 蓝色
+        } else {
+            params.gravity = Gravity.START;
+            h.cardRoot.setBackgroundResource(R.drawable.bg_trade_card_other_new);
+            h.tvSenderRole.setTextColor(0xFFD84315); // 橙色
+        }
+        h.cardRoot.setLayoutParams(params);
+
+        // 获取文案
+        CardContent content = getCardContentStrict(status, isCurrentUserBuyer, isCurrentUserSeller, isLogicalSelfSent);
+        h.tvSenderRole.setText(content.role);
+        h.tvContent.setText(content.message);
+
+        // 点击事件保持不变
+        h.cardRoot.setOnClickListener(v -> {
+            if (tradeCardClickListener != null) {
+                tradeCardClickListener.onTradeCardClick(m);
+            }
+        });
+    }
+    
+    /**
+     * 根据交易状态和当前用户角色，计算这条卡片在逻辑上是否应该显示为"自己发出的"
+     * （即：当前用户是这条卡片所代表操作的实际执行者）
+     */
+    private boolean isLogicalSelfSent(int status, boolean isCurrentUserBuyer, boolean isCurrentUserSeller) {
+        switch (status) {
+            case 0: return isCurrentUserBuyer;
+            case 1: return isCurrentUserSeller;
+            case 2: return isCurrentUserBuyer;
+            case 3: return isCurrentUserSeller;
+            case 4: return false;   // 双方都看到相同的"交易结束"
+            case 6: return isCurrentUserBuyer;
+            case 7: return isCurrentUserSeller;
+            case 8: return false;   // 双方都看到"评价完结"
+            case 5: return false;   // 取消消息统一居左
+            default: return false;
         }
     }
 
-    private void setupTradeActionButton(TradeCardVH h, ChatMessage m, int status) {
-        boolean isSelf = m.getSenderId() != null && m.getSenderId().intValue() == selfId;
-        
-        // 尝试从交易数据中解析买家和卖家ID
-        long buyerId = 0;
-        long sellerId = 0;
-        try {
-            if (m.getTradeData() != null && !m.getTradeData().isEmpty()) {
-                com.google.gson.JsonObject tradeObj = new com.google.gson.Gson()
-                    .fromJson(m.getTradeData(), com.google.gson.JsonObject.class);
-                if (tradeObj.has("buyerId")) {
-                    buyerId = tradeObj.get("buyerId").getAsLong();
-                }
-                if (tradeObj.has("sellerId")) {
-                    sellerId = tradeObj.get("sellerId").getAsLong();
-                }
-            }
-        } catch (Exception e) {
-            // 解析失败，使用默认值
-        }
-        
-        // 判断当前用户是买家还是卖家
-        boolean isCurrentUserBuyer = buyerId != 0 && buyerId == selfId;
-        boolean isCurrentUserSeller = sellerId != 0 && sellerId == selfId;
-        
-        Log.d("ChatAdapter", "setupTradeActionButton: status=" + status + 
-                ", isSelf=" + isSelf + ", isBuyer=" + isCurrentUserBuyer + 
-                ", isSeller=" + isCurrentUserSeller);
-
+    /**
+     * 根据交易状态、用户角色、是否逻辑自己的卡片，获取对应的文案（角色名 + 消息内容）
+     */
+    private CardContent getCardContentStrict(int status, boolean isCurrentUserBuyer,
+                                             boolean isCurrentUserSeller, boolean isLogicalSelfSent) {
+        CardContent content = new CardContent();
         switch (status) {
-            case 0: // 待卖家确认
-                if (isCurrentUserSeller) {
-                    // 卖家看到待确认卡片，显示确认按钮
-                    h.btnAction.setVisibility(View.VISIBLE);
-                    h.btnAction.setText("去确认");
-                    h.btnAction.setBackgroundResource(R.drawable.bg_btn_primary);
-                    h.btnAction.setEnabled(true);
+            case 0: // 买家发起交易申请
+                if (isLogicalSelfSent) {
+                    content.role = "我（买家）";
+                    content.message = "你已发起交易申请，等待卖家确认";
                 } else {
-                    // 买家看到待确认卡片（包括自己发的），显示等待状态
-                    h.btnAction.setVisibility(View.VISIBLE);
-                    h.btnAction.setText("待卖家确认");
-                    h.btnAction.setBackgroundResource(R.drawable.bg_status_tag);
-                    h.btnAction.setEnabled(false);
+                    content.role = "买家";
+                    content.message = "买家发来新的交易申请，请确认";
                 }
                 break;
-            case 1: // 待交易
-                // 判断当前用户是否可以操作（根据角色而非发送者）
-                boolean canComplete = false;
-                if (isCurrentUserBuyer) {
-                    // 买家可以确认完成
-                    canComplete = true;
-                } else if (isCurrentUserSeller) {
-                    // 卖家可以确认完成
-                    canComplete = true;
-                }
-                
-                if (canComplete) {
-                    // 当前用户可以操作，显示确认完成按钮
-                    h.btnAction.setVisibility(View.VISIBLE);
-                    h.btnAction.setText("确认完成");
-                    h.btnAction.setBackgroundResource(R.drawable.bg_btn_primary);
-                    h.btnAction.setEnabled(true);
+            case 1: // 卖家确认交易申请
+                if (isLogicalSelfSent) {
+                    content.role = "我（卖家）";
+                    content.message = "你已确认申请，等待线下交易";
                 } else {
-                    // 当前用户不能操作，显示待交易状态
-                    h.btnAction.setVisibility(View.VISIBLE);
-                    h.btnAction.setText("待交易");
-                    h.btnAction.setBackgroundResource(R.drawable.bg_status_tag);
-                    h.btnAction.setEnabled(false);
+                    content.role = "卖家";
+                    content.message = "卖家已确认申请，交易进入待交易阶段";
                 }
                 break;
-            case 2: // 卖家已确认，等待买家
-                if (isCurrentUserBuyer) {
-                    // 买家看到，需要确认
-                    h.btnAction.setVisibility(View.VISIBLE);
-                    h.btnAction.setText("确认完成");
-                    h.btnAction.setBackgroundResource(R.drawable.bg_btn_primary);
-                    h.btnAction.setEnabled(true);
+            case 2: // 买家已确认完成（等待卖家确认）
+                if (isLogicalSelfSent) {
+                    content.role = "我（买家）";
+                    content.message = "你已确认交易完成，等待卖家确认";
                 } else {
-                    // 卖家看到，等待买家确认
-                    h.btnAction.setVisibility(View.VISIBLE);
-                    h.btnAction.setText("待买家确认");
-                    h.btnAction.setBackgroundResource(R.drawable.bg_status_tag);
-                    h.btnAction.setEnabled(false);
+                    content.role = "买家";
+                    content.message = "买家已确认交易完成，请你确认";
                 }
                 break;
-            case 3: // 买家已确认，等待卖家
-                if (isCurrentUserSeller) {
-                    // 卖家看到，需要确认
-                    h.btnAction.setVisibility(View.VISIBLE);
-                    h.btnAction.setText("确认完成");
-                    h.btnAction.setBackgroundResource(R.drawable.bg_btn_primary);
-                    h.btnAction.setEnabled(true);
+            case 3: // 卖家已确认完成（等待买家确认）
+                if (isLogicalSelfSent) {
+                    content.role = "我（卖家）";
+                    content.message = "你已确认交易完成，等待买家确认";
                 } else {
-                    // 买家看到，等待卖家确认
-                    h.btnAction.setVisibility(View.VISIBLE);
-                    h.btnAction.setText("待卖家确认");
-                    h.btnAction.setBackgroundResource(R.drawable.bg_status_tag);
-                    h.btnAction.setEnabled(false);
+                    content.role = "卖家";
+                    content.message = "卖家已确认交易完成，请你确认";
                 }
                 break;
-            case 4: // 待确认修改
-                if (!isSelf) {
-                    // 对方发起的修改，显示确认修改按钮
-                    h.btnAction.setVisibility(View.VISIBLE);
-                    h.btnAction.setText("确认修改");
-                    h.btnAction.setBackgroundResource(R.drawable.bg_btn_primary);
-                    h.btnAction.setEnabled(true);
+            case 4: // 双方均确认交易完成
+                content.role = isCurrentUserBuyer ? "我（买家）" : "我（卖家）";
+                content.message = "双方已确认，交易结束，请评价";
+                break;
+            case 6: // 买家提交评价
+                if (isLogicalSelfSent) {
+                    content.role = "我（买家）";
+                    content.message = "你已评价，等待卖家评价";
                 } else {
-                    // 自己发起的修改，显示等待确认
-                    h.btnAction.setVisibility(View.VISIBLE);
-                    h.btnAction.setText("等待确认");
-                    h.btnAction.setBackgroundResource(R.drawable.bg_status_tag);
-                    h.btnAction.setEnabled(false);
+                    content.role = "买家";
+                    content.message = "买家已评价，请你也评价";
                 }
                 break;
-            case 5: // 已完成
-                h.btnAction.setVisibility(View.VISIBLE);
-                h.btnAction.setText("已完成");
-                h.btnAction.setBackgroundResource(R.drawable.bg_btn_success);
-                h.btnAction.setEnabled(false);
+            case 7: // 卖家提交评价
+                if (isLogicalSelfSent) {
+                    content.role = "我（卖家）";
+                    content.message = "你已评价，等待买家评价";
+                } else {
+                    content.role = "卖家";
+                    content.message = "卖家已评价，请你也评价";
+                }
                 break;
-            case 6: // 已取消
-                h.btnAction.setVisibility(View.VISIBLE);
-                h.btnAction.setText("已取消");
-                h.btnAction.setBackgroundResource(R.drawable.bg_btn_danger);
-                h.btnAction.setEnabled(false);
+            case 8: // 双方均完成评价
+                content.role = isCurrentUserBuyer ? "我（买家）" : "我（卖家）";
+                content.message = "双方已完成评价，交易完结";
+                break;
+            case 5: // 交易取消
+                content.role = "系统";
+                content.message = "交易已取消";
                 break;
             default:
-                h.btnAction.setVisibility(View.GONE);
+                content.role = "未知";
+                content.message = "交易状态更新";
         }
+        return content;
     }
 
-    private String getTradeStatusText(Integer status) {
-        if (status == null) return "未知状态";
-        switch (status) {
-            case 0: return "待卖家确认";
-            case 1: return "待交易";
-            case 2: return "卖家已确认";
-            case 3: return "买家已确认";
-            case 4: return "待确认修改";
-            case 5: return "已完成";
-            case 6: return "已取消";
-            default: return "未知状态";
-        }
+    /**
+     * 卡片内容数据类
+     */
+    private static class CardContent {
+        String role = "";
+        String message = "";
     }
-
-    private int getTradeStatusBg(Integer status) {
-        if (status == null) return R.drawable.bg_status_tag;
-        switch (status) {
-            case 0: return R.drawable.bg_status_tag; // 橙色
-            case 1: return R.drawable.bg_btn_success; // 绿色
-            case 2: return R.drawable.bg_btn_primary; // 蓝色（等待买家）
-            case 3: return R.drawable.bg_btn_primary; // 蓝色（等待卖家）
-            case 4: return R.drawable.bg_status_tag; // 橙色（待确认修改）
-            case 5: return R.drawable.bg_btn_success; // 绿色
-            case 6: return R.drawable.bg_btn_danger; // 红色（已取消）
-            default: return R.drawable.bg_status_tag;
+    
+    /**
+     * 查找交易的最新状态（备用方案）
+     */
+    private int findLatestTradeStatus(long tradeId) {
+        int latestStatus = 0;
+        for (ChatMessage msg : list) {
+            if (msg.getType() != null && msg.getType() == 1) {
+                try {
+                    TradeInfo tradeInfo = gson.fromJson(msg.getTradeData(), TradeInfo.class);
+                    if (tradeInfo.getId() != null && tradeInfo.getId() == tradeId) {
+                        int status = tradeInfo.getTradeStatus() != null ? tradeInfo.getTradeStatus() : 0;
+                        if (status > latestStatus) {
+                            latestStatus = status;
+                        }
+                    }
+                } catch (Exception e) {
+                    // ignore
+                }
+            }
         }
+        return latestStatus;
     }
 
     @Override
@@ -313,7 +297,6 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     @Override
     public int getItemViewType(int pos) {
         ChatMessage msg = list.get(pos);
-        // type=1表示交易卡片消息
         if (msg.getType() != null && msg.getType() == 1) {
             return TRADE_CARD;
         }
@@ -342,24 +325,47 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
     }
 
+    /**
+     * 极简交易卡片ViewHolder
+     */
     public static class TradeCardVH extends RecyclerView.ViewHolder {
-        LinearLayout llTradeCard;
-        TextView tvTradeStatus, tvProductName, tvProductPrice;
-        TextView tvLocation, tvTime, tvPhone;
-        ImageView ivProduct;
-        Button btnAction;
+        LinearLayout cardRoot;
+        TextView tvSenderRole;
+        TextView tvContent;
+        TextView tvTime;
 
         public TradeCardVH(View v) {
             super(v);
-            llTradeCard = v.findViewById(R.id.ll_trade_card);
-            tvTradeStatus = v.findViewById(R.id.tv_trade_status);
-            tvProductName = v.findViewById(R.id.tv_product_name);
-            tvProductPrice = v.findViewById(R.id.tv_product_price);
-            tvLocation = v.findViewById(R.id.tv_location);
+            cardRoot = v.findViewById(R.id.card_root);
+            tvSenderRole = v.findViewById(R.id.tv_sender_role);
+            tvContent = v.findViewById(R.id.tv_content);
             tvTime = v.findViewById(R.id.tv_time);
-            tvPhone = v.findViewById(R.id.tv_phone);
-            ivProduct = v.findViewById(R.id.iv_product);
-            btnAction = v.findViewById(R.id.btn_action);
+        }
+    }
+    
+    /**
+     * 格式化时间显示
+     * @param timestamp 时间戳字符串（支持时间戳、"yyyy-MM-dd HH:mm:ss"格式）
+     * @return 格式化的时间字符串（HH:mm格式）
+     */
+    private String formatTime(String timestamp) {
+        if (timestamp == null || timestamp.isEmpty()) return "";
+        try {
+            // 尝试解析为时间戳（秒/毫秒）
+            long ts = Long.parseLong(timestamp);
+            if (ts < 10000000000L) ts *= 1000;
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault());
+            return sdf.format(new java.util.Date(ts));
+        } catch (NumberFormatException e) {
+            // 不是纯数字，尝试解析为 "yyyy-MM-dd HH:mm:ss" 格式
+            try {
+                java.text.SimpleDateFormat sdfInput = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault());
+                java.util.Date date = sdfInput.parse(timestamp);
+                java.text.SimpleDateFormat sdfOutput = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault());
+                return sdfOutput.format(date);
+            } catch (Exception ex) {
+                return timestamp; // 返回原始字符串
+            }
         }
     }
 }

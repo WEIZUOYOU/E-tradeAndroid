@@ -24,7 +24,7 @@ public class TradeInfo {
     @SerializedName("buyerCreditScore")
     private Integer buyerCreditScore;
     @SerializedName("buyerIsAuth")
-    private Integer buyerIsAuth;
+    private Boolean buyerIsAuth;
     @SerializedName("buyerPhone")
     private String buyerPhone;
     @SerializedName("sellerId")
@@ -36,14 +36,14 @@ public class TradeInfo {
     @SerializedName("sellerCreditScore")
     private Integer sellerCreditScore;
     @SerializedName("sellerIsAuth")
-    private Integer sellerIsAuth;
+    private Boolean sellerIsAuth;
     @SerializedName("sellerPhone")
     private String sellerPhone;
     @SerializedName("meetingLocation")
     private String meetingLocation;
     @SerializedName("meetingTime")
     private String meetingTime;
-    @SerializedName("tradeStatus")
+    @SerializedName("status")
     private Integer tradeStatus;
     @SerializedName("createTime")
     private String createTime;
@@ -128,11 +128,11 @@ public class TradeInfo {
         this.buyerCreditScore = buyerCreditScore;
     }
 
-    public Integer getBuyerIsAuth() {
+    public Boolean getBuyerIsAuth() {
         return buyerIsAuth;
     }
 
-    public void setBuyerIsAuth(Integer buyerIsAuth) {
+    public void setBuyerIsAuth(Boolean buyerIsAuth) {
         this.buyerIsAuth = buyerIsAuth;
     }
 
@@ -176,11 +176,11 @@ public class TradeInfo {
         this.sellerCreditScore = sellerCreditScore;
     }
 
-    public Integer getSellerIsAuth() {
+    public Boolean getSellerIsAuth() {
         return sellerIsAuth;
     }
 
-    public void setSellerIsAuth(Integer sellerIsAuth) {
+    public void setSellerIsAuth(Boolean sellerIsAuth) {
         this.sellerIsAuth = sellerIsAuth;
     }
 

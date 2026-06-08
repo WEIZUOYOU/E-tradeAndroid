@@ -6,11 +6,10 @@ package com.example.e_tradeandroid.model;
 public enum TradeStatus {
     PENDING_CONFIRM(0, "待卖家确认"),
     CONFIRMED(1, "待交易"),
-    SELLER_COMPLETED(2, "卖家已确认"),  // 卖家点击完成，等待买家确认
-    BUYER_COMPLETED(3, "买家已确认"),   // 买家点击完成，等待卖家确认
-    PENDING_UPDATE(4, "待确认修改"),
-    COMPLETED(5, "已完成"),
-    CANCELLED(6, "已取消");
+    BUYER_CONFIRMED(2, "买家已确认"),   // 买家点击完成，等待卖家确认
+    SELLER_CONFIRMED(3, "卖家已确认"),  // 卖家点击完成，等待买家确认
+    COMPLETED(4, "已完成"),
+    CANCELLED(5, "已取消");
 
     private final int code;
     private final String description;
@@ -48,13 +47,11 @@ public enum TradeStatus {
             case PENDING_CONFIRM:
                 return target == CONFIRMED || target == CANCELLED;
             case CONFIRMED:
-                return target == SELLER_COMPLETED || target == BUYER_COMPLETED || target == PENDING_UPDATE || target == CANCELLED;
-            case SELLER_COMPLETED:
-                return target == BUYER_COMPLETED || target == CANCELLED; // 买家确认后进入已完成
-            case BUYER_COMPLETED:
-                return target == SELLER_COMPLETED || target == CANCELLED; // 卖家确认后进入已完成
-            case PENDING_UPDATE:
-                return target == CONFIRMED || target == CANCELLED;
+                return target == BUYER_CONFIRMED || target == SELLER_CONFIRMED || target == CANCELLED;
+            case BUYER_CONFIRMED:
+                return target == COMPLETED || target == CANCELLED; // 卖家确认后进入已完成
+            case SELLER_CONFIRMED:
+                return target == COMPLETED || target == CANCELLED; // 买家确认后进入已完成
             case COMPLETED:
                 return false; // 已完成状态不可转换
             case CANCELLED:
@@ -68,6 +65,6 @@ public enum TradeStatus {
      * 判断是否为等待对方确认的状态
      */
     public boolean isWaitingForOther() {
-        return this == SELLER_COMPLETED || this == BUYER_COMPLETED;
+        return this == SELLER_CONFIRMED || this == BUYER_CONFIRMED;
     }
 }

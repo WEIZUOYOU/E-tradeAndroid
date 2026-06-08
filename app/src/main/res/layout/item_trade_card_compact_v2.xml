@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="8dp">
+
+    <!-- 卡片根容器 -->
+    <LinearLayout
+        android:id="@+id/card_root"
+        android:layout_width="wrap_content"
+        android:minWidth="200dp"
+        android:maxWidth="280dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:gravity="center"
+        tools:layout_gravity="end"
+        tools:background="@drawable/bg_trade_card_self_new">
+
+        <!-- 卡片标题/角色标识 -->
+        <TextView
+            android:id="@+id/tv_sender_role"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="#666666"
+            android:layout_gravity="center"
+            tools:text="我（买家）"/>
+
+        <!-- 主内容文字 -->
+        <TextView
+            android:id="@+id/tv_content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#1A1A1A"
+            android:textAlignment="center"
+            android:lineSpacingExtra="4sp"
+            android:layout_marginTop="8dp"
+            tools:text="你已发起交易申请，等待卖家确认"/>
+
+        <!-- 发送时间 -->
+        <TextView
+            android:id="@+id/tv_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="11sp"
+            android:textColor="#999999"
+            android:layout_marginTop="8dp"
+            android:layout_gravity="end"
+            tools:text="12:30"/>
+
+    </LinearLayout>
+
+</FrameLayout>

@@ -20,6 +20,7 @@ import com.example.e_tradeandroid.model.BaseResponse;
 import com.example.e_tradeandroid.model.User;
 import com.example.e_tradeandroid.model.VerifyRequest;
 import com.example.e_tradeandroid.network.ApiClient;
+import com.example.e_tradeandroid.util.NavUtils;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -39,7 +40,7 @@ import okhttp3.Response;
 public class MyProfileActivity extends AppCompatActivity {
     private TextView tvStudentId, tvUsername, tvPhone, tvCreditScore, tvAuthStatus;
     private ImageView ivAvatar;
-    private Button btnLogout, btnMyProducts, btnRealnameAuth, btnEditProfile, btnGoLogin;
+    private Button btnLogout, btnMyProducts, btnRealnameAuth, btnEditProfile, btnGoLogin, btnMyReviews, btnMyOrders;
     private LinearLayout layoutLoggedIn, layoutNotLoggedIn;
     private BottomNavigationView bottomNavigation;
     private Gson gson = new Gson();
@@ -62,6 +63,8 @@ public class MyProfileActivity extends AppCompatActivity {
         btnRealnameAuth = findViewById(R.id.btn_realname_auth);
         btnEditProfile = findViewById(R.id.btn_edit_profile);
         btnGoLogin = findViewById(R.id.btn_go_login);
+        btnMyReviews = findViewById(R.id.btn_my_reviews);
+        btnMyOrders = findViewById(R.id.btn_my_orders);
         layoutLoggedIn = findViewById(R.id.layout_logged_in);
         layoutNotLoggedIn = findViewById(R.id.layout_not_logged_in);
         bottomNavigation = findViewById(R.id.bottom_navigation);
@@ -82,6 +85,14 @@ public class MyProfileActivity extends AppCompatActivity {
         btnRealnameAuth.setOnClickListener(v -> showRealnameAuthDialog());
 
         btnEditProfile.setOnClickListener(v -> showEditProfileDialog());
+
+        btnMyReviews.setOnClickListener(v ->
+            startActivity(new Intent(MyProfileActivity.this, MyReviewsActivity.class))
+        );
+
+        btnMyOrders.setOnClickListener(v ->
+            startActivity(new Intent(MyProfileActivity.this, MyOrdersActivity.class))
+        );
 
         ivAvatar.setOnClickListener(v -> pickImage());
     }
@@ -334,26 +345,7 @@ public class MyProfileActivity extends AppCompatActivity {
     private void setupBottomNavigation() {
         bottomNavigation.setSelectedItemId(R.id.nav_profile);
         bottomNavigation.setOnItemSelectedListener(item -> {
-            int itemId = item.getItemId();
-            if (itemId == R.id.nav_home) {
-                startActivity(new Intent(MyProfileActivity.this, MainActivity.class));
-                finish();
-                return true;
-            } else if (itemId == R.id.nav_publish) {
-                startActivity(new Intent(MyProfileActivity.this, PublishActivity.class));
-                return true;
-            } else if (itemId == R.id.nav_orders) {
-                startActivity(new Intent(MyProfileActivity.this, OrderListActivity.class));
-                finish();
-                return true;
-            } else if (itemId == R.id.nav_messages) {
-                startActivity(new Intent(MyProfileActivity.this, MessageListActivity.class));
-                finish();
-                return true;
-            } else if (itemId == R.id.nav_profile) {
-                return true;
-            }
-            return false;
+            return NavUtils.handleNavClick(this, item.getItemId());
         });
     }
 

@@ -18,6 +18,10 @@
     <color name="accent_yellow_light">#FAE06E</color>
     <color name="accent_yellow_dark">#E5C23A</color>
 
+    <!-- 辅助色 - 蓝色（自己发送的标识） -->
+    <color name="accent_blue">#1976D2</color>
+    <color name="accent_blue_light">#BBDEFB</color>
+
     <!-- 状态色 -->
     <color name="success_green">#2ECC71</color>
     <color name="warning_orange">#F39C12</color>

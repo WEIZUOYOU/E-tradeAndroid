@@ -1,84 +1,189 @@
 package com.example.e_tradeandroid.adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.e_tradeandroid.R;
-import com.example.e_tradeandroid.model.Order;
+import com.example.e_tradeandroid.model.TradeInfo;
+import com.example.e_tradeandroid.ui.TradeInfoActivity;
 
 import java.util.List;
 
-public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHolder> {
-    private final Context mContext;
-    private final List<Order> mOrderList;
+/**
+ * 订单列表适配器
+ */
+public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> {
 
-    // 新增：点击回调接口
-    public interface OnOrderClickListener {
-        void onOrderClick(Order order);
-    }
+    private Context context;
+    private List<TradeInfo> orderList;
+    private boolean isActive; // 是否是进行中的订单
 
-    private OnOrderClickListener mListener;
-
-    public OrderAdapter(Context context, List<Order> orderList, OnOrderClickListener listener) {
-        this.mContext = context;
-        this.mOrderList = orderList;
-        this.mListener = listener;
-    }
-
-    @NonNull
-    @Override
-    public OrderViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(mContext).inflate(R.layout.item_order, parent, false);
-        return new OrderViewHolder(view);
+    public OrderAdapter(Context context, List<TradeInfo> orderList, boolean isActive) {
+        this.context = context;
+        this.orderList = orderList;
+        this.isActive = isActive;
     }
 
     @Override
-    public void onBindViewHolder(@NonNull OrderViewHolder holder, int position) {
-        Order order = mOrderList.get(position);
-        holder.tvOrderNo.setText("订单号：" + order.getOrderNo());
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(context).inflate(R.layout.item_order, parent, false);
+        return new ViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(ViewHolder holder, int position) {
+        TradeInfo order = orderList.get(position);
+        
+        // 交易号
+        holder.tvTradeNo.setText("交易号：" + order.getTradeNo());
+        
+        // 状态
+        holder.tvStatus.setText(getStatusText(order.getTradeStatus()));
+        holder.tvStatus.setTextColor(getStatusColor(order.getTradeStatus()));
+        
+        // 商品名称
         holder.tvProductName.setText(order.getProductName());
-        holder.tvPrice.setText("¥" + order.getTotalAmount());
-
-        String statusStr;
-        switch (order.getStatus()) {
-            case 0: statusStr = "待卖家确认"; break;
-            case 1: statusStr = "交易中"; break;
-            case 2: statusStr = "待买家确认"; break;
-            case 3: statusStr = "待卖家确认完成"; break;
-            case 4: statusStr = "已完成"; break;
-            case 5: statusStr = "已取消"; break;
-            default: statusStr = "未知状态";
+        
+        // 价格
+        holder.tvPrice.setText("¥" + order.getProductPrice());
+        
+        // 时间
+        holder.tvTime.setText(formatTime(order.getMeetingTime()));
+        
+        // 商品图片
+        if (order.getProductImage() != null && !order.getProductImage().isEmpty()) {
+            Glide.with(context).load(order.getProductImage()).into(holder.ivProduct);
         }
-        holder.tvStatus.setText(statusStr);
-
-        // 绑定点击事件
-        holder.itemView.setOnClickListener(v -> {
-            if (mListener != null) {
-                mListener.onOrderClick(order);
-            }
+        
+        // 操作按钮
+        holder.btnAction.setOnClickListener(v -> {
+            Intent intent = new Intent(context, TradeInfoActivity.class);
+            intent.putExtra("tradeId", order.getId());
+            context.startActivity(intent);
         });
+        
+        // 根据状态设置按钮文字
+        setButtonText(holder.btnAction, order.getTradeStatus());
+    }
+
+    /**
+     * 获取状态文字
+     */
+    private String getStatusText(Integer status) {
+        if (status == null) return "未知";
+        switch (status) {
+            case 0: return "待卖家确认";
+            case 1: return "待线下交易";
+            case 2: return "卖家已确认完成";
+            case 3: return "买家已确认完成";
+            case 4: return "交易已完成";
+            case 5: return "交易已取消";
+            default: return "未知状态";
+        }
+    }
+
+    /**
+     * 获取状态颜色
+     */
+    private int getStatusColor(Integer status) {
+        if (status == null) return context.getResources().getColor(R.color.text_secondary);
+        
+        if (isActive) {
+            // 进行中的订单使用绿色
+            return context.getResources().getColor(R.color.primary_green);
+        } else {
+            // 已完成的订单使用灰色
+            return context.getResources().getColor(R.color.text_secondary);
+        }
+    }
+
+    /**
+     * 设置按钮文字
+     */
+    private void setButtonText(Button btn, Integer status) {
+        if (status == null) {
+            btn.setText("查看详情");
+            return;
+        }
+        
+        switch (status) {
+            case 0:
+                btn.setText("等待卖家确认");
+                btn.setEnabled(false);
+                break;
+            case 1:
+                btn.setText("确认完成");
+                btn.setEnabled(true);
+                break;
+            case 2:
+                btn.setText("确认完成");
+                btn.setEnabled(true);
+                break;
+            case 3:
+                btn.setText("确认完成");
+                btn.setEnabled(true);
+                break;
+            case 4:
+                btn.setText("去评价");
+                btn.setEnabled(true);
+                break;
+            case 5:
+                btn.setText("交易已取消");
+                btn.setEnabled(false);
+                break;
+            default:
+                btn.setText("查看详情");
+                btn.setEnabled(true);
+        }
+    }
+
+    /**
+     * 格式化时间
+     */
+    private String formatTime(String time) {
+        if (time == null || time.isEmpty()) {
+            return "";
+        }
+        try {
+            long timestamp = Long.parseLong(time);
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm");
+            return sdf.format(new java.util.Date(timestamp));
+        } catch (NumberFormatException e) {
+            if (time.contains("T")) {
+                return time.replace("T", " ").substring(0, 16);
+            }
+            return time;
+        }
     }
 
     @Override
     public int getItemCount() {
-        return mOrderList == null ? 0 : mOrderList.size();
+        return orderList != null ? orderList.size() : 0;
     }
 
-    public static class OrderViewHolder extends RecyclerView.ViewHolder {
-        TextView tvOrderNo, tvProductName, tvPrice, tvStatus;
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        TextView tvTradeNo, tvStatus, tvProductName, tvPrice, tvTime;
+        ImageView ivProduct;
+        Button btnAction;
 
-        public OrderViewHolder(@NonNull View itemView) {
+        public ViewHolder(View itemView) {
             super(itemView);
-            tvOrderNo = itemView.findViewById(R.id.tv_order_no);
-            tvProductName = itemView.findViewById(R.id.tv_order_name);
-            tvPrice = itemView.findViewById(R.id.tv_order_price);
-            tvStatus = itemView.findViewById(R.id.tv_order_status);
+            tvTradeNo = itemView.findViewById(R.id.tv_trade_no);
+            tvStatus = itemView.findViewById(R.id.tv_status);
+            tvProductName = itemView.findViewById(R.id.tv_product_name);
+            tvPrice = itemView.findViewById(R.id.tv_price);
+            tvTime = itemView.findViewById(R.id.tv_time);
+            ivProduct = itemView.findViewById(R.id.iv_product);
+            btnAction = itemView.findViewById(R.id.btn_action);
         }
     }
 }

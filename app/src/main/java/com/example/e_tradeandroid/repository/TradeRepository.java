@@ -114,8 +114,8 @@ public class TradeRepository {
     /**
      * 完成交易
      */
-    public void completeTrade(long tradeId, TradeCallback<Void> callback) {
-        ApiClient.post("api/trade/complete", "{\"tradeId\":" + tradeId + "}", new Callback() {
+    public void completeTrade(long tradeId, String operatorType, TradeCallback<Void> callback) {
+        ApiClient.post("api/trade/complete", "{\"tradeId\":" + tradeId + ",\"operatorType\":\"" + operatorType + "\"}", new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 callback.onFailure("操作失败");

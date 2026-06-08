@@ -9,6 +9,7 @@ import android.widget.LinearLayout;
 import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -230,22 +231,22 @@ public class TradeReviewActivity extends AppCompatActivity {
     }
 
     private void submitReview() {
-        // 1. 检查交易信息是否已加载
-        if (tradeInfo == null || tradeInfo.getTradeNo() == null) {
-            Toast.makeText(this, "交易信息加载中，请稍后", Toast.LENGTH_SHORT).show();
+        // 1. 检查评分（最重要，放在前面）
+        int rating = (int) ratingBar.getRating();
+        if (rating == 0) {
+            Toast.makeText(this, "请选择评分", Toast.LENGTH_SHORT).show();
             return;
         }
-        
+
         // 2. 检查评价目标用户ID是否有效
         if (toUserId <= 0) {
             Toast.makeText(this, "无法获取评价对象", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // 3. 检查评分
-        int rating = (int) ratingBar.getRating();
-        if (rating == 0) {
-            Toast.makeText(this, "请选择评分", Toast.LENGTH_SHORT).show();
+        // 3. 检查tradeId是否有效
+        if (tradeId <= 0) {
+            Toast.makeText(this, "交易ID无效", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -254,16 +255,23 @@ public class TradeReviewActivity extends AppCompatActivity {
 
         String comment = etComment.getText().toString().trim();
 
+        // 构建请求 - 匹配后端 API: POST /api/review
         ReviewRequest request = new ReviewRequest();
-        request.setOrderNo(tradeInfo.getTradeNo());
-        request.setToUserId(toUserId);
+        request.setTradeId(tradeId);
         request.setRating(rating);
-        request.setComment(comment);
-        request.setTags(selectedTags.toArray(new String[0]));
+        request.setContent(comment);
+        request.setTagsArray(selectedTags.toArray(new String[0]));
 
         String json = gson.toJson(request);
-        // 使用正确的API路径（评价接口需要 v1 前缀）
-        ApiClient.post("api/v1/trade/review", json, new Callback() {
+        // 添加调试日志
+        Log.d("TradeReviewActivity", "提交评价请求:");
+        Log.d("TradeReviewActivity", "tradeId: " + tradeId);
+        Log.d("TradeReviewActivity", "rating: " + rating);
+        Log.d("TradeReviewActivity", "content: " + comment);
+        Log.d("TradeReviewActivity", "requestJson: " + json);
+        
+        // API路径: /api/review
+        ApiClient.post("api/review", json, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 runOnUiThread(() -> {
@@ -281,6 +289,8 @@ public class TradeReviewActivity extends AppCompatActivity {
                     if (isFinishing() || isDestroyed()) return;
                     if (baseResp.isSuccess()) {
                         Toast.makeText(TradeReviewActivity.this, "评价提交成功", Toast.LENGTH_SHORT).show();
+                        // 发送评价消息通知对方
+                        sendReviewMessage();
                         setResult(RESULT_OK);
                         finish();
                     } else {
@@ -288,6 +298,54 @@ public class TradeReviewActivity extends AppCompatActivity {
                         Toast.makeText(TradeReviewActivity.this, baseResp.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
+            }
+        });
+    }
+    
+    /**
+     * 发送评价消息通知对方 - 前端简化，只需传递 tradeId，后端自动生成快照
+     * 评价状态：6=买家已评价，7=卖家已评价，8=双方已评价
+     */
+    private void sendReviewMessage() {
+        if (tradeInfo == null || toUserId <= 0) {
+            Log.e("TradeReviewActivity", "无法发送评价消息: tradeInfo=" + (tradeInfo != null) + ", toUserId=" + toUserId);
+            return;
+        }
+        
+        // 计算新的交易状态
+        int newStatus;
+        long currentUserId = ApiClient.getCurrentUserId();
+        boolean isCurrentUserBuyer = (tradeInfo.getBuyerId() != null && tradeInfo.getBuyerId() == currentUserId);
+        
+        if (isCurrentUserBuyer) {
+            newStatus = 6; // 买家已评价
+        } else {
+            newStatus = 7; // 卖家已评价
+        }
+        
+        // 【简化】前端只需传递基本信息，后端自动生成完整的交易快照
+        com.google.gson.JsonObject msgRequest = new com.google.gson.JsonObject();
+        msgRequest.addProperty("receiverId", toUserId);
+        msgRequest.addProperty("productId", tradeInfo.getProductId() != null ? tradeInfo.getProductId() : 0);
+        msgRequest.addProperty("content", "提交了评价");
+        msgRequest.addProperty("type", 1); // 交易卡片类型
+        msgRequest.addProperty("tradeId", tradeId);
+        msgRequest.addProperty("tradeStatus", newStatus);
+        // msgRequest.addProperty("tradeData", null); // 不设置 tradeData，让后端自动生成
+        
+        String msgJson = gson.toJson(msgRequest);
+        Log.d("TradeReviewActivity", "发送评价消息: " + msgJson);
+        
+        ApiClient.post("api/message/send", msgJson, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Log.e("TradeReviewActivity", "发送评价消息失败: " + e.getMessage());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                String resp = response.body().string();
+                Log.d("TradeReviewActivity", "发送评价消息响应: " + resp);
             }
         });
     }

@@ -228,11 +228,11 @@ public class TradeViewModel extends AndroidViewModel {
         }
         
         isLoading.postValue(true);
-        tradeRepository.completeTrade(tradeId, new TradeRepository.TradeCallback<Void>() {
+        tradeRepository.completeTrade(tradeId, "SELLER", new TradeRepository.TradeCallback<Void>() {
             @Override
             public void onSuccess(Void data) {
                 if (stateMachine != null) {
-                    stateMachine.transitionTo(com.example.e_tradeandroid.model.TradeStatus.SELLER_COMPLETED, "SELLER");
+                    stateMachine.transitionTo(com.example.e_tradeandroid.model.TradeStatus.SELLER_CONFIRMED, "SELLER");
                 }
                 version++;
                 isLoading.postValue(false);
@@ -258,7 +258,7 @@ public class TradeViewModel extends AndroidViewModel {
         }
         
         isLoading.postValue(true);
-        tradeRepository.completeTrade(tradeId, new TradeRepository.TradeCallback<Void>() {
+        tradeRepository.completeTrade(tradeId, "BUYER", new TradeRepository.TradeCallback<Void>() {
             @Override
             public void onSuccess(Void data) {
                 if (stateMachine != null) {

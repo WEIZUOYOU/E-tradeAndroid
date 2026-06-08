@@ -44,6 +44,8 @@
         <activity android:name=".ui.MessageListActivity" />
         <activity android:name=".ui.TradeInfoActivity" />
         <activity android:name=".ui.TradeReviewActivity" />
+        <activity android:name=".ui.MyReviewsActivity" />
+        <activity android:name=".ui.MyOrdersActivity" />
     </application>
 
 </manifest>

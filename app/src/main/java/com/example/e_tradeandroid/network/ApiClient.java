@@ -2,13 +2,14 @@ package com.example.e_tradeandroid.network;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
@@ -23,6 +24,7 @@ import okhttp3.RequestBody;
 import okhttp3.logging.HttpLoggingInterceptor;
 
 public class ApiClient {
+    private static final String TAG = "ApiClient";
     public static final String BASE_URL = "http://10.0.2.2:8080/";
     private static OkHttpClient client;
     private static SharedPreferences cookiePrefs;
@@ -33,8 +35,25 @@ public class ApiClient {
     private static SharedPreferences userSp;
     private static final String SP_USER = "user_info";
     private static final String KEY_USER_ID = "user_id";
+    private static boolean initialized = false;
+    
+    /**
+     * 获取 WebSocket 连接地址
+     * 将 HTTP URL 转换为 WebSocket URL
+     */
+    public static String getWebSocketUrl() {
+        String httpUrl = BASE_URL;
+        // 将 http:// 替换为 ws://，去掉末尾的斜杠，添加 WebSocket 路径
+        return httpUrl.replace("http://", "ws://").replaceAll("/$", "") + "/ws/message";
+    }
 
-    public static void init(Context context) {
+    public static synchronized void init(Context context) {
+        // 防止重复初始化
+        if (initialized && client != null) {
+            Log.d(TAG, "ApiClient 已初始化，跳过重复初始化");
+            return;
+        }
+        
         cookiePrefs = context.getSharedPreferences(COOKIE_PREF_NAME, Context.MODE_PRIVATE);
         userSp = context.getSharedPreferences(SP_USER, Context.MODE_PRIVATE);
 
@@ -47,29 +66,69 @@ public class ApiClient {
                 .writeTimeout(30, TimeUnit.SECONDS)
                 .addInterceptor(logging)
                 .cookieJar(new CookieJar() {
-                    private final Set<Cookie> cookieStore = new HashSet<>();
+                    // 按域名存储 Cookie
+                    private final Map<String, List<Cookie>> cookieStore = new HashMap<>();
 
                     @Override
                     public void saveFromResponse(@NonNull HttpUrl url, @NonNull List<Cookie> cookies) {
-                        cookieStore.addAll(cookies);
+                        String host = url.host();
+                        Log.d(TAG, "saveFromResponse: host=" + host + ", cookies=" + cookies);
+                        
+                        // 过滤过期 Cookie
+                        long now = System.currentTimeMillis();
+                        List<Cookie> validCookies = new ArrayList<>();
+                        for (Cookie c : cookies) {
+                            if (c.expiresAt() > now) {
+                                validCookies.add(c);
+                            }
+                        }
+                        
+                        cookieStore.put(host, validCookies);
+                        
+                        // 持久化到 SharedPreferences
                         StringBuilder sb = new StringBuilder();
-                        for (Cookie c : cookies) sb.append(c.toString()).append(";");
-                        cookiePrefs.edit().putString(COOKIE_KEY, sb.toString()).apply();
+                        for (Cookie c : validCookies) {
+                            sb.append(c.toString()).append("|||");
+                        }
+                        cookiePrefs.edit().putString(COOKIE_KEY + "_" + host, sb.toString()).apply();
+                        Log.d(TAG, "Cookie 已保存到 SharedPreferences: " + sb);
                     }
 
                     @Override
                     public List<Cookie> loadForRequest(@NonNull HttpUrl url) {
-                        String s = cookiePrefs.getString(COOKIE_KEY, "");
-                        if (!s.isEmpty()) {
-                            for (String part : s.split(";")) {
-                                Cookie c = Cookie.parse(url, part);
-                                if (c != null) cookieStore.add(c);
+                        String host = url.host();
+                        List<Cookie> cookies = cookieStore.get(host);
+                        
+                        // 如果内存中没有，从 SharedPreferences 加载
+                        if (cookies == null || cookies.isEmpty()) {
+                            String stored = cookiePrefs.getString(COOKIE_KEY + "_" + host, "");
+                            Log.d(TAG, "loadForRequest: host=" + host + ", storedCookies=" + stored);
+                            
+                            cookies = new ArrayList<>();
+                            if (!stored.isEmpty()) {
+                                for (String part : stored.split("\\|\\|\\|")) {
+                                    if (!part.trim().isEmpty()) {
+                                        Cookie c = Cookie.parse(url, part.trim());
+                                        if (c != null && c.expiresAt() > System.currentTimeMillis()) {
+                                            cookies.add(c);
+                                        }
+                                    }
+                                }
                             }
+                            if (!cookies.isEmpty()) {
+                                cookieStore.put(host, cookies);
+                            }
+                        } else {
+                            Log.d(TAG, "loadForRequest: host=" + host + ", fromMemory, count=" + cookies.size());
                         }
-                        return new ArrayList<>(cookieStore);
+                        
+                        return cookies != null ? cookies : new ArrayList<>();
                     }
                 })
                 .build();
+        
+        initialized = true;
+        Log.d(TAG, "ApiClient 初始化完成");
     }
 
     public static OkHttpClient getClient() {
@@ -95,7 +154,9 @@ public class ApiClient {
 
     // 补上 clearCookies 兼容旧代码
     public static void clearCookies() {
-        cookiePrefs.edit().remove(COOKIE_KEY).apply();
+        if (cookiePrefs != null) {
+            cookiePrefs.edit().clear().apply();
+        }
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
         logging.setLevel(HttpLoggingInterceptor.Level.BODY);
         client = new OkHttpClient.Builder()
@@ -104,19 +165,20 @@ public class ApiClient {
                 .writeTimeout(30, TimeUnit.SECONDS)
                 .addInterceptor(logging)
                 .cookieJar(new CookieJar() {
-                    private final Set<Cookie> cookieStore = new HashSet<>();
+                    private final Map<String, List<Cookie>> cookieStore = new HashMap<>();
 
                     @Override
                     public void saveFromResponse(@NonNull HttpUrl url, @NonNull List<Cookie> cookies) {
-                        cookieStore.addAll(cookies);
+                        cookieStore.put(url.host(), cookies);
                     }
 
                     @Override
                     public List<Cookie> loadForRequest(@NonNull HttpUrl url) {
-                        return new ArrayList<>(cookieStore);
+                        return cookieStore.getOrDefault(url.host(), new ArrayList<>());
                     }
                 })
                 .build();
+        Log.d(TAG, "Cookie 已清除");
     }
 
     public static void get(String url, Callback callback) {

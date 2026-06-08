@@ -1,26 +1,21 @@
 package com.example.e_tradeandroid.model;
 
+/**
+ * 提交评价请求
+ * 对应后端 API: POST /api/review
+ */
 public class ReviewRequest {
-    private String orderNo;
-    private Long toUserId;
-    private Integer rating;
-    private String comment;
-    private String[] tags;
+    private Long tradeId;      // 交易ID
+    private Integer rating;    // 评分 1-5
+    private String content;    // 评价内容
+    private String tags;       // 评价标签，逗号分隔
 
-    public String getOrderNo() {
-        return orderNo;
+    public Long getTradeId() {
+        return tradeId;
     }
 
-    public void setOrderNo(String orderNo) {
-        this.orderNo = orderNo;
-    }
-
-    public Long getToUserId() {
-        return toUserId;
-    }
-
-    public void setToUserId(Long toUserId) {
-        this.toUserId = toUserId;
+    public void setTradeId(Long tradeId) {
+        this.tradeId = tradeId;
     }
 
     public Integer getRating() {
@@ -31,19 +26,28 @@ public class ReviewRequest {
         this.rating = rating;
     }
 
-    public String getComment() {
-        return comment;
+    public String getContent() {
+        return content;
     }
 
-    public void setComment(String comment) {
-        this.comment = comment;
+    public void setContent(String content) {
+        this.content = content;
     }
 
-    public String[] getTags() {
+    public String getTags() {
         return tags;
     }
 
-    public void setTags(String[] tags) {
+    public void setTags(String tags) {
         this.tags = tags;
+    }
+    
+    /**
+     * 从数组转换为逗号分隔的字符串
+     */
+    public void setTagsArray(String[] tagArray) {
+        if (tagArray != null && tagArray.length > 0) {
+            this.tags = String.join(",", tagArray);
+        }
     }
 }

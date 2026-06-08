@@ -17,7 +17,6 @@ import com.example.e_tradeandroid.R;
 import com.example.e_tradeandroid.model.BaseResponse;
 import com.example.e_tradeandroid.model.Product;
 import com.example.e_tradeandroid.network.ApiClient;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -38,8 +37,7 @@ import okhttp3.Response;
 public class EditProductActivity extends AppCompatActivity {
     private EditText etName, etPrice, etStock, etDescription;
     private Button btnSelectImage, btnUpdate, btnOffshelf, btnDelete;
-    private ImageView ivPreview;
-    private BottomNavigationView bottomNavigation;
+    private ImageView ivPreview, ivBack;
     private Uri selectedImageUri;
     private long productId;
     private Product product;
@@ -58,7 +56,6 @@ public class EditProductActivity extends AppCompatActivity {
         }
 
         initViews();
-        setupBottomNavigation();
         loadProductDetail();
 
         btnSelectImage.setOnClickListener(v -> selectImage());
@@ -77,34 +74,8 @@ public class EditProductActivity extends AppCompatActivity {
         btnOffshelf = findViewById(R.id.btn_offshelf);
         btnDelete = findViewById(R.id.btn_delete);
         ivPreview = findViewById(R.id.iv_preview);
-        bottomNavigation = findViewById(R.id.bottom_navigation);
-    }
-
-    private void setupBottomNavigation() {
-        bottomNavigation.setSelectedItemId(R.id.nav_profile);
-        bottomNavigation.setOnItemSelectedListener(item -> {
-            int itemId = item.getItemId();
-            if (itemId == R.id.nav_home) {
-                startActivity(new Intent(EditProductActivity.this, MainActivity.class));
-                finish();
-                return true;
-            } else if (itemId == R.id.nav_publish) {
-                startActivity(new Intent(EditProductActivity.this, PublishActivity.class));
-                return true;
-            } else if (itemId == R.id.nav_orders) {
-                startActivity(new Intent(EditProductActivity.this, OrderListActivity.class));
-                return true;
-            } else if (itemId == R.id.nav_messages) {
-                startActivity(new Intent(EditProductActivity.this, MessageListActivity.class));
-                finish();
-                return true;
-            } else if (itemId == R.id.nav_profile) {
-                startActivity(new Intent(EditProductActivity.this, MyProfileActivity.class));
-                finish();
-                return true;
-            }
-            return false;
-        });
+        ivBack = findViewById(R.id.iv_back);
+        ivBack.setOnClickListener(v -> finish());
     }
 
     private void loadProductDetail() {

@@ -7,15 +7,20 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.e_tradeandroid.R;
 import com.example.e_tradeandroid.adapter.MessageSessionAdapter;
+import com.example.e_tradeandroid.R;
 import com.example.e_tradeandroid.model.BaseResponse;
 import com.example.e_tradeandroid.model.MessageSession;
 import com.example.e_tradeandroid.network.ApiClient;
+import com.example.e_tradeandroid.util.NavUtils;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -100,9 +105,9 @@ public class MessageListActivity extends AppCompatActivity {
                         JSONObject dataObj = jsonObject.getJSONObject("data");
                         // 直接获取sessions数组
                         org.json.JSONArray sessionsArray = dataObj.getJSONArray("sessions");
-                        
-                        // 将JSONArray转换为Gson可以解析的字符串
-                        List<MessageSession> sessions = new ArrayList<>();
+
+                        // 构建去重 Map（按 targetUserId 去重，保留最新的一条消息）
+                        Map<Long, MessageSession> uniqueMap = new LinkedHashMap<>();
                         for (int i = 0; i < sessionsArray.length(); i++) {
                             JSONObject sessionObj = sessionsArray.getJSONObject(i);
                             MessageSession session = new MessageSession();
@@ -114,14 +119,28 @@ public class MessageListActivity extends AppCompatActivity {
                             session.setUnreadCount(sessionObj.optInt("unreadCount", 0));
                             session.setProductId(sessionObj.optLong("productId"));
                             session.setProductName(sessionObj.optString("productName"));
-                            sessions.add(session);
+
+                            Long userId = session.getTargetUserId();
+                            // 若已存在，比较最后消息时间，保留较新的
+                            if (uniqueMap.containsKey(userId)) {
+                                MessageSession existing = uniqueMap.get(userId);
+                                String existingTime = existing.getLastMessageTime();
+                                String newTime = session.getLastMessageTime();
+                                if (newTime != null && (existingTime == null || newTime.compareTo(existingTime) > 0)) {
+                                    uniqueMap.put(userId, session);
+                                }
+                            } else {
+                                uniqueMap.put(userId, session);
+                            }
                         }
-                        
+
+                        List<MessageSession> uniqueSessions = new ArrayList<>(uniqueMap.values());
+
                         runOnUiThread(() -> {
                             progressBar.setVisibility(View.GONE);
                             sessionList.clear();
-                            if (sessions != null && !sessions.isEmpty()) {
-                                sessionList.addAll(sessions);
+                            if (uniqueSessions != null && !uniqueSessions.isEmpty()) {
+                                sessionList.addAll(uniqueSessions);
                                 sessionAdapter.notifyDataSetChanged();
                                 recyclerView.setVisibility(View.VISIBLE);
                                 tvEmpty.setVisibility(View.GONE);
@@ -181,26 +200,7 @@ public class MessageListActivity extends AppCompatActivity {
     private void setupBottomNav() {
         bottomNavigation.setSelectedItemId(R.id.nav_messages);
         bottomNavigation.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
-            if (id == R.id.nav_home) {
-                startActivity(new Intent(this, MainActivity.class));
-                finish();
-                return true;
-            } else if (id == R.id.nav_publish) {
-                startActivity(new Intent(this, PublishActivity.class));
-                return true;
-            } else if (id == R.id.nav_orders) {
-                startActivity(new Intent(this, OrderListActivity.class));
-                finish();
-                return true;
-            } else if (id == R.id.nav_messages) {
-                return true;
-            } else if (id == R.id.nav_profile) {
-                startActivity(new Intent(this, MyProfileActivity.class));
-                finish();
-                return true;
-            }
-            return false;
+            return NavUtils.handleNavClick(this, item.getItemId());
         });
     }
 }
