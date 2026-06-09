@@ -1,6 +1,8 @@
 package com.example.e_tradeandroid.model;
 
+import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
+import com.example.e_tradeandroid.util.BooleanIntAdapter;
 
 public class TradeInfo {
     @SerializedName("id")
@@ -24,7 +26,8 @@ public class TradeInfo {
     @SerializedName("buyerCreditScore")
     private Integer buyerCreditScore;
     @SerializedName("buyerIsAuth")
-    private Integer buyerIsAuth;  // ✅ 后端返回 0 或 1，不是布尔值
+    @JsonAdapter(BooleanIntAdapter.class)
+    private Integer buyerIsAuth;  // 兼容布尔值 true/false -> 1/0
     @SerializedName("buyerPhone")
     private String buyerPhone;
     @SerializedName("sellerId")
@@ -36,7 +39,8 @@ public class TradeInfo {
     @SerializedName("sellerCreditScore")
     private Integer sellerCreditScore;
     @SerializedName("sellerIsAuth")
-    private Integer sellerIsAuth;  // ✅ 后端返回 0 或 1，不是布尔值
+    @JsonAdapter(BooleanIntAdapter.class)
+    private Integer sellerIsAuth;  // 兼容布尔值 true/false -> 1/0
     @SerializedName("sellerPhone")
     private String sellerPhone;
     @SerializedName("meetingLocation")

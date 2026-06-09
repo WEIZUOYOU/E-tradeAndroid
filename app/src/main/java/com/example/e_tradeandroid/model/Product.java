@@ -1,5 +1,8 @@
 package com.example.e_tradeandroid.model;
 
+import com.google.gson.annotations.JsonAdapter;
+import com.example.e_tradeandroid.util.BooleanIntAdapter;
+
 import java.util.List;
 
 public class Product {
@@ -7,6 +10,7 @@ public class Product {
     private Long sellerId;
     private String sellerName; // 卖家名称
     private String sellerAvatar; // 卖家头像
+    @JsonAdapter(BooleanIntAdapter.class)
     private Integer sellerIsAuth; // 卖家认证状态 0-未认证 1-已认证
     private Integer categoryId;
     private String categoryName; // 分类名称
@@ -22,6 +26,7 @@ public class Product {
     private List<String> images;
     private String imageUrls;
     private Integer status; // 0-待审核 1-在售 2-已下架 3-已售出 4-审核不通过
+    @JsonAdapter(BooleanIntAdapter.class)
     private Integer isRecommend; // 0-否 1-是
     private String createTime;
 

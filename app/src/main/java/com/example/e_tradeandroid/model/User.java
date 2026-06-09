@@ -1,5 +1,8 @@
 package com.example.e_tradeandroid.model;
 
+import com.google.gson.annotations.JsonAdapter;
+import com.example.e_tradeandroid.util.BooleanIntAdapter;
+
 public class User {
     private Long id;
     private String studentId;
@@ -7,6 +10,7 @@ public class User {
     private String phone;
     private String avatar;
     private Integer status;
+    @JsonAdapter(BooleanIntAdapter.class)
     private Integer isAuth;
     private Integer creditScore;
     private String realName;
