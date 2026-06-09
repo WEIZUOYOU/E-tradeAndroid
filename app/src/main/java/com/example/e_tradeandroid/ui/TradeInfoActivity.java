@@ -430,8 +430,10 @@ public class TradeInfoActivity extends AppCompatActivity {
         
         tvBuyerName.setText(existingTrade.getBuyerName() != null ? existingTrade.getBuyerName() : "买家");
         tvBuyerCredit.setText("信誉分: " + (existingTrade.getBuyerCreditScore() != null ? existingTrade.getBuyerCreditScore() : 100));
-        tvBuyerAuth.setText(existingTrade.getBuyerIsAuth() != null && existingTrade.getBuyerIsAuth() ? "已实名" : "未实名");
-        tvBuyerAuth.setTextColor(existingTrade.getBuyerIsAuth() != null && existingTrade.getBuyerIsAuth()
+        // ✅ buyerIsAuth 现在是 Integer 类型（0 或 1）
+        boolean isBuyerAuthed = existingTrade.getBuyerIsAuth() != null && existingTrade.getBuyerIsAuth() == 1;
+        tvBuyerAuth.setText(isBuyerAuthed ? "已实名" : "未实名");
+        tvBuyerAuth.setTextColor(isBuyerAuthed
                 ? getResources().getColor(R.color.success_green)
                 : getResources().getColor(R.color.warning_orange));
 
@@ -454,8 +456,10 @@ public class TradeInfoActivity extends AppCompatActivity {
         
         tvSellerName.setText(existingTrade.getSellerName() != null ? existingTrade.getSellerName() : "卖家");
         tvSellerCredit.setText("信誉分: " + (existingTrade.getSellerCreditScore() != null ? existingTrade.getSellerCreditScore() : 100));
-        tvSellerAuth.setText(existingTrade.getSellerIsAuth() != null && existingTrade.getSellerIsAuth() ? "已实名" : "未实名");
-        tvSellerAuth.setTextColor(existingTrade.getSellerIsAuth() != null && existingTrade.getSellerIsAuth()
+        // ✅ sellerIsAuth 现在是 Integer 类型（0 或 1）
+        boolean isSellerAuthed = existingTrade.getSellerIsAuth() != null && existingTrade.getSellerIsAuth() == 1;
+        tvSellerAuth.setText(isSellerAuthed ? "已实名" : "未实名");
+        tvSellerAuth.setTextColor(isSellerAuthed
                 ? getResources().getColor(R.color.success_green)
                 : getResources().getColor(R.color.warning_orange));
 
@@ -1236,14 +1240,18 @@ public class TradeInfoActivity extends AppCompatActivity {
         tradeInfo.setBuyerName(buyer != null ? buyer.getUsername() : "");
         tradeInfo.setBuyerAvatar(buyer != null ? buyer.getAvatar() : "");
         tradeInfo.setBuyerCreditScore(buyer != null ? buyer.getCreditScore() : 100);
-        tradeInfo.setBuyerIsAuth(buyer != null && buyer.getIsAuth() != null && buyer.getIsAuth() == 1);
+        // ✅ buyerIsAuth 现在是 Integer 类型（0 或 1）
+        boolean isBuyerAuthed = buyer != null && buyer.getIsAuth() != null && buyer.getIsAuth() == 1;
+        tradeInfo.setBuyerIsAuth(isBuyerAuthed ? 1 : 0);
         tradeInfo.setBuyerPhone(buyerPhone);
 
         tradeInfo.setSellerId(sellerId);
         tradeInfo.setSellerName(seller != null ? seller.getUsername() : "");
         tradeInfo.setSellerAvatar(seller != null ? seller.getAvatar() : "");
         tradeInfo.setSellerCreditScore(seller != null ? seller.getCreditScore() : 100);
-        tradeInfo.setSellerIsAuth(seller != null && seller.getIsAuth() != null && seller.getIsAuth() == 1);
+        // ✅ sellerIsAuth 现在是 Integer 类型（0 或 1）
+        boolean isSellerAuthed = seller != null && seller.getIsAuth() != null && seller.getIsAuth() == 1;
+        tradeInfo.setSellerIsAuth(isSellerAuthed ? 1 : 0);
 
         tradeInfo.setMeetingLocation(location);
         tradeInfo.setMeetingTime(time);

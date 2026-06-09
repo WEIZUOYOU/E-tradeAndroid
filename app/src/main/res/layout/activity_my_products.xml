@@ -1,207 +1,193 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@color/background_light">
 
-    <!-- 顶部标题栏 -->
+    <!-- 顶部标题栏（与订单/评价一致） -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp"
-        android:background="@color/white"
-        android:elevation="2dp">
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="12dp"
+        android:background="@android:color/white"
+        android:elevation="2dp"
+        android:gravity="center_vertical">
 
         <ImageView
             android:id="@+id/iv_back"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:src="@drawable/ic_back"
-            android:padding="8dp"
-            android:layout_marginRight="16dp"/>
+            android:padding="4dp"
+            android:contentDescription="返回" />
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="我发布的商品"
+            android:text="我的发布"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:gravity="center"
-            android:textColor="@color/text_primary" />
-    </LinearLayout>
-
-    <!-- Tab 切换 -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="@color/white">
-
-        <TextView
-            android:id="@+id/tab_active"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="上架中"
-            android:textSize="16sp"
-            android:textColor="@color/primary_green"
-            android:gravity="center"
-            android:paddingVertical="16dp"/>
+            android:textColor="@android:color/black"
+            android:gravity="center" />
 
         <View
-            android:layout_width="1dp"
-            android:layout_height="24dp"
-            android:background="@color/divider"/>
-
-        <TextView
-            android:id="@+id/tab_sold_out"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="已售罄"
-            android:textSize="16sp"
-            android:textColor="@color/text_secondary"
-            android:gravity="center"
-            android:paddingVertical="16dp"/>
-
+            android:layout_width="24dp"
+            android:layout_height="24dp" />
     </LinearLayout>
 
-    <!-- Tab 指示器 -->
-    <View
-        android:id="@+id/tab_indicator"
-        android:layout_width="0dp"
-        android:layout_height="3dp"
-        android:layout_weight="1"
-        android:background="@color/primary_green"/>
+    <!-- Tab 切换区域（与订单/评价一致） -->
+    <LinearLayout
+        android:id="@+id/tab_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@android:color/white"
+        android:elevation="1dp">
 
-    <!-- 商品列表 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tab_active"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="上架中"
+                android:textSize="16sp"
+                android:textColor="@color/primary_green"
+                android:gravity="center"
+                android:paddingVertical="16dp"
+                android:background="?attr/selectableItemBackground" />
+
+            <TextView
+                android:id="@+id/tab_sold_out"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="已售罄"
+                android:textSize="16sp"
+                android:textColor="@android:color/darker_gray"
+                android:gravity="center"
+                android:paddingVertical="16dp"
+                android:background="?attr/selectableItemBackground" />
+        </LinearLayout>
+
+        <!-- 静态全宽指示器（不再动态移动） -->
+        <View
+            android:id="@+id/tab_indicator"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:background="@color/primary_green" />
+    </LinearLayout>
+
+    <!-- 内容容器 -->
     <FrameLayout
-        android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <!-- 上架中的商品 -->
-        <LinearLayout
-            android:id="@+id/layout_active"
+        <!-- 上架中商品 -->
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipe_refresh_active"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:layout_height="match_parent">
 
-            <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-                android:id="@+id/swipe_refresh_active"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1">
+                android:layout_height="match_parent"
+                android:orientation="vertical">
 
-                <LinearLayout
+                <!-- RecyclerView 与空状态重叠容器 -->
+                <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical">
+                    android:layout_height="0dp"
+                    android:layout_weight="1">
 
                     <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/recycler_view_active"
+                        android:id="@+id/rv_active"
                         android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="1"
+                        android:layout_height="match_parent"
+                        android:clipToPadding="false"
                         android:padding="8dp" />
 
                     <TextView
-                        android:id="@+id/tv_load_more_active"
-                        android:layout_width="match_parent"
+                        android:id="@+id/tv_empty_active"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="点击加载更多"
-                        android:textSize="14sp"
-                        android:textColor="@color/text_hint"
-                        android:gravity="center"
-                        android:padding="16dp"
-                        android:visibility="gone"/>
+                        android:layout_gravity="center"
+                        android:text="暂无上架中的商品"
+                        android:textSize="16sp"
+                        android:textColor="@android:color/darker_gray"
+                        android:visibility="gone" />
+                </FrameLayout>
 
-                </LinearLayout>
-            </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+                <!-- 加载更多按钮（保留分页功能） -->
+                <TextView
+                    android:id="@+id/tv_load_more_active"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="点击加载更多"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_hint"
+                    android:gravity="center"
+                    android:padding="16dp"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-            <ProgressBar
-                android:id="@+id/progress_bar_active"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:visibility="gone" />
-
-            <TextView
-                android:id="@+id/tv_empty_active"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:text="暂无上架中的商品"
-                android:textSize="16sp"
-                android:textColor="@color/text_hint"
-                android:gravity="center"
-                android:visibility="gone"/>
-
-        </LinearLayout>
-
-        <!-- 已售罄的商品 -->
-        <LinearLayout
-            android:id="@+id/layout_sold_out"
+        <!-- 已售罄商品 -->
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipe_refresh_sold_out"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical"
             android:visibility="gone">
 
-            <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-                android:id="@+id/swipe_refresh_sold_out"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1">
+                android:layout_height="match_parent"
+                android:orientation="vertical">
 
-                <LinearLayout
+                <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical">
+                    android:layout_height="0dp"
+                    android:layout_weight="1">
 
                     <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/recycler_view_sold_out"
+                        android:id="@+id/rv_sold_out"
                         android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="1"
+                        android:layout_height="match_parent"
+                        android:clipToPadding="false"
                         android:padding="8dp" />
 
                     <TextView
-                        android:id="@+id/tv_load_more_sold_out"
-                        android:layout_width="match_parent"
+                        android:id="@+id/tv_empty_sold_out"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="点击加载更多"
-                        android:textSize="14sp"
-                        android:textColor="@color/text_hint"
-                        android:gravity="center"
-                        android:padding="16dp"
-                        android:visibility="gone"/>
+                        android:layout_gravity="center"
+                        android:text="暂无已售罄的商品"
+                        android:textSize="16sp"
+                        android:textColor="@android:color/darker_gray"
+                        android:visibility="gone" />
+                </FrameLayout>
 
-                </LinearLayout>
-            </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
-            <ProgressBar
-                android:id="@+id/progress_bar_sold_out"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:visibility="gone" />
-
-            <TextView
-                android:id="@+id/tv_empty_sold_out"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:text="暂无已售罄的商品"
-                android:textSize="16sp"
-                android:textColor="@color/text_hint"
-                android:gravity="center"
-                android:visibility="gone"/>
-
-        </LinearLayout>
-
+                <TextView
+                    android:id="@+id/tv_load_more_sold_out"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="点击加载更多"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_hint"
+                    android:gravity="center"
+                    android:padding="16dp"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
     </FrameLayout>
 
 </LinearLayout>

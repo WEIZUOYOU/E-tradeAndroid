@@ -24,7 +24,7 @@ public class TradeInfo {
     @SerializedName("buyerCreditScore")
     private Integer buyerCreditScore;
     @SerializedName("buyerIsAuth")
-    private Boolean buyerIsAuth;
+    private Integer buyerIsAuth;  // ✅ 后端返回 0 或 1，不是布尔值
     @SerializedName("buyerPhone")
     private String buyerPhone;
     @SerializedName("sellerId")
@@ -36,7 +36,7 @@ public class TradeInfo {
     @SerializedName("sellerCreditScore")
     private Integer sellerCreditScore;
     @SerializedName("sellerIsAuth")
-    private Boolean sellerIsAuth;
+    private Integer sellerIsAuth;  // ✅ 后端返回 0 或 1，不是布尔值
     @SerializedName("sellerPhone")
     private String sellerPhone;
     @SerializedName("meetingLocation")
@@ -128,11 +128,11 @@ public class TradeInfo {
         this.buyerCreditScore = buyerCreditScore;
     }
 
-    public Boolean getBuyerIsAuth() {
+    public Integer getBuyerIsAuth() {
         return buyerIsAuth;
     }
 
-    public void setBuyerIsAuth(Boolean buyerIsAuth) {
+    public void setBuyerIsAuth(Integer buyerIsAuth) {
         this.buyerIsAuth = buyerIsAuth;
     }
 
@@ -176,11 +176,11 @@ public class TradeInfo {
         this.sellerCreditScore = sellerCreditScore;
     }
 
-    public Boolean getSellerIsAuth() {
+    public Integer getSellerIsAuth() {
         return sellerIsAuth;
     }
 
-    public void setSellerIsAuth(Boolean sellerIsAuth) {
+    public void setSellerIsAuth(Integer sellerIsAuth) {
         this.sellerIsAuth = sellerIsAuth;
     }
 

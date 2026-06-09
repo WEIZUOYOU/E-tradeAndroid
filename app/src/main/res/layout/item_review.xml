@@ -4,10 +4,10 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@color/white"
+    android:background="@android:color/white"
     android:layout_marginBottom="8dp">
 
-    <!-- 顶部：交易信息 -->
+    <!-- 顶部：交易号与时间 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -21,35 +21,54 @@
             android:layout_weight="1"
             android:text="交易号："
             android:textSize="14sp"
-            android:textColor="@color/text_secondary"/>
+            android:textColor="@color/text_secondary" />
 
         <TextView
             android:id="@+id/tv_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="12sp"
-            android:textColor="@color/text_hint"/>
-
+            android:textColor="@color/text_hint" />
     </LinearLayout>
 
-    <!-- 商品名称 -->
-    <TextView
-        android:id="@+id/tv_product_name"
+    <!-- 商品信息 -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:textSize="16sp"
-        android:textColor="@color/text_primary"
-        android:textStyle="bold"/>
+        android:orientation="horizontal"
+        android:layout_marginTop="12dp">
 
-    <!-- 评价者/被评价者信息 -->
-    <TextView
-        android:id="@+id/tv_person_info"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:textSize="14sp"
-        android:textColor="@color/text_secondary"/>
+        <ImageView
+            android:id="@+id/iv_product"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:scaleType="centerCrop"
+            android:background="@color/gray_100"
+            android:layout_marginEnd="12dp" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_product_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:textColor="@color/text_primary"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_person_info"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary" />
+        </LinearLayout>
+    </LinearLayout>
 
     <!-- 评分星级 -->
     <LinearLayout
@@ -58,36 +77,11 @@
         android:layout_marginTop="12dp"
         android:orientation="horizontal">
 
-        <ImageView
-            android:id="@+id/star1"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:src="@drawable/ic_star_empty"/>
-
-        <ImageView
-            android:id="@+id/star2"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:src="@drawable/ic_star_empty"/>
-
-        <ImageView
-            android:id="@+id/star3"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:src="@drawable/ic_star_empty"/>
-
-        <ImageView
-            android:id="@+id/star4"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:src="@drawable/ic_star_empty"/>
-
-        <ImageView
-            android:id="@+id/star5"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:src="@drawable/ic_star_empty"/>
-
+        <ImageView android:id="@+id/star1" style="@style/StarIcon" />
+        <ImageView android:id="@+id/star2" style="@style/StarIcon" />
+        <ImageView android:id="@+id/star3" style="@style/StarIcon" />
+        <ImageView android:id="@+id/star4" style="@style/StarIcon" />
+        <ImageView android:id="@+id/star5" style="@style/StarIcon" />
     </LinearLayout>
 
     <!-- 评价内容 -->
@@ -95,18 +89,17 @@
         android:id="@+id/tv_comment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:textSize="15sp"
-        android:textColor="@color/text_primary"
-        android:lineSpacingExtra="4dp"/>
+        android:layout_marginTop="8dp"
+        android:textSize="14sp"
+        android:textColor="@color/text_primary" />
 
     <!-- 评价标签 -->
     <TextView
         android:id="@+id/tv_tags"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:textSize="14sp"
-        android:textColor="@color/text_hint"/>
-
+        android:layout_marginTop="4dp"
+        android:textSize="12sp"
+        android:textColor="@color/primary_green"
+        android:visibility="gone" />
 </LinearLayout>

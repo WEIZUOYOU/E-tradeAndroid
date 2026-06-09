@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -11,17 +10,19 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp"
-        android:background="@color/white"
-        android:elevation="2dp">
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="12dp"
+        android:background="@android:color/white"
+        android:elevation="2dp"
+        android:gravity="center_vertical">
 
         <ImageView
             android:id="@+id/iv_back"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:src="@drawable/ic_back"
-            android:padding="8dp"
-            android:layout_marginRight="16dp"/>
+            android:padding="4dp"
+            android:contentDescription="返回" />
 
         <TextView
             android:layout_width="0dp"
@@ -30,64 +31,125 @@
             android:text="我的评价"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="@color/text_primary"
-            android:gravity="center"/>
+            android:textColor="@android:color/black"
+            android:gravity="center" />
 
         <View
-            android:layout_width="48dp"
-            android:layout_height="wrap_content"/>
-
+            android:layout_width="24dp"
+            android:layout_height="24dp" />
     </LinearLayout>
 
-    <!-- Tab 切换 -->
+    <!-- Tab 切换区域 -->
     <LinearLayout
+        android:id="@+id/tab_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="@color/white">
+        android:orientation="vertical"
+        android:background="@android:color/white"
+        android:elevation="1dp">
 
-        <TextView
-            android:id="@+id/tab_received"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="我收到的评价"
-            android:textSize="16sp"
-            android:textColor="@color/primary_green"
-            android:gravity="center"
-            android:paddingVertical="16dp"/>
+            android:orientation="horizontal">
 
+            <TextView
+                android:id="@+id/tab_received"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="我收到的评价"
+                android:textSize="16sp"
+                android:textColor="@color/primary_green"
+                android:gravity="center"
+                android:paddingVertical="16dp"
+                android:background="?attr/selectableItemBackground" />
+
+            <TextView
+                android:id="@+id/tab_given"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="我给出的评价"
+                android:textSize="16sp"
+                android:textColor="@android:color/darker_gray"
+                android:gravity="center"
+                android:paddingVertical="16dp"
+                android:background="?attr/selectableItemBackground" />
+        </LinearLayout>
+
+        <!-- Tab 指示器 -->
         <View
-            android:layout_width="1dp"
-            android:layout_height="24dp"
-            android:background="@color/divider"/>
-
-        <TextView
-            android:id="@+id/tab_given"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="我给出的评价"
-            android:textSize="16sp"
-            android:textColor="@color/text_secondary"
-            android:gravity="center"
-            android:paddingVertical="16dp"/>
-
+            android:id="@+id/tab_indicator"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:background="@color/primary_green" />
     </LinearLayout>
-
-    <!-- Tab 指示器 -->
-    <View
-        android:id="@+id/tab_indicator"
-        android:layout_width="0dp"
-        android:layout_height="3dp"
-        android:layout_weight="1"
-        android:background="@color/primary_green"/>
 
     <!-- 内容区域 -->
     <FrameLayout
-        android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"/>
+        android:layout_weight="1">
+
+        <!-- 收到的评价 -->
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipe_refresh_received"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_received"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:padding="8dp" />
+
+                <TextView
+                    android:id="@+id/tv_empty_received"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="暂无收到的评价"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/darker_gray"
+                    android:visibility="gone" />
+            </FrameLayout>
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+        <!-- 给出的评价 -->
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipe_refresh_given"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_given"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:padding="8dp" />
+
+                <TextView
+                    android:id="@+id/tv_empty_given"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="暂无给出的评价"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/darker_gray"
+                    android:visibility="gone" />
+            </FrameLayout>
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+    </FrameLayout>
 
 </LinearLayout>

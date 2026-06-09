@@ -1,8 +1,8 @@
 package com.example.e_tradeandroid.ui;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -10,6 +10,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.e_tradeandroid.R;
 import com.example.e_tradeandroid.adapter.ReviewAdapter;
@@ -30,22 +31,24 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 /**
- * 我的评价页面
+ * 我的评价页面（重构版）
  */
 public class MyReviewsActivity extends AppCompatActivity {
 
     private ImageView ivBack;
     private TextView tabReceived, tabGiven;
     private View tabIndicator;
-    private FrameLayout container;
 
+    private SwipeRefreshLayout swipeRefreshReceived, swipeRefreshGiven;
     private RecyclerView rvReceived, rvGiven;
+    private TextView tvEmptyReceived, tvEmptyGiven;
+
     private ReviewAdapter receivedAdapter, givenAdapter;
     private List<Review> receivedList = new ArrayList<>();
     private List<Review> givenList = new ArrayList<>();
 
     private Gson gson = new Gson();
-    private boolean isReceivedTab = true; // 当前选中的是收到的评价标签
+    private boolean isReceivedTab = true; // 当前选中“收到的评价”
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,17 +57,12 @@ public class MyReviewsActivity extends AppCompatActivity {
 
         initViews();
         setupRecyclerViews();
+        setupSwipeRefresh();
         setupTabSwitch();
+        switchToReceived(); // 默认显示收到的评价
         loadReviews();
 
         ivBack.setOnClickListener(v -> finish());
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // 每次回到页面时重新加载数据
-        loadReviews();
     }
 
     private void initViews() {
@@ -72,21 +70,29 @@ public class MyReviewsActivity extends AppCompatActivity {
         tabReceived = findViewById(R.id.tab_received);
         tabGiven = findViewById(R.id.tab_given);
         tabIndicator = findViewById(R.id.tab_indicator);
-        container = findViewById(R.id.container);
+        swipeRefreshReceived = findViewById(R.id.swipe_refresh_received);
+        swipeRefreshGiven = findViewById(R.id.swipe_refresh_given);
+        rvReceived = findViewById(R.id.rv_received);
+        rvGiven = findViewById(R.id.rv_given);
+        tvEmptyReceived = findViewById(R.id.tv_empty_received);
+        tvEmptyGiven = findViewById(R.id.tv_empty_given);
     }
 
     private void setupRecyclerViews() {
-        // 我收到的评价列表
-        rvReceived = new RecyclerView(this);
         rvReceived.setLayoutManager(new LinearLayoutManager(this));
         receivedAdapter = new ReviewAdapter(this, receivedList, true);
         rvReceived.setAdapter(receivedAdapter);
 
-        // 我给出的评价列表
-        rvGiven = new RecyclerView(this);
         rvGiven.setLayoutManager(new LinearLayoutManager(this));
         givenAdapter = new ReviewAdapter(this, givenList, false);
         rvGiven.setAdapter(givenAdapter);
+    }
+
+    private void setupSwipeRefresh() {
+        swipeRefreshReceived.setOnRefreshListener(this::loadReceivedReviews);
+        swipeRefreshGiven.setOnRefreshListener(this::loadGivenReviews);
+        swipeRefreshReceived.setColorSchemeResources(R.color.primary_green);
+        swipeRefreshGiven.setColorSchemeResources(R.color.primary_green);
     }
 
     private void setupTabSwitch() {
@@ -94,111 +100,78 @@ public class MyReviewsActivity extends AppCompatActivity {
         tabGiven.setOnClickListener(v -> switchToGiven());
     }
 
-    /**
-     * 切换到"我收到的评价"
-     */
     private void switchToReceived() {
         if (isReceivedTab) return;
-
         isReceivedTab = true;
-        
-        // 更新 Tab 文字颜色
+
         tabReceived.setTextColor(getResources().getColor(R.color.primary_green));
-        tabGiven.setTextColor(getResources().getColor(R.color.text_secondary));
-        
-        // 切换内容
-        container.removeAllViews();
-        container.addView(rvReceived);
-        
-        // 更新指示器位置
-        tabIndicator.setLayoutParams(new android.widget.LinearLayout.LayoutParams(
-                0, 
-                android.view.ViewGroup.LayoutParams.WRAP_CONTENT, 
-                1f
-        ));
-        
-        // 刷新当前标签的数据
-        loadReceivedReviews();
+        tabGiven.setTextColor(getResources().getColor(android.R.color.darker_gray));
+
+        swipeRefreshReceived.setVisibility(View.VISIBLE);
+        swipeRefreshGiven.setVisibility(View.GONE);
+        updateEmptyState();
     }
 
-    /**
-     * 切换到"我给出的评价"
-     */
     private void switchToGiven() {
         if (!isReceivedTab) return;
-
         isReceivedTab = false;
-        
-        // 更新 Tab 文字颜色
+
         tabGiven.setTextColor(getResources().getColor(R.color.primary_green));
-        tabReceived.setTextColor(getResources().getColor(R.color.text_secondary));
-        
-        // 切换内容
-        container.removeAllViews();
-        container.addView(rvGiven);
-        
-        // 更新指示器位置
-        android.widget.LinearLayout.LayoutParams params = new android.widget.LinearLayout.LayoutParams(
-                0, 
-                android.view.ViewGroup.LayoutParams.WRAP_CONTENT, 
-                1f
-        );
-        params.weight = 0;
-        tabIndicator.setLayoutParams(params);
-        
-        // 重新设置布局参数，将指示器移到右侧
-        tabIndicator.setLayoutParams(new android.widget.LinearLayout.LayoutParams(
-                0, 
-                android.view.ViewGroup.LayoutParams.WRAP_CONTENT, 
-                1f
-        ));
-        // 通过设置 margin 来移动指示器位置
-        params.setMarginStart(getResources().getDisplayMetrics().widthPixels / 2);
-        tabIndicator.setLayoutParams(params);
-        
-        // 刷新当前标签的数据
-        loadGivenReviews();
+        tabReceived.setTextColor(getResources().getColor(android.R.color.darker_gray));
+
+        swipeRefreshGiven.setVisibility(View.VISIBLE);
+        swipeRefreshReceived.setVisibility(View.GONE);
+        updateEmptyState();
     }
 
-    /**
-     * 加载评价数据
-     */
+    private void updateEmptyState() {
+        if (isReceivedTab) {
+            if (receivedList.isEmpty()) {
+                rvReceived.setVisibility(View.GONE);
+                tvEmptyReceived.setVisibility(View.VISIBLE);
+            } else {
+                rvReceived.setVisibility(View.VISIBLE);
+                tvEmptyReceived.setVisibility(View.GONE);
+            }
+        } else {
+            if (givenList.isEmpty()) {
+                rvGiven.setVisibility(View.GONE);
+                tvEmptyGiven.setVisibility(View.VISIBLE);
+            } else {
+                rvGiven.setVisibility(View.VISIBLE);
+                tvEmptyGiven.setVisibility(View.GONE);
+            }
+        }
+    }
+
     private void loadReviews() {
-        // 加载我收到的评价
         loadReceivedReviews();
-        
-        // 加载我给出的评价
         loadGivenReviews();
     }
 
-    /**
-     * 加载我收到的评价
-     * 后端返回格式: { "code": 200, "data": { "reviews": [...], "averageRating": 4.8, "reviewCount": 10 } }
-     */
     private void loadReceivedReviews() {
-        long userId = ApiClient.getCurrentUserId();
-        String url = ApiClient.BASE_URL + "api/review/received?userId=" + userId;
-        
-        Request request = new Request.Builder()
-                .url(url)
-                .get()
-                .build();
+        swipeRefreshReceived.setRefreshing(true);
+        String url = ApiClient.BASE_URL + "api/review/received";
 
+        Request request = new Request.Builder().url(url).get().build();
         ApiClient.getClient().newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 runOnUiThread(() -> {
-                    Toast.makeText(MyReviewsActivity.this, "加载评价失败", Toast.LENGTH_SHORT).show();
+                    swipeRefreshReceived.setRefreshing(false);
+                    Toast.makeText(MyReviewsActivity.this, "加载失败", Toast.LENGTH_SHORT).show();
                 });
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String body = response.body().string();
-                BaseResponse<ReviewListResponse> baseResp = gson.fromJson(body, 
+                Log.d("MyReviewsActivity", "收到评价响应: " + body);
+                BaseResponse<ReviewListResponse> baseResp = gson.fromJson(body,
                         new TypeToken<BaseResponse<ReviewListResponse>>() {}.getType());
-                
+
                 runOnUiThread(() -> {
+                    swipeRefreshReceived.setRefreshing(false);
                     if (baseResp.isSuccess() && baseResp.getData() != null) {
                         ReviewListResponse data = baseResp.getData();
                         receivedList.clear();
@@ -206,6 +179,15 @@ public class MyReviewsActivity extends AppCompatActivity {
                             receivedList.addAll(data.getReviews());
                         }
                         receivedAdapter.notifyDataSetChanged();
+                        
+                        // ✅ 直接更新收到评价列表的可见性，不依赖当前Tab
+                        if (receivedList.isEmpty()) {
+                            rvReceived.setVisibility(View.GONE);
+                            tvEmptyReceived.setVisibility(View.VISIBLE);
+                        } else {
+                            rvReceived.setVisibility(View.VISIBLE);
+                            tvEmptyReceived.setVisibility(View.GONE);
+                        }
                     } else {
                         Toast.makeText(MyReviewsActivity.this, baseResp.getMessage(), Toast.LENGTH_SHORT).show();
                     }
@@ -214,34 +196,29 @@ public class MyReviewsActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * 加载我给出的评价
-     * 后端返回格式: { "code": 200, "data": { "reviews": [...], "averageRating": 4.8, "reviewCount": 10 } }
-     */
     private void loadGivenReviews() {
-        long userId = ApiClient.getCurrentUserId();
-        String url = ApiClient.BASE_URL + "api/review/given?userId=" + userId;
-        
-        Request request = new Request.Builder()
-                .url(url)
-                .get()
-                .build();
+        swipeRefreshGiven.setRefreshing(true);
+        String url = ApiClient.BASE_URL + "api/review/given";
 
+        Request request = new Request.Builder().url(url).get().build();
         ApiClient.getClient().newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 runOnUiThread(() -> {
-                    Toast.makeText(MyReviewsActivity.this, "加载评价失败", Toast.LENGTH_SHORT).show();
+                    swipeRefreshGiven.setRefreshing(false);
+                    Toast.makeText(MyReviewsActivity.this, "加载失败", Toast.LENGTH_SHORT).show();
                 });
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String body = response.body().string();
-                BaseResponse<ReviewListResponse> baseResp = gson.fromJson(body, 
+                Log.d("MyReviewsActivity", "给出评价响应: " + body);
+                BaseResponse<ReviewListResponse> baseResp = gson.fromJson(body,
                         new TypeToken<BaseResponse<ReviewListResponse>>() {}.getType());
-                
+
                 runOnUiThread(() -> {
+                    swipeRefreshGiven.setRefreshing(false);
                     if (baseResp.isSuccess() && baseResp.getData() != null) {
                         ReviewListResponse data = baseResp.getData();
                         givenList.clear();
@@ -249,6 +226,15 @@ public class MyReviewsActivity extends AppCompatActivity {
                             givenList.addAll(data.getReviews());
                         }
                         givenAdapter.notifyDataSetChanged();
+                        
+                        // ✅ 直接更新给出评价列表的可见性，不依赖当前Tab
+                        if (givenList.isEmpty()) {
+                            rvGiven.setVisibility(View.GONE);
+                            tvEmptyGiven.setVisibility(View.VISIBLE);
+                        } else {
+                            rvGiven.setVisibility(View.VISIBLE);
+                            tvEmptyGiven.setVisibility(View.GONE);
+                        }
                     } else {
                         Toast.makeText(MyReviewsActivity.this, baseResp.getMessage(), Toast.LENGTH_SHORT).show();
                     }

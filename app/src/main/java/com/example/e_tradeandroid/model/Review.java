@@ -1,5 +1,7 @@
 package com.example.e_tradeandroid.model;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * 评价数据模型
  */
@@ -12,11 +14,14 @@ public class Review {
     private Long revieweeId;      // 被评价者ID
     private String revieweeName;  // 被评价者姓名
     private Integer rating;       // 评分（1-5）
-    private String content;       // 评价内容（后端字段名）
-    private String comment;       // 评价内容（兼容旧字段）
+    
+    @SerializedName("content")    // ✅ 后端返回的字段名
+    private String content;       // 评价内容
+    
+    private String comment;       // 兼容旧字段
     private String tags;          // 评价标签，逗号分隔
     private String productName;   // 商品名称
-    private String productImage;  // 商品图片路径（新增）
+    private String productImage;  // 商品图片路径
     private String createTime;    // 创建时间
     private Boolean isReceived;   // 是否是收到的评价（true=收到的，false=给出的）
 

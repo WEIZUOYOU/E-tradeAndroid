@@ -290,9 +290,12 @@ public class TradeReviewActivity extends AppCompatActivity {
                     if (isFinishing() || isDestroyed()) return;
                     if (baseResp.isSuccess()) {
                         Toast.makeText(TradeReviewActivity.this, "评价提交成功", Toast.LENGTH_SHORT).show();
-                        // 发送评价消息通知对方（在回调中完成后再关闭页面）
-                        sendReviewMessage();
-                        // 不在此调用 finish()，改为在 sendReviewMessage 回调中调用
+                        
+                        // ❌ 不再由前端发送消息，后端已实现完善的防重复机制
+                        // sendReviewMessage();
+                        
+                        // ✅ 直接关闭页面，等待后端推送消息
+                        safeFinish();
                     } else {
                         btnSubmit.setEnabled(true); // 失败后重新启用按钮
                         Toast.makeText(TradeReviewActivity.this, baseResp.getMessage(), Toast.LENGTH_SHORT).show();
@@ -329,6 +332,7 @@ public class TradeReviewActivity extends AppCompatActivity {
     
     /**
      * 计算评价后的交易状态
+     * 注意：这个方法是临时的，最佳方案是在后端判断状态并发送消息
      */
     private int calculateReviewStatus() {
         // 使用 isSellerMode 判断当前用户身份
@@ -343,6 +347,8 @@ public class TradeReviewActivity extends AppCompatActivity {
             Log.d("TradeReviewActivity", "当前用户是买家，评价后状态变为 6（买家已评价）");
         }
         
+        // TODO: 这里应该从后端获取最新的交易状态，而不是本地计算
+        // 临时方案：先返回基础状态，让后端决定最终状态和消息内容
         return newStatus;
     }
     
