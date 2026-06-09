@@ -47,7 +47,7 @@
     <color name="text_primary">#1F2E1C</color>           <!-- 主文字 -->
     <color name="text_secondary">#5A6660</color>         <!-- 次要文字 -->
     <color name="text_hint">#A8B0AB</color>              <!-- 提示文字 -->
-    <color name="text_price">#E5C23A</color>             <!-- 价格文字（暖黄深色） -->
+    <color name="text_price">#D48A2D</color>             <!-- 价格文字（暖黄深色） -->
 
     <!-- 分割线 -->
     <color name="divider">#E8EDE9</color>

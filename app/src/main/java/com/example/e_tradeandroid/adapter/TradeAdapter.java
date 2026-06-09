@@ -105,20 +105,30 @@ public class TradeAdapter extends RecyclerView.Adapter<TradeAdapter.TradeViewHol
             switch (status) {
                 case 0: return "待卖家确认";
                 case 1: return "待交易";
+                case 2: return "卖家已确认";
+                case 3: return "买家已确认";
                 case 4: return "已完成";
                 case 5: return "已取消";
+                case 6: return "买家已评价";
+                case 7: return "卖家已评价";
+                case 8: return "双方已评价";
                 default: return "未知";
             }
         }
 
         private int getStatusBg(Integer status) {
-            if (status == null) return R.drawable.bg_status_tag;
+            if (status == null) return R.drawable.bg_btn_primary;
             switch (status) {
-                case 0: return R.drawable.bg_status_tag;      // 橙色
+                case 0: return R.drawable.bg_status_tag;      // 橙色边框
                 case 1: return R.drawable.bg_btn_success;      // 绿色
+                case 2: return R.drawable.bg_btn_success;      // 绿色
+                case 3: return R.drawable.bg_btn_success;      // 绿色
                 case 4: return R.drawable.bg_btn_success;      // 绿色
                 case 5: return R.drawable.bg_btn_danger;       // 红色
-                default: return R.drawable.bg_status_tag;
+                case 6: return R.drawable.bg_btn_primary;      // 蓝色
+                case 7: return R.drawable.bg_btn_primary;      // 蓝色
+                case 8: return R.drawable.bg_btn_success;      // 绿色
+                default: return R.drawable.bg_btn_primary;     // 蓝色（未知状态用蓝色）
             }
         }
     }

@@ -137,9 +137,10 @@
 
     <!-- 星星图标样式 -->
     <style name="StarIcon">
-        <item name="android:layout_width">20dp</item>
-        <item name="android:layout_height">20dp</item>
+        <item name="android:layout_width">18dp</item>
+        <item name="android:layout_height">18dp</item>
         <item name="android:src">@drawable/ic_star_empty</item>
+        <item name="android:layout_marginEnd">2dp</item>
     </style>
 
 </resources>
