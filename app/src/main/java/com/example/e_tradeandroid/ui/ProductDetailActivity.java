@@ -15,8 +15,6 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager2.adapter.FragmentStateAdapter;
-import androidx.viewpager2.adapter.ViewPager2Adapter;
 
 import com.bumptech.glide.Glide;
 import com.example.e_tradeandroid.R;
