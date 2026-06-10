@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
         initViews();
         setupSearchView();
         setupBottomNav();
-        loadCategories();
+        setupDefaultCategories();
         loadProducts();
     }
 
