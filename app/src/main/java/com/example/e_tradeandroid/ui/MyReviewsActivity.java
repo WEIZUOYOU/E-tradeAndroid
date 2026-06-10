@@ -151,7 +151,7 @@ public class MyReviewsActivity extends AppCompatActivity {
 
     private void loadReceivedReviews() {
         swipeRefreshReceived.setRefreshing(true);
-        String url = ApiClient.BASE_URL + "api/review/received";
+        String url = ApiClient.BASE_URL + "/api/review/received";
 
         Request request = new Request.Builder().url(url).get().build();
         ApiClient.getClient().newCall(request).enqueue(new Callback() {
@@ -198,7 +198,7 @@ public class MyReviewsActivity extends AppCompatActivity {
 
     private void loadGivenReviews() {
         swipeRefreshGiven.setRefreshing(true);
-        String url = ApiClient.BASE_URL + "api/review/given";
+        String url = ApiClient.BASE_URL + "/api/review/given";
 
         Request request = new Request.Builder().url(url).get().build();
         ApiClient.getClient().newCall(request).enqueue(new Callback() {

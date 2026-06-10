@@ -32,6 +32,9 @@
     <dimen name="elevation_card">2dp</dimen>
     <dimen name="elevation_fab">6dp</dimen>
     <dimen name="elevation_appbar">4dp</dimen>
+    
+    <!-- 页码指示器尺寸 -->
+    <dimen name="page_indicator_size">8dp</dimen>
 
     <!-- 按钮内边距 -->
     <dimen name="btn_padding_vertical">12dp</dimen>

@@ -73,9 +73,7 @@ public class TradeAdapter extends RecyclerView.Adapter<TradeAdapter.TradeViewHol
 
             // 商品图片
             if (trade.getProductImage() != null && !trade.getProductImage().isEmpty()) {
-                String imageUrl = trade.getProductImage().startsWith("http")
-                        ? trade.getProductImage()
-                        : ApiClient.BASE_URL + trade.getProductImage();
+                String imageUrl = ApiClient.getImageUrl(trade.getProductImage());
                 Glide.with(context).load(imageUrl).into(ivProduct);
             }
 

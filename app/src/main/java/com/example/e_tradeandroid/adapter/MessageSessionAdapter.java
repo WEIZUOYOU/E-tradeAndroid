@@ -69,9 +69,7 @@ public class MessageSessionAdapter extends RecyclerView.Adapter<MessageSessionAd
         
         // 加载对方头像
         if (session.getTargetUserAvatar() != null && !session.getTargetUserAvatar().isEmpty()) {
-            String avatarUrl = session.getTargetUserAvatar().startsWith("http") 
-                ? session.getTargetUserAvatar() 
-                : ApiClient.BASE_URL + session.getTargetUserAvatar();
+            String avatarUrl = ApiClient.getImageUrl(session.getTargetUserAvatar());
             Glide.with(holder.itemView.getContext())
                     .load(avatarUrl)
                     .placeholder(R.drawable.ic_launcher_foreground)

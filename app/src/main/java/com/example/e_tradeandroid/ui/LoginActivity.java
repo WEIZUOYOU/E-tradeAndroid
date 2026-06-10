@@ -101,7 +101,7 @@ public class LoginActivity extends AppCompatActivity {
         String json = gson.toJson(req);
         RequestBody body = RequestBody.create(json, MediaType.get("application/json; charset=utf-8"));
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "api/user/login")
+                .url(ApiClient.BASE_URL + "/api/user/login")
                 .post(body)
                 .build();
 
@@ -156,7 +156,7 @@ public class LoginActivity extends AppCompatActivity {
         String json = gson.toJson(req);
         RequestBody body = RequestBody.create(json, MediaType.get("application/json; charset=utf-8"));
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "api/user/register")
+                .url(ApiClient.BASE_URL + "/api/user/register")
                 .post(body)
                 .build();
 

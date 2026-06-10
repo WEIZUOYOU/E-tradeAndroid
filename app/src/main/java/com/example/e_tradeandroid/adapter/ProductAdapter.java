@@ -59,8 +59,8 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         }
         
         if (imageUrl != null && !imageUrl.isEmpty()) {
-            // 如果已经是完整URL，直接使用；否则拼接BASE_URL
-            String fullUrl = imageUrl.startsWith("http") ? imageUrl : ApiClient.BASE_URL + imageUrl;
+            // 使用统一的图片URL构建方法，避免双斜杠问题
+            String fullUrl = ApiClient.getImageUrl(imageUrl);
             
             android.util.Log.d("ProductAdapter", "Loading image: " + fullUrl);
             

@@ -2,6 +2,9 @@ package com.example.e_tradeandroid.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -11,6 +14,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
+import androidx.viewpager2.adapter.ViewPager2Adapter;
 
 import com.bumptech.glide.Glide;
 import com.example.e_tradeandroid.R;
@@ -186,9 +192,7 @@ public class ProductDetailActivity extends AppCompatActivity {
             
             // 加载卖家头像
             if (product.getSellerAvatar() != null && !product.getSellerAvatar().isEmpty()) {
-                String avatarUrl = product.getSellerAvatar().startsWith("http") 
-                    ? product.getSellerAvatar() 
-                    : ApiClient.BASE_URL + product.getSellerAvatar();
+                String avatarUrl = ApiClient.getImageUrl(product.getSellerAvatar());
                 Glide.with(ProductDetailActivity.this)
                         .load(avatarUrl)
                         .placeholder(R.drawable.ic_launcher_foreground)
@@ -203,13 +207,84 @@ public class ProductDetailActivity extends AppCompatActivity {
             return;
         }
         
-        // TODO: 实现ViewPager2图片轮播
-        // 这里简化处理，只显示第一张图片
-        if (!images.isEmpty()) {
-            Glide.with(this)
-                    .load(ApiClient.BASE_URL + images.get(0))
+        // 设置 ViewPager2 适配器
+        view_pager_images.setAdapter(new ImagePagerAdapter(this, images));
+        
+        // 设置页码指示器
+        setupPageIndicator(images.size());
+        
+        // 监听页面变化，更新指示器
+        view_pager_images.registerOnPageChangeCallback(new androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                updatePageIndicator(position);
+            }
+        });
+    }
+    
+    // ViewPager2 图片适配器
+    private static class ImagePagerAdapter extends RecyclerView.Adapter<ImagePagerAdapter.ImageViewHolder> {
+        private final List<String> images;
+        private final LayoutInflater inflater;
+        
+        public ImagePagerAdapter(android.content.Context context, List<String> images) {
+            this.images = images;
+            this.inflater = LayoutInflater.from(context);
+        }
+        
+        @Override
+        public ImageViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View view = inflater.inflate(R.layout.item_image_pager, parent, false);
+            return new ImageViewHolder(view);
+        }
+        
+        @Override
+        public void onBindViewHolder(ImageViewHolder holder, int position) {
+            String imageUrl = ApiClient.getImageUrl(images.get(position));
+            Glide.with(holder.itemView.getContext())
+                    .load(imageUrl)
                     .placeholder(R.drawable.ic_launcher_foreground)
-                    .into(new android.widget.ImageView(this)); // 临时处理
+                    .error(R.drawable.ic_launcher_foreground)
+                    .into(holder.ivImage);
+        }
+        
+        @Override
+        public int getItemCount() {
+            return images.size();
+        }
+        
+        static class ImageViewHolder extends RecyclerView.ViewHolder {
+            ImageView ivImage;
+            
+            public ImageViewHolder(View itemView) {
+                super(itemView);
+                ivImage = itemView.findViewById(R.id.iv_image);
+            }
+        }
+    }
+    
+    // 设置页码指示器
+    private void setupPageIndicator(int count) {
+        ll_page_indicator.removeAllViews();
+        
+        for (int i = 0; i < count; i++) {
+            View indicator = new View(this);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    getResources().getDimensionPixelSize(R.dimen.page_indicator_size),
+                    getResources().getDimensionPixelSize(R.dimen.page_indicator_size));
+            params.setMargins(4, 0, 4, 0);
+            indicator.setLayoutParams(params);
+            indicator.setBackgroundResource(i == 0 ? R.drawable.page_indicator_active : R.drawable.page_indicator_inactive);
+            ll_page_indicator.addView(indicator);
+        }
+    }
+    
+    // 更新页码指示器
+    private void updatePageIndicator(int position) {
+        for (int i = 0; i < ll_page_indicator.getChildCount(); i++) {
+            View indicator = ll_page_indicator.getChildAt(i);
+            indicator.setBackgroundResource(i == position ? R.drawable.page_indicator_active : R.drawable.page_indicator_inactive);
         }
     }
     

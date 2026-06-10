@@ -127,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadCategories() {
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "api/category/list")
+                .url(ApiClient.BASE_URL + "/api/category/list")
                 .get()
                 .build();
 
@@ -271,7 +271,7 @@ public class MainActivity extends AppCompatActivity {
             progressBar.setVisibility(View.VISIBLE);
         }
 
-        String url = ApiClient.BASE_URL + "api/product/list?page=" + currentPage + "&size=" + pageSize;
+        String url = ApiClient.BASE_URL + "/api/product/list?page=" + currentPage + "&size=" + pageSize;
         
         Request request = new Request.Builder()
                 .url(url)
@@ -355,7 +355,7 @@ public class MainActivity extends AppCompatActivity {
             progressBar.setVisibility(View.VISIBLE);
         }
 
-        StringBuilder url = new StringBuilder(ApiClient.BASE_URL + "api/product/search?page=" + currentPage + "&size=" + pageSize);
+        StringBuilder url = new StringBuilder(ApiClient.BASE_URL + "/api/product/search?page=" + currentPage + "&size=" + pageSize);
         if (searchKeyword != null && !searchKeyword.isEmpty()) {
             url.append("&keyword=").append(searchKeyword);
         }

@@ -25,7 +25,7 @@ import okhttp3.logging.HttpLoggingInterceptor;
 
 public class ApiClient {
     private static final String TAG = "ApiClient";
-    public static final String BASE_URL = "http://10.0.2.2:8080/";
+    public static final String BASE_URL = "http://10.101.233.51:8080";
     private static OkHttpClient client;
     private static SharedPreferences cookiePrefs;
     private static final String COOKIE_PREF_NAME = "cookies";
@@ -147,7 +147,7 @@ public class ApiClient {
 
     /**
      * 构建图片完整 URL
-     * 自动处理前导斜杠和双斜杠问题
+     * 确保返回的 URL 始终包含 /uploads/ 格式，以匹配后端 /uploads/** 映射
      * @param imagePath 图片路径（可能是完整 URL 或相对路径）
      * @return 完整的图片 URL
      */
@@ -155,10 +155,12 @@ public class ApiClient {
         if (imagePath == null || imagePath.isEmpty()) return null;
         // 如果已经是完整 URL，直接返回
         if (imagePath.startsWith("http")) return imagePath;
-        // 去掉开头的斜杠（如果有）
-        String path = imagePath.startsWith("/") ? imagePath.substring(1) : imagePath;
+        // 确保以 / 开头
+        if (!imagePath.startsWith("/")) {
+            imagePath = "/" + imagePath;
+        }
         // 拼接 BASE_URL
-        return BASE_URL + path;
+        return BASE_URL + imagePath;
     }
 
     // 补上 saveUserId 兼容旧代码
@@ -198,23 +200,27 @@ public class ApiClient {
     }
 
     public static void get(String url, Callback callback) {
+        if (!url.startsWith("/")) url = "/" + url;
         Request req = new Request.Builder().url(BASE_URL + url).build();
         getClient().newCall(req).enqueue(callback);
     }
 
     public static void post(String url, String json, Callback callback) {
+        if (!url.startsWith("/")) url = "/" + url;
         RequestBody body = RequestBody.create(json, JSON);
         Request req = new Request.Builder().url(BASE_URL + url).post(body).build();
         getClient().newCall(req).enqueue(callback);
     }
 
     public static void put(String url, String json, Callback callback) {
+        if (!url.startsWith("/")) url = "/" + url;
         RequestBody body = RequestBody.create(json, JSON);
         Request req = new Request.Builder().url(BASE_URL + url).put(body).build();
         getClient().newCall(req).enqueue(callback);
     }
 
     public static void delete(String url, Callback callback) {
+        if (!url.startsWith("/")) url = "/" + url;
         Request req = new Request.Builder().url(BASE_URL + url).delete().build();
         getClient().newCall(req).enqueue(callback);
     }

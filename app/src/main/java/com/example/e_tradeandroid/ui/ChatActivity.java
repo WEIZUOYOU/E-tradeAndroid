@@ -315,9 +315,7 @@ public class ChatActivity extends AppCompatActivity {
                         if (product.getImages() != null && !product.getImages().isEmpty()) {
                             String firstImage = product.getImages().get(0);
                             if (firstImage != null && !firstImage.isEmpty() && !firstImage.equals("null")) {
-                                String imageUrl = firstImage.startsWith("http")
-                                        ? firstImage
-                                        : ApiClient.BASE_URL + firstImage;
+                                String imageUrl = ApiClient.getImageUrl(firstImage);
                                 Glide.with(ChatActivity.this)
                                         .load(imageUrl)
                                         .placeholder(R.drawable.ic_launcher_foreground)
@@ -460,7 +458,7 @@ public class ChatActivity extends AppCompatActivity {
             return;
         }
         
-        String url = ApiClient.BASE_URL + "api/message/history?targetUserId=" + targetUserId;
+        String url = ApiClient.BASE_URL + "/api/message/history?targetUserId=" + targetUserId;
         Request request = new Request.Builder().url(url).build();
         ApiClient.getHttpClient().newCall(request).enqueue(new Callback() {
             @Override

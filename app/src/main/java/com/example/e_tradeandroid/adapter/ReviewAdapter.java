@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.e_tradeandroid.R;
 import com.example.e_tradeandroid.model.Review;
+import com.example.e_tradeandroid.network.ApiClient;
 
 import java.util.List;
 
@@ -51,7 +52,8 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ViewHolder
         
         // 商品图片
         if (review.getProductImage() != null && !review.getProductImage().isEmpty()) {
-            Glide.with(context).load(review.getProductImage()).into(holder.ivProduct);
+            String imageUrl = ApiClient.getImageUrl(review.getProductImage());
+            Glide.with(context).load(imageUrl).into(holder.ivProduct);
         } else {
             holder.ivProduct.setImageResource(R.drawable.ic_default_product);
         }

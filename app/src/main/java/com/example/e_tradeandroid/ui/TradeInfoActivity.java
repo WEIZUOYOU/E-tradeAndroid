@@ -236,9 +236,7 @@ public class TradeInfoActivity extends AppCompatActivity {
                         tvProductPrice.setText("￥" + product.getPrice());
 
                         if (product.getImages() != null && !product.getImages().isEmpty()) {
-                            String imageUrl = product.getImages().get(0).startsWith("http")
-                                    ? product.getImages().get(0)
-                                    : ApiClient.BASE_URL + product.getImages().get(0);
+                            String imageUrl = ApiClient.getImageUrl(product.getImages().get(0));
                             Glide.with(TradeInfoActivity.this)
                                     .load(imageUrl)
                                     .placeholder(R.drawable.ic_launcher_foreground)
@@ -249,9 +247,7 @@ public class TradeInfoActivity extends AppCompatActivity {
                             tvSellerName.setText(product.getSellerName());
                         }
                         if (product.getSellerAvatar() != null) {
-                            String avatarUrl = product.getSellerAvatar().startsWith("http")
-                                    ? product.getSellerAvatar()
-                                    : ApiClient.BASE_URL + product.getSellerAvatar();
+                            String avatarUrl = ApiClient.getImageUrl(product.getSellerAvatar());
                             Glide.with(TradeInfoActivity.this)
                                     .load(avatarUrl)
                                     .placeholder(R.drawable.ic_launcher_foreground)
@@ -356,9 +352,7 @@ public class TradeInfoActivity extends AppCompatActivity {
                         tvProductPrice.setText("￥" + existingTrade.getProductPrice());
                         
                         if (existingTrade.getProductImage() != null && !existingTrade.getProductImage().isEmpty()) {
-                            String imageUrl = existingTrade.getProductImage().startsWith("http")
-                                    ? existingTrade.getProductImage()
-                                    : ApiClient.BASE_URL + existingTrade.getProductImage();
+                            String imageUrl = ApiClient.getImageUrl(existingTrade.getProductImage());
                             Glide.with(TradeInfoActivity.this)
                                     .load(imageUrl)
                                     .placeholder(R.drawable.ic_default_product)
@@ -438,9 +432,7 @@ public class TradeInfoActivity extends AppCompatActivity {
                 : getResources().getColor(R.color.warning_orange));
 
         if (existingTrade.getBuyerAvatar() != null && !existingTrade.getBuyerAvatar().isEmpty()) {
-            String avatarUrl = existingTrade.getBuyerAvatar().startsWith("http")
-                    ? existingTrade.getBuyerAvatar()
-                    : ApiClient.BASE_URL + existingTrade.getBuyerAvatar();
+            String avatarUrl = ApiClient.getImageUrl(existingTrade.getBuyerAvatar());
             Glide.with(TradeInfoActivity.this)
                     .load(avatarUrl)
                     .placeholder(R.drawable.ic_launcher_foreground)
@@ -464,9 +456,7 @@ public class TradeInfoActivity extends AppCompatActivity {
                 : getResources().getColor(R.color.warning_orange));
 
         if (existingTrade.getSellerAvatar() != null && !existingTrade.getSellerAvatar().isEmpty()) {
-            String avatarUrl = existingTrade.getSellerAvatar().startsWith("http")
-                    ? existingTrade.getSellerAvatar()
-                    : ApiClient.BASE_URL + existingTrade.getSellerAvatar();
+            String avatarUrl = ApiClient.getImageUrl(existingTrade.getSellerAvatar());
             Glide.with(TradeInfoActivity.this)
                     .load(avatarUrl)
                     .placeholder(R.drawable.ic_launcher_foreground)
@@ -483,9 +473,7 @@ public class TradeInfoActivity extends AppCompatActivity {
                 : getResources().getColor(R.color.warning_orange));
 
         if (buyer.getAvatar() != null && !buyer.getAvatar().isEmpty()) {
-            String avatarUrl = buyer.getAvatar().startsWith("http")
-                    ? buyer.getAvatar()
-                    : ApiClient.BASE_URL + buyer.getAvatar();
+            String avatarUrl = ApiClient.getImageUrl(buyer.getAvatar());
             Glide.with(TradeInfoActivity.this)
                     .load(avatarUrl)
                     .placeholder(R.drawable.ic_launcher_foreground)
@@ -506,9 +494,7 @@ public class TradeInfoActivity extends AppCompatActivity {
                 : getResources().getColor(R.color.warning_orange));
 
         if (seller.getAvatar() != null && !seller.getAvatar().isEmpty()) {
-            String avatarUrl = seller.getAvatar().startsWith("http")
-                    ? seller.getAvatar()
-                    : ApiClient.BASE_URL + seller.getAvatar();
+            String avatarUrl = ApiClient.getImageUrl(seller.getAvatar());
             Glide.with(TradeInfoActivity.this)
                     .load(avatarUrl)
                     .placeholder(R.drawable.ic_launcher_foreground)

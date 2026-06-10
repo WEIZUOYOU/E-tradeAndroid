@@ -105,7 +105,7 @@ public class MyProfileActivity extends AppCompatActivity {
 
     private void doLogout() {
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "api/user/logout")
+                .url(ApiClient.BASE_URL + "/api/user/logout")
                 .post(RequestBody.create("", MediaType.parse("application/json; charset=utf-8")))
                 .build();
 
@@ -152,8 +152,9 @@ public class MyProfileActivity extends AppCompatActivity {
         }
 
         if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
+            String avatarUrl = ApiClient.getImageUrl(user.getAvatar());
             Glide.with(MyProfileActivity.this)
-                    .load(ApiClient.BASE_URL + user.getAvatar())
+                    .load(avatarUrl)
                     .placeholder(R.drawable.ic_launcher_foreground)
                     .into(ivAvatar);
         }
@@ -243,7 +244,7 @@ public class MyProfileActivity extends AppCompatActivity {
                     .build();
 
             Request request = new Request.Builder()
-                    .url(ApiClient.BASE_URL + "api/user/avatar")
+                    .url(ApiClient.BASE_URL + "/api/user/avatar")
                     .post(requestBody)
                     .build();
 
@@ -316,7 +317,7 @@ public class MyProfileActivity extends AppCompatActivity {
         RequestBody body = RequestBody.create(json, MediaType.parse("application/json; charset=utf-8"));
 
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "api/user/verify")
+                .url(ApiClient.BASE_URL + "/api/user/verify")
                 .post(body)
                 .build();
 
@@ -351,7 +352,7 @@ public class MyProfileActivity extends AppCompatActivity {
 
     private void loadUserProfile() {
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "api/user/current")
+                .url(ApiClient.BASE_URL + "/api/user/current")
                 .get()
                 .build();
 

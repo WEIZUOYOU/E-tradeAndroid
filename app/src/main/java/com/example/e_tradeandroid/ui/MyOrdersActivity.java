@@ -208,7 +208,7 @@ public class MyOrdersActivity extends AppCompatActivity {
         // 开始刷新
         swipeRefreshActive.setRefreshing(true);
         
-        String url = ApiClient.BASE_URL + "api/trade/my/list?status=0,1,2,3";
+        String url = ApiClient.BASE_URL + "/api/trade/my/list?status=0,1,2,3";
         
         Request request = new Request.Builder()
                 .url(url)
@@ -286,7 +286,7 @@ public class MyOrdersActivity extends AppCompatActivity {
         // 开始刷新
         swipeRefreshCompleted.setRefreshing(true);
         
-        String url = ApiClient.BASE_URL + "api/trade/my/list?status=4,5,6,7,8";
+        String url = ApiClient.BASE_URL + "/api/trade/my/list?status=4,5,6,7,8";
         
         Request request = new Request.Builder()
                 .url(url)

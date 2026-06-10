@@ -540,7 +540,7 @@ public class PublishActivity extends AppCompatActivity {
             okhttp3.RequestBody requestBody = bodyBuilder.build();
             
             okhttp3.Request request = new okhttp3.Request.Builder()
-                    .url(ApiClient.BASE_URL + "api/product/publish")
+                    .url(ApiClient.BASE_URL + "/api/product/publish")
                     .post(requestBody)
                     .build();
             

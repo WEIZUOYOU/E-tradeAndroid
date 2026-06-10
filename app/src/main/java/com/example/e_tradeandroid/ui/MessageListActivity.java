@@ -83,7 +83,7 @@ public class MessageListActivity extends AppCompatActivity {
         tvEmpty.setVisibility(View.GONE);
 
         // 调用后端接口获取会话列表
-        String url = ApiClient.BASE_URL + "api/message/sessions?page=1&size=20";
+        String url = ApiClient.BASE_URL + "/api/message/sessions?page=1&size=20";
         Request request = new Request.Builder().url(url).build();
         
         ApiClient.getClient().newCall(request).enqueue(new Callback() {
@@ -176,7 +176,7 @@ public class MessageListActivity extends AppCompatActivity {
     
     private void markSessionAsRead(Long targetUserId) {
         // 调用后端接口标记会话已读
-        String url = ApiClient.BASE_URL + "api/message/read-session/" + targetUserId;
+        String url = ApiClient.BASE_URL + "/api/message/read-session/" + targetUserId;
         okhttp3.RequestBody body = okhttp3.RequestBody.create(null, new byte[0]);
         okhttp3.Request request = new okhttp3.Request.Builder()
                 .url(url)

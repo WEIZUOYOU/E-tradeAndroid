@@ -80,7 +80,7 @@ public class EditProductActivity extends AppCompatActivity {
 
     private void loadProductDetail() {
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "api/product/detail/" + productId)
+                .url(ApiClient.BASE_URL + "/api/product/detail/" + productId)
                 .get()
                 .build();
 
@@ -104,15 +104,16 @@ public class EditProductActivity extends AppCompatActivity {
                         etDescription.setText(product.getDescription());
 
                         if (product.getMainImage() != null && !product.getMainImage().isEmpty()) {
+                            String imageUrl = ApiClient.getImageUrl(product.getMainImage());
                             Glide.with(EditProductActivity.this)
-                                    .load(ApiClient.BASE_URL + product.getMainImage())
+                                    .load(imageUrl)
                                     .placeholder(R.drawable.ic_launcher_foreground)
                                     .into(ivPreview);
                             ivPreview.setVisibility(View.VISIBLE);
                         } else if (product.getImages() != null && !product.getImages().isEmpty()) {
-                            String firstUrl = product.getImages().get(0);
+                            String imageUrl = ApiClient.getImageUrl(product.getImages().get(0));
                             Glide.with(EditProductActivity.this)
-                                    .load(ApiClient.BASE_URL + firstUrl)
+                                    .load(imageUrl)
                                     .placeholder(R.drawable.ic_launcher_foreground)
                                     .into(ivPreview);
                             ivPreview.setVisibility(View.VISIBLE);
@@ -153,7 +154,7 @@ public class EditProductActivity extends AppCompatActivity {
             );
 
             Request request = new Request.Builder()
-                    .url(ApiClient.BASE_URL + "api/product/update/" + productId)
+                    .url(ApiClient.BASE_URL + "/api/product/update/" + productId)
                     .post(body)
                     .build();
 
@@ -194,7 +195,7 @@ public class EditProductActivity extends AppCompatActivity {
 
     private void offshelfProduct() {
         Request request = new Request.Builder()
-                .url(ApiClient.BASE_URL + "api/product/offline/" + productId)
+                .url(ApiClient.BASE_URL + "/api/product/offline/" + productId)
                 .put(RequestBody.create("", MediaType.parse("application/json; charset=utf-8")))
                 .build();
 

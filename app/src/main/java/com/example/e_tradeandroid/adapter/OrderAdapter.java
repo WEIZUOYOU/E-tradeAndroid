@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.e_tradeandroid.R;
 import com.example.e_tradeandroid.model.TradeInfo;
+import com.example.e_tradeandroid.network.ApiClient;
 import com.example.e_tradeandroid.ui.TradeInfoActivity;
 
 import java.util.List;
@@ -61,7 +62,8 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
         
         // 商品图片
         if (order.getProductImage() != null && !order.getProductImage().isEmpty()) {
-            Glide.with(context).load(order.getProductImage()).into(holder.ivProduct);
+            String imageUrl = ApiClient.getImageUrl(order.getProductImage());
+            Glide.with(context).load(imageUrl).into(holder.ivProduct);
         }
         
         // 操作按钮
