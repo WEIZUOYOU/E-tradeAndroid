@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/background_light">
+    android:background="#F1F8E9">
 
     <!-- 主要内容区域 -->
     <LinearLayout
@@ -13,16 +13,16 @@
         android:layout_weight="1"
         android:orientation="vertical">
 
-        <!-- 顶部搜索栏 - 带阴影，悬浮效果 -->
+        <!-- 顶部搜索栏 - 带圆角和浅绿色边框 -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
             app:cardCornerRadius="24dp"
-            app:cardElevation="4dp"
-            app:cardBackgroundColor="@color/background_white"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="#FFFFFF"
             app:strokeWidth="1dp"
-            app:strokeColor="@color/primary_green_light">
+            app:strokeColor="#C8E6C9">
 
             <SearchView
                 android:id="@+id/search_view"
@@ -30,36 +30,49 @@
                 android:layout_height="wrap_content"
                 android:iconifiedByDefault="false"
                 android:queryHint="搜索商品..."
-                android:background="@android:color/transparent" />
+                android:background="@android:color/transparent"
+                android:padding="4dp" />
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- 分类模块 - 使用GridLayout让所有分类直接可见 -->
+        <!-- 商品分类标题 -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
-            android:layout_marginTop="8dp"
             android:layout_marginEnd="20dp"
             android:text="商品分类"
             android:textSize="18sp"
-            android:textColor="@color/text_primary"
+            android:textColor="#2E7D32"
             android:textStyle="bold" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/layout_categories"
+        <!-- 分类模块 - 包裹一层圆角卡片提升质感 -->
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
             android:layout_marginTop="8dp"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:paddingTop="4dp"
-            android:paddingBottom="4dp"
-            android:nestedScrollingEnabled="false" />
+            android:layout_marginEnd="16dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="1dp"
+            app:cardBackgroundColor="#FFFFFF"
+            app:strokeColor="#C8E6C9"
+            app:strokeWidth="1dp"
+            android:padding="8dp">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/layout_categories"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                android:overScrollMode="never"
+                android:padding="4dp" />
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- 分隔线 -->
-        <View android:layout_width="match_parent"
+        <View
+            android:layout_width="match_parent"
             android:layout_height="12dp"
-            android:background="@color/background_light" />
+            android:background="#F1F8E9" />
 
         <!-- 商品列表标题 -->
         <TextView
@@ -70,7 +83,7 @@
             android:text="全部商品"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="@color/text_primary" />
+            android:textColor="#2E7D32" />
 
         <!-- 商品列表 -->
         <FrameLayout
@@ -81,7 +94,8 @@
             <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
                 android:id="@+id/swipe_refresh"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recycler_view"
@@ -89,7 +103,6 @@
                     android:layout_height="match_parent"
                     android:padding="12dp"
                     android:clipToPadding="false" />
-
             </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
             <ProgressBar
@@ -97,12 +110,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:visibility="gone" />
-
+                android:visibility="gone"
+                android:indeterminateTint="#4CAF50" />
         </FrameLayout>
-
     </LinearLayout>
 
     <include layout="@layout/include_bottom_nav" />
-
 </LinearLayout>

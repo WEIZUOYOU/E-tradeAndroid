@@ -38,7 +38,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class MyProfileActivity extends AppCompatActivity {
-    private TextView tvStudentId, tvUsername, tvPhone, tvCreditScore, tvAuthStatus;
+    private TextView tvUsername, tvPhone, tvCreditScore, tvAuthStatus;
     private ImageView ivAvatar;
     private Button btnLogout, btnMyProducts, btnRealnameAuth, btnEditProfile, btnGoLogin, btnMyReviews, btnMyOrders;
     private LinearLayout layoutLoggedIn, layoutNotLoggedIn;
@@ -52,7 +52,6 @@ public class MyProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_profile);
 
-        tvStudentId = findViewById(R.id.tv_student_id);
         tvUsername = findViewById(R.id.tv_username);
         tvPhone = findViewById(R.id.tv_phone);
         tvCreditScore = findViewById(R.id.tv_credit_score);
@@ -135,7 +134,6 @@ public class MyProfileActivity extends AppCompatActivity {
         layoutNotLoggedIn.setVisibility(View.GONE);
         layoutLoggedIn.setVisibility(View.VISIBLE);
 
-        tvStudentId.setText("学号：" + (user.getStudentId() != null ? user.getStudentId() : ""));
         tvUsername.setText("用户名：" + (user.getUsername() != null ? user.getUsername() : ""));
         tvPhone.setText("手机：" + (user.getPhone() != null ? user.getPhone() : ""));
         tvCreditScore.setText("信用分：" + (user.getCreditScore() != null ? user.getCreditScore() : 0));
