@@ -41,7 +41,8 @@ public class MyProfileActivity extends AppCompatActivity {
     private TextView tvUsername, tvPhone, tvCreditScore, tvAuthStatus;
     private ImageView ivAvatar;
     private Button btnLogout, btnMyProducts, btnRealnameAuth, btnEditProfile, btnGoLogin, btnMyReviews, btnMyOrders;
-    private LinearLayout layoutLoggedIn, layoutNotLoggedIn;
+    private LinearLayout layoutLoggedIn;
+    private View layoutNotLoggedIn;
     private BottomNavigationView bottomNavigation;
     private Gson gson = new Gson();
     private static final int PICK_IMAGE_REQUEST = 1;

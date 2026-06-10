@@ -15,6 +15,11 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.google.android.flexbox.FlexDirection;
+import com.google.android.flexbox.FlexWrap;
+import com.google.android.flexbox.FlexboxLayoutManager;
+import com.google.android.flexbox.JustifyContent;
+
 import com.example.e_tradeandroid.R;
 import com.example.e_tradeandroid.adapter.ProductAdapter;
 import com.example.e_tradeandroid.model.BaseResponse;
@@ -82,12 +87,12 @@ public class MainActivity extends AppCompatActivity {
 
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
         
-        // 分类使用GridLayoutManager，每行4个，让所有分类直接可见
-        int categoryCount = 7; // 预计最多7个分类
-        int spanCount = Math.min(categoryCount, 4); // 最多4列
-        GridLayoutManager categoryLayoutManager = new GridLayoutManager(this, spanCount);
-        categoryLayoutManager.setAutoMeasureEnabled(true); // 允许RecyclerView根据内容自动调整高度
-        layoutCategories.setLayoutManager(categoryLayoutManager);
+        // 分类使用 FlexboxLayoutManager，自动换行，标签完整显示
+        FlexboxLayoutManager flexboxLayoutManager = new FlexboxLayoutManager(this);
+        flexboxLayoutManager.setFlexDirection(FlexDirection.ROW);
+        flexboxLayoutManager.setFlexWrap(FlexWrap.WRAP);
+        flexboxLayoutManager.setJustifyContent(JustifyContent.FLEX_START);
+        layoutCategories.setLayoutManager(flexboxLayoutManager);
 
         swipeRefresh.setOnRefreshListener(() -> {
             currentPage = 1;
@@ -199,17 +204,10 @@ public class MainActivity extends AppCompatActivity {
             Category category = categories.get(position);
             holder.chip.setText(category.getName());
             
-            // 设置选中状态
+            // 设置选中状态（selector 会自动处理背景和文字颜色）
             boolean isSelected = (selectedCategoryId != null && selectedCategoryId.equals(category.getId()))
                     || (selectedCategoryId == null && category.getId() != null && category.getId() == 0L);
             holder.chip.setChecked(isSelected);
-            
-            // 更新 Chip 文字颜色
-            if (isSelected) {
-                holder.chip.setTextColor(0xFFFFFFFF); // 白色
-            } else {
-                holder.chip.setTextColor(getResources().getColor(R.color.text_primary));
-            }
             
             holder.chip.setOnClickListener(v -> {
                 // 取消其他选中状态
@@ -232,10 +230,6 @@ public class MainActivity extends AppCompatActivity {
                     hasMoreData = true;
                     searchProducts(); // 使用搜索接口，带categoryId参数
                 }
-                
-                // 设置当前 Chip 为选中状态
-                holder.chip.setChecked(true);
-                holder.chip.setTextColor(0xFFFFFFFF);
             });
         }
         
